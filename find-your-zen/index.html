@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find your Zen | AquaZen</title>
+<meta name="description" content="Answer a few quick questions about who's soaking, how often and where. Shaun will look at your answers and call you to book a quiet visit.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="../assets/img/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body class="finder-page">
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="nav-logo" href="../" aria-label="AquaZen home"><img src="../assets/img/logo-word.png" alt="AquaZen" width="112" height="32"></a>
+    <a class="nav-call" href="tel:+12363044424">236-304-4424</a>
+  </div>
+</header>
+
+<main class="finder" id="finder">
+  <div class="finder-bar" aria-hidden="true"><span id="fzBar"></span></div>
+  <form id="fzForm" class="finder-form" novalidate>
+    <div id="fzStage" class="finder-stage" aria-live="polite"></div>
+    <div class="finder-actions">
+      <button type="button" class="link-btn" id="fzBack">Back</button>
+      <button type="button" class="pill" id="fzNext">Continue</button>
+    </div>
+    <p class="finder-err" id="fzErr" role="alert"></p>
+  </form>
+  <noscript><p class="finder-noscript">Find your Zen needs JavaScript. You can also call or text Shaun at 236-304-4424 or email shaun@aquazen.ca.</p></noscript>
+</main>
+
+<script src="../assets/js/finder.js"></script>
+</body>
+</html>
