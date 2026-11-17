@@ -86,6 +86,8 @@
   ];
 
   var answers = {};
+  // Came from a model page? Remember which tub caught their eye.
+  var fromModel = (function () { try { return (new URLSearchParams(location.search).get('model') || '').replace(/[^a-z-]/g, '').slice(0, 30); } catch (e) { return ''; } })();
   var others = {};
   var contact = { first: '', last: '', email: '', phone: '', city: '', time: '', emailOk: false, news: false, website: '' };
   var idx = 0;
@@ -250,10 +252,12 @@
     next.disabled = true;
     next.textContent = 'Sending…';
     var a = JSON.parse(JSON.stringify(answers));
+    if (fromModel) a.interested_in = fromModel;
     Object.keys(others).forEach(function (k) { if (a[k] === 'other') a[k + '_other'] = others[k].trim(); });
     // Drop answers to questions that ended up hidden
     STEPS.forEach(function (s) { if (s.showIf && !s.showIf(answers)) { delete a[s.id]; delete a[s.id + '_other']; } });
     var readable = {};
+    if (fromModel) readable['Came from the model page'] = fromModel.charAt(0).toUpperCase() + fromModel.slice(1);
     visible().forEach(function (s) {
       if (s.type === 'contact') return;
       var v = a[s.id];

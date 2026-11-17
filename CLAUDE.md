@@ -5,6 +5,8 @@ Static site for AquaZen (legal name Aqua Zen Wellness Consulting, operating as A
 - Products: Aquasolus (Canadian range at https://aquasolus.com/ca/). No O-Care (Lower Mainland water is soft). Photos in `assets/img/` came from Aquasolus.
 - Design: Apple-style product page. Black and #f5f5f7 sections, system font (SF Pro on Apple, Inter fallback), the logo's sunset gradient used only on "Find your Zen" headlines. Scroll effects in `assets/js/site.js` respect reduced motion.
 - Pages: `index.html` (home), `find-your-zen/` (the main CTA and lead capture). Styles in `assets/css/site.css`.
+- Hot tub pages are generated: never hand-edit `hot-tubs/`. Edit `src/tubs.json` (specs from aquasolus.com/ca, our own taglines and fit notes) or `build.py`, run `python3 build.py`, commit both. Series pages have the scroll scene (`assets/js/tubs.js`): overhead photos tilt and turn as you scroll. Model photos live in `assets/img/models/`. Vacation Series has no Canadian model pages yet, so it links to Find your Zen.
+- Model pages link to `/find-your-zen/?model=<slug>`; finder.js passes it to the lead as `interested_in`.
 - Brand language: Why, How, What (SCP / Start With Why). The Why is a place of peace at home; hot tub time is "Zen Time"; main CTA is "Find your Zen". Do not use "Stop going. Start being." Founder: over twenty years in the industry, last three consulting for hot tub stores. Never mention Bishop's.
 - Gap story: stores hold back on equipment to protect chemical and service revenue; AquaZen sells the right equipment from day one because the best experience keeps you busy.
 - Copy rules: no em dashes, Canadian spelling, Shaun's warm plain voice, no invented prices, statistics, reviews or customer stories. Every customer message explains why.
