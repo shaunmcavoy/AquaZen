@@ -87,7 +87,8 @@ Deno.serve(async (req) => {
     return json({ error: "Could not save" }, 500);
   }
 
-  const key = Deno.env.get("RESEND_API_KEY");
+  // The dashboard secret was saved as RESENC_API_KEY; accept either name.
+  const key = Deno.env.get("RESEND_API_KEY") || Deno.env.get("RESENC_API_KEY");
   if (!key) {
     console.error("RESEND_API_KEY not set; lead saved without emails", row.id);
     return json({ ok: true, emailed: false });
