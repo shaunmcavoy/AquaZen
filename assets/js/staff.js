@@ -492,7 +492,7 @@
     }).join('');
     var sub = price + num(s.sauna_total) + num(s.extras_total) + num(s.delivery_fee), full = s.payment_type === 'full';
     $('#presentSummary').innerHTML =
-      '<div class="present-top">' + (pic ? '<img src="/assets/img/' + pic.img + '.webp" alt="The ' + AZ.esc(s.tub_model) + ' ' + noun + '">' : '') +
+      '<div class="present-top">' + (pic ? '<img src="/assets/img/' + (pic.top || pic.img) + '.webp" alt="The ' + AZ.esc(s.tub_model) + ' ' + noun + ' from above">' : '') +
       '<div><p class="eyebrow">Prepared for ' + AZ.esc(c.name || '') + '</p><h2>' + AZ.esc((s.tub_make ? s.tub_make + ' ' : '') + (s.tub_model || '') + ' ' + noun) + '</h2>' +
       (AZ.savingsHtml(s) || '<p class="zenline"><span class="zen">' + AZ.money(price) + '</span></p>') +
       '</div></div>' +

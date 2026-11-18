@@ -504,13 +504,18 @@ def build_app():
             if os.path.exists(os.path.join(ROOT, "assets/img/models", ph + ".webp")):
                 return "models/" + ph
         return fallback
+    def top_for(name):
+        """The top-down photo, used on quotes and the signing page so the customer sees the tub itself."""
+        if os.path.exists(os.path.join(ROOT, "assets/img/models", name + ".webp")):
+            return "models/" + name
+        return name if os.path.exists(os.path.join(ROOT, "assets/img", name + ".webp")) else None
     tubs = [{"k": k, "n": m["name"], "line": series_by_slug(m["series"])["name"], "seats": m["people"],
              "jets": m["jets"], "power": m["power"]} for k, m in MODELS.items()]
     products = {
         "hot_tub": {"label": "Hot tub", "make": "AquaSolus", "groups": [
-            {"name": se["name"], "items": [{"n": MODELS[k]["name"], "img": img_for(MODELS[k]["photos"], "aquazen-interior")} for k in se["models"]]} for se in SERIES]},
+            {"name": se["name"], "items": [{"n": MODELS[k]["name"], "img": img_for(MODELS[k]["photos"], "aquazen-interior"), "top": top_for(ov(k, MODELS[k]))} for k in se["models"]]} for se in SERIES]},
         "swim_spa": {"label": "Swim spa", "make": "AquaSolus", "groups": [
-            {"name": "", "items": [{"n": SWIM[k]["name"], "img": img_for(SWIM[k]["photos"], "aquazen-swimspa-overhead")} for k in DATA["swimspas"]["models"]]}]},
+            {"name": "", "items": [{"n": SWIM[k]["name"], "img": img_for(SWIM[k]["photos"], "aquazen-swimspa-overhead"), "top": top_for(ov(k, SWIM[k])) or "aquazen-swimspa-overhead"} for k in DATA["swimspas"]["models"]]}]},
         "mini_pool": {"label": "Mini pool", "make": "AquaSolus", "groups": []},
     }
     data = f"<script>window.AZ_TUBS={json.dumps(tubs)};window.AZ_PRODUCTS={json.dumps(products)};</script>\n"

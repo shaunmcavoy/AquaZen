@@ -11,7 +11,7 @@
     var a = res.d, c = a.customer, kind = a.product_type || 'hot_tub', isSauna = kind === 'sauna', noun = AZ.noun(a); kindNoun = noun;
     var pic = AZ.productFor(kind, isSauna ? a.sauna_model : a.tub_model);
     $('#signTitle').textContent = 'Agreement #' + a.number;
-    var photo = pic ? '<img class="signphoto" src="/assets/img/' + pic.img + '.webp" alt="The ' + AZ.esc(pic.n) + ' ' + noun + '" width="560" height="560">' : '';
+    var photo = pic ? '<img class="signphoto" src="/assets/img/' + (pic.top || pic.img) + '.webp" alt="The ' + AZ.esc(pic.n) + ' ' + noun + '" width="560" height="560">' : '';
     var sub = Number(a.hot_tub_value) + Number(a.sauna_total) + Number(a.extras_total || 0) + Number(a.delivery_fee);
     var ex = Array.isArray(a.extras) ? a.extras : [], save = Number(a.msrp) > Number(a.hot_tub_value) && !isSauna ? Number(a.msrp) - Number(a.hot_tub_value) : 0;
     $('#agreement').innerHTML =
