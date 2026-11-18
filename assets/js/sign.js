@@ -12,7 +12,8 @@
     var pic = AZ.productFor(kind, isSauna ? a.sauna_model : a.tub_model);
     $('#signTitle').textContent = 'Agreement #' + a.number;
     var photo = pic ? '<img class="signphoto" src="/assets/img/' + pic.img + '.webp" alt="The ' + AZ.esc(pic.n) + ' ' + noun + '" width="560" height="560">' : '';
-    var sub = Number(a.hot_tub_value) + Number(a.sauna_total) + Number(a.delivery_fee);
+    var sub = Number(a.hot_tub_value) + Number(a.sauna_total) + Number(a.extras_total || 0) + Number(a.delivery_fee);
+    var ex = Array.isArray(a.extras) ? a.extras : [], save = Number(a.msrp) > Number(a.hot_tub_value) && !isSauna ? Number(a.msrp) - Number(a.hot_tub_value) : 0;
     $('#agreement').innerHTML =
       '<div class="card agree">' + photo +
       '<h2>' + AZ.esc([!isSauna && a.tub_model && ((a.tub_make ? a.tub_make + ' ' : '') + a.tub_model + ' ' + noun), a.sauna_model && ((isSauna && a.sauna_make ? a.sauna_make + ' ' : '') + a.sauna_model + ' sauna')].filter(Boolean).join(' and ')) + '</h2>' +
@@ -21,8 +22,8 @@
       (!isSauna && a.tub_model ? '<h3>' + AZ.cap(noun) + '</h3><dl class="kv">' + row('Make', a.tub_make) + row('Model', a.tub_model) + row('Shell colour', a.shell_colour) + row('Siding', a.siding) + row('Water care', a.water_care) + row('Stereo', a.stereo) + row('Starter kit', a.starter_kit) + row('Steps', a.steps) + row('Lifter', a.lifter) + row('Cover', a.spa_cover) + row('Other', a.other) + row('Delivery notes', a.est_delivery) + '</dl>' : '') +
       (a.sauna_model ? '<h3>Sauna</h3><dl class="kv">' + row('Make', a.sauna_make) + row('Model', a.sauna_model) + row('Electrical', a.sauna_electrical) + (isSauna ? row('Other', a.other) + row('Delivery notes', a.est_delivery) : '') + '</dl>' : '') +
       (a.notes ? '<h3>Notes</h3><p>' + AZ.esc(a.notes) + '</p>' : '') +
-      '<h3>Price</h3><dl class="sums">' +
-      [[AZ.cap(isSauna ? 'sauna' : noun), isSauna ? a.sauna_total : a.hot_tub_value], [isSauna ? '' : 'Sauna', isSauna ? 0 : a.sauna_total], ['Delivery', a.delivery_fee], ['Subtotal', sub], [Number(a.tax_rate) === 0.12 ? 'GST 5% + PST 7%' : 'Tax (' + Math.round(a.tax_rate * 100) + '%)', a.tax], ['Total', a.total, 1], [a.payment_type === 'full' ? 'Paid in full on signing' : 'Paid online on signing', a.deposit], ['Balance ' + ({ cash: 'paid in cash', cheque: 'paid by cheque', financing: 'through financing' }[a.balance_method] || 'due before delivery'), a.balance, 1]]
+      '<h3>Price</h3>' + (save ? '<p class="zenprice">MSRP <s>' + AZ.money(a.msrp) + '</s> &nbsp; Your Zen price <b>' + AZ.money(a.hot_tub_value) + '</b> &nbsp; You save <b>' + AZ.money(save) + '</b></p>' : '') + '<dl class="sums">' +
+      [[AZ.cap(isSauna ? 'sauna' : noun), isSauna ? a.sauna_total : a.hot_tub_value], [isSauna ? '' : 'Sauna', isSauna ? 0 : a.sauna_total]].concat(ex.map(function (x) { return [AZ.esc(x.name), x.price]; })).concat([['Delivery', a.delivery_fee], ['Subtotal', sub], [Number(a.tax_rate) === 0.12 ? 'GST 5% + PST 7%' : 'Tax (' + Math.round(a.tax_rate * 100) + '%)', a.tax], ['Total', a.total, 1], [a.payment_type === 'full' ? 'Paid in full on signing' : 'Paid online on signing', a.deposit], ['Balance ' + ({ cash: 'paid in cash', cheque: 'paid by cheque', financing: 'through financing' }[a.balance_method] || 'due before delivery'), a.balance, 1]])
         .filter(function (r) { return r[2] || Number(r[1]) > 0 || r[0] === 'Subtotal'; })
         .map(function (r) { return '<div' + (r[2] ? ' class="strong"' : '') + '><dt>' + r[0] + '</dt><dd>' + AZ.money(r[1]) + '</dd></div>'; }).join('') + '</dl>' +
       '<p class="muted small">Payment ' + ({ card: 'by credit card', bank: 'by bank transfer' }[a.pay_methods] || 'by card or bank transfer') + ' through a secure QuickBooks link, sent to you once you sign.</p>' +

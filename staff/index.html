@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/assets/img/icon-512.png">
-<link rel="stylesheet" href="/assets/css/app.css?v=eaced655">
+<link rel="stylesheet" href="/assets/css/app.css?v=34ac0782">
 </head>
 <body class="app app-staff">
 <header class="apptop"><div class="wrap"><a href="/" aria-label="AquaZen home"><img src="/assets/img/logo-word.png" alt="AquaZen" width="104" height="30"></a><a href="tel:+12363044424">236-304-4424</a></div></header>
@@ -162,7 +162,13 @@
           <label>Notes (if it's an in-stock unit, note the SKU)<textarea name="notes" rows="3"></textarea></label>
         </fieldset>
 
+        <fieldset class="card" id="dealExtras"><legend>Add-ons</legend>
+          <p class="muted small">Tick what the customer is getting. The price fills in, and you can change it.</p>
+          <div class="extras" id="extrasList"><p class="muted small">Loading add-ons...</p></div>
+        </fieldset>
+
         <fieldset class="card pricing"><legend>Pricing</legend>
+          <div class="dealprice" id="dealPrice" hidden></div>
           <div class="grid2">
             <div class="grid2 inner">
               <label id="mainPriceLabel"><span class="lbl">Hot tub value</span><input name="hot_tub_value" type="number" min="0" step="0.01" inputmode="decimal"></label>
@@ -176,6 +182,8 @@
             <p class="muted small span2">The customer's QuickBooks invoice is for exactly this amount, and the pay page only offers the payment method chosen here.</p>
             <dl class="sums" id="sums"></dl>
           </div>
+          <p class="floorwarn" id="floorWarn" role="alert" hidden></p>
+          <div class="dealpanel" id="dealPanel" hidden></div>
         </fieldset>
 
         <div class="formactions">
@@ -324,7 +332,7 @@
         <p class="muted small">Each line has a <b>pad</b> that covers exchange, freight, operations, marketing and the rest. A salesperson only ever sees the <b>sales cost</b>: our true cost plus the pad. Their <b>GP</b> is the selling price minus the sales cost, and they earn the commission below on that GP once the deal is paid in full. True costs and pads are only visible to admins.</p>
         <div class="grid3 pricing-settings">
           <label>Commission on GP (%)<input id="setCommission" type="number" min="0" max="100" step="0.5" inputmode="decimal"></label>
-          <label>Lowest margin allowed (%)<input id="setMargin" type="number" min="0" max="95" step="0.5" inputmode="decimal"><span class="hint">GP as a share of the selling price. A hard rule for hot tubs, swim spas and mini pools. Add-ons can sit below it.</span></label>
+          <label>Price floor: margin over true cost (%)<input id="setMargin" type="number" min="0" max="95" step="0.5" inputmode="decimal"><span class="hint">Hot tubs, swim spas and mini pools can't sell for less than true cost at this margin. Salespeople never see it until they go under, then they're told the lowest price. Add-ons have no floor.</span></label>
           <div class="toggle-field"><span class="lbl">Prices on the website</span><label class="switch big"><input type="checkbox" id="setWebsite"><span id="setWebsiteLbl">Hidden</span></label><span class="hint">Shows MSRP and the Zen price on each model.</span></div>
         </div>
       </div>
@@ -366,7 +374,7 @@
         </thead><tbody id="costRows"><tr><td colspan="13" class="empty">Loading...</td></tr></tbody></table></div>
       </div>
 
-      <div class="card" id="addonCard">
+      <div class="card" id="extrasCard">
         <h3>Add-ons</h3>
         <p class="muted small">Cover lifters, steps, delivery and anything else we sell with a tub. Each one has a true cost, a pad and a sale price, worked out the same way as the tubs. Switch "We offer this" off to stop offering something without losing its numbers.</p>
         <div class="costbar"><span></span><button class="btn btn-line" type="button" id="addonAddOpen">Add an add-on</button></div>
@@ -413,6 +421,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js?v=baf3debe"></script>
-<script src="/assets/js/staff.js?v=6386947b"></script>
+<script src="/assets/js/staff.js?v=9cf438ad"></script>
 </body>
 </html>

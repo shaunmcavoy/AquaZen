@@ -78,7 +78,19 @@ export async function buildAgreementPdf(opts: {
     row([["Shell colour", sale.shell_colour, 0.34], ["Siding", sale.siding, 0.33], ["Water care", sale.water_care, 0.33]]);
     row([["Stereo", sale.stereo, 0.34], ["Starter kit", sale.starter_kit, 0.33], ["Steps", sale.steps, 0.33]]);
     row([["Lifter", sale.lifter, 0.34], ["Cover", sale.spa_cover, 0.33], ["Other", sale.other, 0.33]]);
-    row([[valueLabel, money(sale.hot_tub_value), 0.34], ["", "", 0.66]]);
+    const msrp = Number(sale.msrp ?? 0), zen = Number(sale.hot_tub_value);
+    row(msrp > zen
+      ? [["MSRP", money(msrp), 0.34], ["Your Zen price", money(zen), 0.33], ["You save", money(msrp - zen), 0.33]]
+      : [[valueLabel, money(sale.hot_tub_value), 0.34], ["", "", 0.66]]);
+    const extras: { name: string; price: number }[] = Array.isArray(sale.extras) ? sale.extras : [];
+    if (extras.length) {
+      section("ADD-ONS");
+      for (let i = 0; i < extras.length; i += 3) {
+        const cells = extras.slice(i, i + 3).map((x) => [String(x.name), money(x.price), 0.33] as [string, string, number]);
+        while (cells.length < 3) cells.push(["", "", 0.33]);
+        row(cells);
+      }
+    }
   }
 
   if (kind === "sauna" || sale.sauna_model || Number(sale.sauna_total) > 0) {
@@ -96,9 +108,10 @@ export async function buildAgreementPdf(opts: {
   for (const ln of wrap(notes, font, 9, 318).slice(0, 9)) { page.drawText(ln, { x: M + 6, y: ny, size: 9, font, color: ink }); ny -= 11; }
   const mx = W - M - 170;
   const sums: [string, string, boolean][] = [
-    ["Total", money(Number(sale.hot_tub_value) + Number(sale.sauna_total)), false],
+    ["Products", money(Number(sale.hot_tub_value) + Number(sale.sauna_total)), false],
+    ...(Number(sale.extras_total ?? 0) > 0 ? [["Add-ons", money(sale.extras_total), false] as [string, string, boolean]] : []),
     ["Delivery", money(sale.delivery_fee), false],
-    ["Subtotal", money(Number(sale.hot_tub_value) + Number(sale.sauna_total) + Number(sale.delivery_fee)), false],
+    ["Subtotal", money(Number(sale.hot_tub_value) + Number(sale.sauna_total) + Number(sale.extras_total ?? 0) + Number(sale.delivery_fee)), false],
     [Number(sale.tax_rate) === 0.12 ? "GST 5% + PST 7%" : `Tax (${(Number(sale.tax_rate) * 100).toFixed(0)}%)`, money(sale.tax), false],
     ["Total", money(sale.total), true],
     [payTerms(sale).full ? "Paid in full" : "Deposit", money(sale.deposit), false],
