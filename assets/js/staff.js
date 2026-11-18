@@ -493,7 +493,7 @@
       '<div><p class="eyebrow">Prepared for ' + AZ.esc(c.name || '') + '</p><h2>' + AZ.esc((s.tub_make ? s.tub_make + ' ' : '') + (s.tub_model || '') + ' ' + noun) + '</h2>' +
       (save ? '<p class="zenline"><span>MSRP <s>' + AZ.money(msrp) + '</s></span><span class="zen">Your Zen price ' + AZ.money(price) + '</span><span class="save">You save ' + AZ.money(save + exSave) + '</span></p>' : '<p class="zenline"><span class="zen">' + AZ.money(price) + '</span></p>') +
       '</div></div>' +
-      '<div class="present-cols"><div><h3>Your ' + noun + '</h3><dl class="kv">' + row('Shell colour', s.shell_colour) + row('Siding', s.siding) + row('Water care', s.water_care) + row('Stereo', s.stereo) + row('Starter kit', s.starter_kit) + row('Cover', s.spa_cover) + row('Other', s.other) + '</dl>' +
+      '<div class="present-cols"><div>' + (function () { var d = row('Shell colour', s.shell_colour) + row('Siding', s.siding) + row('Water care', s.water_care) + row('Stereo', s.stereo) + row('Starter kit', s.starter_kit) + row('Cover', s.spa_cover) + row('Other', s.other); return d ? '<h3>Your ' + noun + '</h3><dl class="kv">' + d + '</dl>' : ''; })() +
       (exRows ? '<h3>Add-ons</h3><dl class="sums">' + exRows + '</dl>' : '') + '</div>' +
       '<div><h3>Your price</h3><dl class="sums">' +
       '<div><dt>' + AZ.cap(noun) + '</dt><dd>' + AZ.money(price) + '</dd></div>' +
