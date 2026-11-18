@@ -150,7 +150,7 @@ def inject_home_header():
 def built(kind):
     """The three things that set Aquasolus apart, written for the Lower Mainland."""
     if kind == "tub":
-        water = ("Water this clean takes more than ozone.", "A typical hot tub takes about 45 minutes to move all its water through the filter and ozone. With four to five times more water flowing through the jets, an Aquasolus does it in under 10. The ozone is held under water in a mixing chamber for at least 45 seconds, then the water passes a UV light. Cleaner water, fewer chemicals.")
+        water = ("Water this clean takes more than ozone.", "A typical hot tub takes about 45 minutes to move all its water through the filter and ozone. With four to five times more water flowing through the jets, an Aquasolus does it in under 10. Every series has a double ozonator: ozone held under water in a mixing chamber for at least 45 seconds, then a UV stage. Cleaner water, fewer chemicals.")
         build = ("Build quality, second to none.", "A 304 stainless steel frame that won't rot or rust, on a structured ABS base pan that seals and protects the bottom of the tub. Built for the longest life you can get.")
     else:
         water = ("Clean water, simply.", "Ozone water care comes standard, and soft Lower Mainland water keeps the routine short. We show you exactly how before delivery.")
@@ -460,7 +460,7 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
       <div><dt>Power</dt><dd>{e(m['power'])}</dd></div>
       <div><dt>Pumps</dt><dd>{e(m['pumps'])}</dd><dd class="spec-sub">Plus a circulation pump</dd></div>
       <div><dt>Heater and controls</dt><dd>{e(m['heater'])}</dd><dd class="spec-sub">{e(m['panel'])} control panel</dd></div>
-      <div><dt>Water care</dt><dd>{'Ozone with a 45-second mixing chamber, then UV' if kind == 'tub' else 'Ozone, standard'}</dd><dd class="spec-sub">{'Plus Gecko WaterLab real-time monitoring' if s['slug'] == 'series-three' else 'Simple with soft Lower Mainland water'}</dd></div>
+      <div><dt>Water care</dt><dd>{'Double ozonator: ozone with a 45-second mixing chamber, then UV' if kind == 'tub' else 'Ozone, standard'}</dd><dd class="spec-sub">{'Plus Gecko WaterLab real-time monitoring' if s['slug'] == 'series-three' else 'Simple with soft Lower Mainland water'}</dd></div>
       <div><dt>Efficiency</dt><dd>AQ10 full insulation</dd><dd class="spec-sub">Heat from the pumps is kept in and put back into the water</dd></div>
       <div><dt>Shell colours</dt><dd class="swatches"><span><img src="{IMG}swatch-sterling.webp" alt="" width="28" height="28">Sterling Silver</span><span><img src="{IMG}swatch-odyssey.webp" alt="" width="28" height="28">Odyssey Grey</span></dd></div>
       <div><dt>Built to last</dt><dd>{'304 stainless steel frame on a structured ABS base pan' if kind == 'tub' else '304 stainless steel frame'}</dd><dd class="spec-sub">{e(DATA['warranty'])}</dd></div>
