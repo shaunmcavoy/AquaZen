@@ -54,12 +54,23 @@
       $(s, '.o-bubbles').classList.toggle('on', p > 0.18);
     },
     energy: function (s, p) {
-      var press = seg(p, 0.15, 0.4), tub = seg(p, 0.8, 0.86);
+      var press = seg(p, 0.2, 0.5);
       $(s, '.e-needle-48').setAttribute('transform', 'rotate(' + lerp(-70, 62, press) + ')');
       $(s, '.e-needle-56').setAttribute('transform', 'rotate(' + lerp(-70, -48, press) + ')');
       $(s, '.e-flow-48').classList.toggle('jitter', press > 0.5);
-      $(s, '.e-pumps').style.opacity = 1 - tub;
-      $(s, '.e-tub').style.opacity = tub;
+    },
+    insulation: function (s, p) {
+      var k = Math.min(5, Math.floor(p * 6 * 0.999));
+      var show = function (sel, on) { $$(s, sel).forEach(function (g) { g.style.opacity = on ? 1 : 0; }); };
+      show('.i-foam', k < 2);
+      show('.i-leak', k === 1);
+      show('.i-aq10', k >= 2);
+      show('.i-heat', k === 3 || k === 5);
+      show('.i-air', k === 4);
+      show('.i-frame', k >= 4);
+      show('.i-six', k === 5);
+      $(s, '.i-cover').setAttribute('fill', k === 5 ? '#f0bf33' : '#3a3a3c');
+      $(s, '.i-cap').textContent = ['A typical full-foam cabinet', '', 'AQ10: insulated edges, open space inside', 'Pump heat stays in and warms the water', 'Room to breathe, on a stainless steel frame', ''][k];
     }
   };
 
