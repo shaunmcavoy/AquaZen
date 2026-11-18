@@ -191,7 +191,7 @@ FOOT = """
 <footer class="foot">
   <div class="wrap foot-in">
     <img src="/assets/img/logo-full.png" alt="AquaZen" width="167" height="101" loading="lazy">
-    <p class="foot-tag">Find your Zen.</p>
+    <p class="foot-tag">Your Zen is calling.</p>
     <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC.</p>
     <p><a class="plain" href="tel:+12363044424">236-304-4424</a> &nbsp; <a class="plain" href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
     <p>Hot tub photos and specifications courtesy of Aquasolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>

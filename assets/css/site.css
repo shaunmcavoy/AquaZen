@@ -79,7 +79,8 @@ a{color:inherit}
 
 /* Highlights rail */
 .highlights{background:var(--mist);color:var(--ink);padding:120px 0 100px}
-.highlights .h2{margin-bottom:48px}
+.highlights .h2{margin-bottom:0}
+.highlights .lede{margin:16px 0 48px;color:var(--muted,#6e6e73)}
 .rail{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 max(16px,calc((100vw - 1080px)/2));scroll-padding-inline:max(16px,calc((100vw - 1080px)/2));scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
 .card{flex:0 0 min(400px,82vw);scroll-snap-align:start;background:var(--paper);border-radius:var(--r-lg);overflow:hidden;display:flex;flex-direction:column}
