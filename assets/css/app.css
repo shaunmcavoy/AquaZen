@@ -343,7 +343,7 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .savings{margin:12px 0 0;max-width:460px}
 .sv-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.98rem}
 .sv-row s{color:var(--muted)}
-.sv-bonus{border:0;margin:6px 0;padding:10px 14px;border-radius:12px;color:#fff;font-weight:600;background:linear-gradient(90deg,#e8572b 0%,#f0a92b 45%,#3f9e8f 100%);box-shadow:0 6px 18px rgba(232,87,43,.25)}
+.sv-bonus{border:0;margin:6px 0;padding:10px 14px;border-radius:12px;color:#fff;font-weight:600;background:linear-gradient(90deg,#d9481f 0%,#d9822b 50%,#2f8f80 100%);text-shadow:0 1px 2px rgba(0,0,0,.18);box-shadow:0 6px 18px rgba(232,87,43,.25)}
 .sv-bonus b{font-size:1.15rem;white-space:nowrap}
 .sv-price{border-bottom:0;font-size:1.1rem}
 .sv-price b{font-size:1.6rem;letter-spacing:-.02em}
