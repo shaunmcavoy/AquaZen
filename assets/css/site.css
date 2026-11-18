@@ -31,6 +31,7 @@ a{color:inherit}
 
 /* Type scale */
 .display{font-size:clamp(44px,8vw,96px);line-height:1.04;font-weight:700;letter-spacing:-.04em;margin:0}
+.display-md{font-size:clamp(38px,6vw,72px);text-wrap:balance}
 .h2{font-size:clamp(32px,5vw,56px);line-height:1.07;font-weight:700;letter-spacing:-.035em;margin:0}
 .lede{font-size:clamp(19px,2.2vw,24px);line-height:1.4;font-weight:500;color:var(--dim);max-width:34em;margin:24px auto 0;letter-spacing:-.02em}
 .lede-sm{font-size:clamp(17px,1.8vw,21px)}
