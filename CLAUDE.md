@@ -9,6 +9,7 @@ Static site for AquaZen (legal name Aqua Zen Wellness Consulting, operating as A
 - Model pages link to `/find-your-zen/?model=<slug>`; finder.js passes it to the lead as `interested_in`.
 - Brand language: Why, How, What (SCP / Start With Why). The Why is a place of peace at home; hot tub time is "Zen Time"; main CTA is "Find your Zen". Do not use "Stop going. Start being." Founder: over twenty years in the industry, last three consulting for hot tub stores. Never mention Bishop's.
 - Tagline: "Your Zen is calling." (footer, title). The why is about the customer: choosing a better evening, disconnecting on purpose. All selling backs it with evidence that the tub delivers the four expectations: luxury, healthy low-maintenance water, eco-friendly and energy efficient, a massage that releases tension. AquaZen exists to exceed what people expect owning a hot tub to be.
+- Pumps: 240V hot tubs use 56-frame pumps (pitch is why we use the bigger pump, not a claim). 120V tubs do not need them; 120V and 240V are different customers and different pitches, so never say "every tub" has 56-frame pumps.
 - Gap story: stores hold back on equipment to protect chemical and service revenue; AquaZen sells the right equipment from day one because the best experience keeps you busy.
 - Copy rules: no em dashes, Canadian spelling, Shaun's warm plain voice, no invented prices, statistics, reviews or customer stories. Every customer message explains why.
 - Find your Zen recommendations are computed in `assets/js/finder.js` and sent to Shaun only, never shown to the customer.
