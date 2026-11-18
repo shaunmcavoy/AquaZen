@@ -201,7 +201,7 @@
         $('#doneText').textContent = (current.signing_method === 'paper'
           ? 'Signed on paper, recorded ' + AZ.dateTime(current.customer_signed_at) + '. '
           : (current.customer_typed_name || 'The customer') + ' signed on ' + AZ.dateTime(current.customer_signed_at) + '. ') +
-          'They were emailed their copy, the pre-delivery guide, the owner\'s manual and a link to their portal.';
+          'They were emailed their copy, how to get their spot ready and a link to their portal.';
       }
       // Admins can delete any sale (tests, deals that fell through). Salespeople keep the Delete draft button.
       $('#saleDanger').hidden = me.profile.role !== 'admin';
@@ -644,7 +644,7 @@
   // ---------- Profit and margin (admins only) ----------
   // Costs live in their own admin-only tables (sale_costs, product_costs), never on the sale itself,
   // so salespeople and customers can't read them.
-  var DELIVERY_COST = 350; // what a delivery costs us, filled in on each new deal
+  var DELIVERY_COST = ''; // set this once Shaun knows what a delivery usually costs us
   var COSTF = ['product_cost', 'sauna_cost', 'warehouse_shipping', 'delivery_cost', 'other_costs'];
   var costList = null;
   function getCostList() {
@@ -690,7 +690,7 @@
         pf.delivery_cost.value = DELIVERY_COST;
         if (mainList.length === 1) pf.product_cost.value = mainList[0].cost;
         if (addList.length === 1) pf.sauna_cost.value = addList[0].cost;
-        $('#profitMsg').textContent = (mainList.length === 1 ? 'Cost filled in from the cost list, and delivery at $350. ' : 'Delivery filled in at $350. ') + 'Add shipping and anything else, then save.';
+        $('#profitMsg').textContent = (mainList.length === 1 ? 'Cost filled in from the cost list. ' : '') + 'Add freight, delivery and anything else, then save.';
       }
       profitSums();
     });

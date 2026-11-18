@@ -242,3 +242,4 @@ label.inline input{width:110px}
 .delwin small{display:block;color:var(--muted);font-weight:400}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .delwin{border:0;padding:0}
+label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
