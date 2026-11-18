@@ -275,3 +275,6 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .pricetable .pct.warn{color:#c0392b;font-weight:600}
 .pricetable tr.low .model{color:#c0392b}
 .lowtag{display:block;font-size:.75rem;font-weight:500;color:#c0392b;white-space:normal;margin-top:2px;max-width:180px}
+.pricetable thead th{white-space:nowrap;vertical-align:bottom}
+.pricetable .grouphead th{padding-top:10px;padding-bottom:0;height:auto}
+.pricetable td.model{min-width:170px;white-space:normal}
