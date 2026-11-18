@@ -243,3 +243,16 @@ label.inline input{width:110px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .delwin{border:0;padding:0}
 label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
+
+/* Price list */
+.costbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:18px 0 10px}
+.costbar .seg{display:flex;flex-wrap:wrap;gap:6px}
+.costbar .seg button{font:inherit;font-size:.9rem;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer}
+.costbar .seg button.on{background:var(--ink,#1d1d1f);color:#fff;border-color:transparent}
+.costadd{margin:0 0 16px;padding:16px;border:1px solid var(--line);border-radius:12px}
+.costtable input{width:110px}
+.costtable .model{font-weight:600;white-space:nowrap}
+.costtable .margin{white-space:nowrap}
+.costtable .margin b{display:block}
+.costtable .margin b.neg{color:#c0392b}
+.costtable .margin .pct{font-size:.8rem;color:var(--muted)}

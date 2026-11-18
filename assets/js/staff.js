@@ -656,7 +656,7 @@
   var costList = null;
   function getCostList() {
     if (costList) return Promise.resolve(costList);
-    return sb.from('product_costs').select('id,product_type,model,cost,note').order('product_type').order('model').then(function (r) { costList = r.data || []; return costList; });
+    return sb.from('product_costs').select('id,product_type,model,cost,msrp,sale_price,note').order('product_type').order('model').then(function (r) { costList = r.data || []; return costList; });
   }
   function revenueOf(s) { return num(s.hot_tub_value) + num(s.sauna_total) + num(s.delivery_fee); }
   function costOf(c) { return COSTF.reduce(function (t, k) { return t + num(c && c[k]); }, 0); }
@@ -865,28 +865,64 @@
 
   // ---------- Cost list (Team tab, admins) ----------
   var CAT = { hot_tub: 'Hot tub', swim_spa: 'Swim spa', mini_pool: 'Mini pool', sauna: 'Sauna' };
+  var costCat = '';
+  function marginCell(c) {
+    var price = c.sale_price != null ? +c.sale_price : c.msrp != null ? +c.msrp : null, cost = +c.cost || 0;
+    if (price == null || !price) return '<span class="muted">Add a price</span>';
+    var m = price - cost, pct = Math.round(m / price * 1000) / 10;
+    return '<b class="' + (m < 0 ? 'neg' : '') + '">' + AZ.money(m) + '</b><span class="pct">' + pct + '%' + (c.sale_price == null ? ' at MSRP' : '') + '</span>';
+  }
+  function moneyInput(c, f, label) {
+    var v = c[f] == null ? '' : c[f];
+    return '<td class="num"><input type="number" step="0.01" min="0" inputmode="decimal" data-f="' + f + '" value="' + v + '" aria-label="' + label + ' of ' + AZ.esc(c.model) + '"></td>';
+  }
   function loadCosts() {
     costList = null;
     getCostList().then(function (list) {
-      $('#costRows').innerHTML = list.length ? list.map(function (c) {
-        return '<tr data-cost="' + c.id + '"><td>' + CAT[c.product_type] + '</td><td>' + AZ.esc(c.model) + '</td><td class="num"><input type="number" step="0.01" min="0" value="' + c.cost + '" aria-label="Cost of ' + AZ.esc(c.model) + '"></td><td class="src">' + AZ.esc(c.note || '') + '</td><td><button class="linkbtn" type="button" data-del="' + c.id + '">Remove</button></td></tr>';
-      }).join('') : '<tr><td colspan="5" class="empty">No costs yet. Upload a spreadsheet to get started.</td></tr>';
+      var rows = list.filter(function (c) { return !costCat || c.product_type === costCat; });
+      $('#costRows').innerHTML = rows.length ? rows.map(function (c) {
+        return '<tr data-cost="' + c.id + '"><td>' + (CAT[c.product_type] || c.product_type) + '</td><td class="model">' + AZ.esc(c.model) + '</td>' +
+          moneyInput(c, 'cost', 'Cost') + moneyInput(c, 'msrp', 'MSRP') + moneyInput(c, 'sale_price', 'Sale price') +
+          '<td class="num margin">' + marginCell(c) + '</td><td class="src">' + AZ.esc(c.note || '') + '</td><td><button class="linkbtn" type="button" data-del="' + c.id + '">Remove</button></td></tr>';
+      }).join('') : '<tr><td colspan="8" class="empty">' + (list.length ? 'Nothing in this category yet.' : 'No models yet. Upload your price sheet, or add a model.') + '</td></tr>';
     });
   }
+  $('#costCat').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cat]'); if (!b) return;
+    costCat = b.dataset.cat; $$('#costCat button').forEach(function (x) { x.classList.toggle('on', x === b); }); loadCosts();
+  });
   $('#costRows').addEventListener('change', function (e) {
-    var tr = e.target.closest('tr[data-cost]'); if (!tr || !e.target.matches('input')) return;
-    sb.from('product_costs').update({ cost: num(e.target.value), note: 'Edited in the portal', updated_at: new Date().toISOString(), updated_by: me.user.id }).eq('id', tr.dataset.cost)
-      .then(function (r) { if (r.error) return AZ.toast(r.error.message); AZ.toast('Cost updated'); tr.querySelector('.src').textContent = 'Edited in the portal'; costList = null; });
+    var tr = e.target.closest('tr[data-cost]'); if (!tr || !e.target.matches('input[data-f]')) return;
+    var f = e.target.dataset.f, raw = e.target.value.trim(), d = { updated_at: new Date().toISOString(), updated_by: me.user.id };
+    d[f] = f === 'cost' ? num(raw) : (raw === '' ? null : num(raw));
+    if (f === 'cost') d.note = 'Edited in the portal';
+    sb.from('product_costs').update(d).eq('id', tr.dataset.cost).select('id,product_type,model,cost,msrp,sale_price,note').single().then(function (r) {
+      if (r.error) return AZ.toast(r.error.message);
+      AZ.toast({ cost: 'Cost', msrp: 'MSRP', sale_price: 'Sale price' }[f] + ' saved');
+      tr.querySelector('.margin').innerHTML = marginCell(r.data);
+      if (f === 'cost') tr.querySelector('.src').textContent = 'Edited in the portal';
+      costList = null;
+    });
   });
   $('#costRows').addEventListener('click', function (e) {
     var b = e.target.closest('[data-del]'); if (!b) return;
     if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again'; setTimeout(function () { b.dataset.confirm = ''; b.textContent = 'Remove'; }, 4000); return; }
     sb.from('product_costs').delete().eq('id', b.dataset.del).then(function (r) { if (r.error) return AZ.toast(r.error.message); loadCosts(); });
   });
+  $('#costAddOpen').addEventListener('click', function () { var f = $('#costAdd'); f.hidden = false; f.reset(); if (costCat) f.product_type.value = costCat; f.model.focus(); });
+  $('#costAddCancel').addEventListener('click', function () { $('#costAdd').hidden = true; });
+  $('#costAdd').addEventListener('submit', function (e) {
+    e.preventDefault(); var f = e.target, opt = function (v) { return v.trim() === '' ? null : num(v); };
+    sb.from('product_costs').insert({ product_type: f.product_type.value, model: f.model.value.trim(), cost: num(f.cost.value), msrp: opt(f.msrp.value), sale_price: opt(f.sale_price.value), note: 'Added in the portal', updated_by: me.user.id })
+      .then(function (r) {
+        if (r.error) return AZ.toast(/duplicate|unique/i.test(r.error.message) ? 'That model is already on the list.' : r.error.message);
+        AZ.toast(f.model.value.trim() + ' added'); f.hidden = true; loadCosts();
+      });
+  });
   $('#costDownload').addEventListener('click', function () {
     getCostList().then(function (list) {
-      var csv = 'Category,Model,Cost (CAD),Source\n' + list.map(function (c) { return [CAT[c.product_type], c.model, c.cost, c.note || ''].map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
-      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'aquazen-cost-list.csv'; a.click();
+      var csv = 'Category,Model,Cost (CAD),MSRP,Sale price,Margin,Source\n' + list.map(function (c) { var pr = c.sale_price != null ? +c.sale_price : c.msrp != null ? +c.msrp : null; return [CAT[c.product_type], c.model, c.cost, c.msrp == null ? '' : c.msrp, c.sale_price == null ? '' : c.sale_price, pr ? (pr - c.cost).toFixed(2) : '', c.note || ''].map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'aquazen-price-list.csv'; a.click();
     });
   });
   function loadXlsx() {
@@ -913,6 +949,8 @@
     if (cCol < 0) { cCol = pick(function (t) { return /landed/.test(t) && /usd/.test(t); }); usd = cCol >= 0; }
     if (cCol < 0) { cCol = pick(function (t) { return /cost|trade|price/.test(t) && !/retail|sale|msrp|map/.test(t); }); usd = cCol >= 0 && /usd/.test(h[cCol]); }
     catCol = pick(function (t) { return /^(category|type|product)/.test(t); });
+    var msrpCol = pick(function (t) { return /msrp|retail/.test(t); }), saleCol = pick(function (t) { return /sale ?price|selling|our price/.test(t); });
+    var money = function (x) { var n = typeof x === 'number' ? x : parseFloat(String(x == null ? '' : x).replace(/[$,\s]/g, '')); return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null; };
     if (cCol < 0) return { error: 'No cost column found in ' + sheetName + '.' };
     var sheetCat = catOf(sheetName);
     for (var n = hdr + 1; n < rows.length; n++) {
@@ -924,6 +962,7 @@
       var model = name.replace(/\s+Professional\b/i, ' Pro').replace(/^Palmero$/i, 'Palermo');
       var cat = (catCol >= 0 && catOf(row[catCol])) || sect || sheetCat || 'hot_tub';
       out.push({ product_type: cat, model: model, cost: Math.round((usd ? cost * rate : cost) * 100) / 100,
+        msrp: msrpCol >= 0 && msrpCol !== cCol ? money(row[msrpCol]) : null, sale_price: saleCol >= 0 && saleCol !== cCol ? money(row[saleCol]) : null,
         note: sheetName + ': ' + String(rows[hdr][cCol]).replace(/\s+/g, ' ').trim() + (usd ? ' x ' + rate : '') });
     }
     return { rows: out };
@@ -959,6 +998,8 @@
       var now = new Date().toISOString(), ins = [], ups = [];
       rows.forEach(function (r) {
         var d = { product_type: r.product_type, model: r.model, cost: r.cost, note: r.note, updated_at: now, updated_by: me.user.id };
+        if (r.msrp != null) d.msrp = r.msrp;
+        if (r.sale_price != null) d.sale_price = r.sale_price;
         var id = have[key(r.product_type, r.model)];
         if (id) ups.push(sb.from('product_costs').update(d).eq('id', id)); else ins.push(d);
       });

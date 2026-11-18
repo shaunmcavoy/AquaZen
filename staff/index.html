@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/assets/img/icon-512.png">
-<link rel="stylesheet" href="/assets/css/app.css?v=c08a237d">
+<link rel="stylesheet" href="/assets/css/app.css?v=c0e71818">
 </head>
 <body class="app app-staff">
 <header class="apptop"><div class="wrap"><a href="/" aria-label="AquaZen home"><img src="/assets/img/logo-word.png" alt="AquaZen" width="104" height="30"></a><a href="tel:+12363044424">236-304-4424</a></div></header>
@@ -333,17 +333,31 @@
         </div>
         <div class="card"><h3>Team</h3><ul class="teamlist" id="teamList"><li>Loading...</li></ul></div>
         <div class="card span2" id="costCard">
-          <h3>Cost list</h3>
-          <p class="muted small">What each model costs us in Canadian dollars, before freight. Freight to Burnaby goes on each deal. It fills in the cost on each deal so the profit and margin show up. Only admins can see it.</p>
+          <h3>Price list</h3>
+          <p class="muted small">Every model with what it costs us in Canadian dollars before freight, its MSRP and the price we're selling it for. Type an MSRP or sale price right in the table and it saves on its own. The margin is worked out from the sale price, or from the MSRP if there's no sale price yet. Only admins can see this page.</p>
           <div class="formactions">
             <label class="btn btn-ink filebtn">Upload a spreadsheet<input type="file" id="costFile" accept=".xlsx,.xls,.csv" hidden></label>
             <label class="inline">US dollar rate<input id="costRate" type="number" step="0.00001" min="0" value="1.42554"></label>
             <button class="btn btn-line" type="button" id="costDownload">Download the list</button>
             <p class="formmsg" id="costMsg" role="status" aria-live="polite"></p>
           </div>
-          <p class="muted small">Upload the AquaSolus price sheet, or any sheet with Model and Cost columns (and Category if it mixes hot tubs, swim spas and mini pools). If a cost column is in US dollars, it's converted at the rate above. Models already on the list are updated and new ones are added.</p>
+          <p class="muted small">Upload the AquaSolus price sheet, or any sheet with Model and Cost columns (and Category if it mixes hot tubs, swim spas and mini pools). If the sheet has MSRP or Sale price columns, those come in too. If a cost column is in US dollars, it's converted at the rate above. Models already on the list are updated and new ones are added. Tap "Save these costs" after the preview to keep them.</p>
           <div id="costPreview"></div>
-          <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Category</th><th>Model</th><th class="num">Our cost (CAD)</th><th>Where it came from</th><th></th></tr></thead><tbody id="costRows"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
+          <div class="costbar">
+            <div class="seg" id="costCat" role="group" aria-label="Show"><button type="button" class="on" data-cat="">All</button><button type="button" data-cat="hot_tub">Hot tubs</button><button type="button" data-cat="swim_spa">Swim spas</button><button type="button" data-cat="mini_pool">Mini pools</button></div>
+            <button class="btn btn-line" type="button" id="costAddOpen">Add a model</button>
+          </div>
+          <form class="form costadd" id="costAdd" hidden>
+            <div class="grid3">
+              <label>Category<select name="product_type"><option value="hot_tub">Hot tub</option><option value="swim_spa">Swim spa</option><option value="mini_pool">Mini pool</option></select></label>
+              <label>Model<input name="model" required></label>
+              <label>Our cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+              <label>MSRP<input name="msrp" type="number" min="0" step="0.01" inputmode="decimal"></label>
+              <label>Sale price<input name="sale_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            </div>
+            <div class="formactions"><button class="btn btn-gold" type="submit">Add model</button><button class="linkbtn" type="button" id="costAddCancel">Cancel</button></div>
+          </form>
+          <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Category</th><th>Model</th><th class="num">Our cost</th><th class="num">MSRP</th><th class="num">Sale price</th><th class="num">Margin</th><th>Where the cost came from</th><th></th></tr></thead><tbody id="costRows"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody></table></div>
         </div>
         <div class="card span2" id="qbCard">
           <h3>QuickBooks</h3>
@@ -359,6 +373,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js?v=baf3debe"></script>
-<script src="/assets/js/staff.js?v=32641ede"></script>
+<script src="/assets/js/staff.js?v=4bca2d52"></script>
 </body>
 </html>

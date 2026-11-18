@@ -140,6 +140,8 @@ create table public.product_costs (
   product_type text not null,
   model text not null,
   cost numeric(12,2) not null default 0,
+  msrp numeric(12,2),
+  sale_price numeric(12,2),
   note text,
   updated_by uuid,
   updated_at timestamptz not null default now(),
