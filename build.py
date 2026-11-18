@@ -150,7 +150,7 @@ def inject_home_header():
 def built(kind):
     """The three things that set Aquasolus apart, written for the Lower Mainland."""
     if kind == "tub":
-        water = ("Water this clean takes more than ozone.", "Every hot tub has an ozonator. Ours holds the ozone under water in a mixing chamber for at least 45 seconds so it actually works on the water, then sends it past a UV light. The cleanest water possible in a hot tub.")
+        water = ("Water this clean takes more than ozone.", "A typical hot tub takes about 45 minutes to move all its water through the filter and ozone. With four to five times more water flowing through the jets, an Aquasolus does it in under 10. The ozone is held under water in a mixing chamber for at least 45 seconds, then the water passes a UV light. Cleaner water, fewer chemicals.")
         build = ("Build quality, second to none.", "A 304 stainless steel frame that won't rot or rust, on a structured ABS base pan that seals and protects the bottom of the tub. Built for the longest life you can get.")
     else:
         water = ("Clean water, simply.", "Ozone water care comes standard, and soft Lower Mainland water keeps the routine short. We show you exactly how before delivery.")
