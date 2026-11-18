@@ -112,6 +112,25 @@
     return [main, s.sauna_model && s.sauna_model + ' sauna'].filter(Boolean).join(' + ');
   };
   // Photo for a model in a category, from the product list the build writes into the page.
+  // The customer's savings, step by step: MSRP, our Zen price, any extra discount on top, add-ons included or discounted.
+  AZ.savings = function (s) {
+    var n = function (v) { return Number(v) || 0; };
+    var price = n(s.hot_tub_value), msrp = n(s.msrp), zen = n(s.zen_price) || price;
+    var ex = Array.isArray(s.extras) ? s.extras : [], addon = 0, free = [], cut = [];
+    ex.forEach(function (x) { var p = n(x.price), l = n(x.list); if (l > p) { addon += l - p; (p === 0 ? free : cut).push(x.name); } });
+    var extra = zen > price ? zen - price : 0, base = msrp > price ? msrp - price : extra;
+    return { msrp: msrp, zen: zen, price: price, zenSave: msrp > zen ? msrp - zen : 0, extra: extra, addon: addon, free: free, cut: cut, total: base + addon };
+  };
+  AZ.savingsHtml = function (s) {
+    var v = AZ.savings(s), m = AZ.money, rows = '';
+    if (!v.total) return '';
+    if (v.msrp) rows += '<div class="sv-row"><span>MSRP</span><s>' + m(v.msrp) + '</s></div>';
+    if (v.msrp && v.zen && v.zen !== v.msrp) rows += '<div class="sv-row"><span>Zen price</span>' + (v.extra ? '<s>' + m(v.zen) + '</s>' : '<span>' + m(v.zen) + '</span>') + '</div>';
+    if (v.extra) rows += '<div class="sv-row sv-bonus"><span>Your extra Zen discount</span><b>&minus;' + m(v.extra) + '</b></div>';
+    if (v.addon) rows += '<div class="sv-row sv-bonus"><span>' + (v.free.length ? AZ.esc(v.free.join(', ')) + ' included free' : 'Add-on discounts') + (v.free.length && v.cut.length ? ', plus add-on discounts' : '') + '</span><b>&minus;' + m(v.addon) + '</b></div>';
+    rows += '<div class="sv-row sv-price"><span>Your price</span><b>' + m(v.price) + '</b></div>';
+    return '<div class="savings">' + rows + '<p class="sv-total">You save <b>' + m(v.total) + '</b>' + (v.msrp ? ' off MSRP' : '') + '</p></div>';
+  };
   AZ.productFor = function (type, model) {
     var cat = (window.AZ_PRODUCTS || {})[type || 'hot_tub'], m = String(model || '').toLowerCase().trim();
     if (!cat || !m) return null;

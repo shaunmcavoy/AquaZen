@@ -79,9 +79,14 @@ export async function buildAgreementPdf(opts: {
     row([["Stereo", sale.stereo, 0.34], ["Starter kit", sale.starter_kit, 0.33], ["Steps", sale.steps, 0.33]]);
     row([["Lifter", sale.lifter, 0.34], ["Cover", sale.spa_cover, 0.33], ["Other", sale.other, 0.33]]);
     const msrp = Number(sale.msrp ?? 0), zen = Number(sale.hot_tub_value);
-    row(msrp > zen
-      ? [["MSRP", money(msrp), 0.34], ["Your Zen price", money(zen), 0.33], ["You save", money(msrp - zen), 0.33]]
-      : [[valueLabel, money(sale.hot_tub_value), 0.34], ["", "", 0.66]]);
+    const reg = Number(sale.zen_price ?? 0), extra = reg > zen ? reg - zen : 0;
+    if (extra > 0) {
+      row([["MSRP", money(msrp || reg), 0.25], ["Zen price", money(reg), 0.25], ["Extra Zen discount", `-${money(extra)}`, 0.25], ["Your price", money(zen), 0.25]]);
+    } else {
+      row(msrp > zen
+        ? [["MSRP", money(msrp), 0.34], ["Your Zen price", money(zen), 0.33], ["You save", money(msrp - zen), 0.33]]
+        : [[valueLabel, money(sale.hot_tub_value), 0.34], ["", "", 0.66]]);
+    }
     const extras: { name: string; price: number; list?: number }[] = Array.isArray(sale.extras) ? sale.extras : [];
     if (extras.length) {
       section("ADD-ONS");

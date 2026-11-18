@@ -338,3 +338,14 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .zenline .save{color:#2f6f6a;font-weight:700}
 .present-cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
 @media (max-width:760px){.present-top,.present-cols{grid-template-columns:1fr}}
+
+/* Savings breakdown on the customer view, signing page */
+.savings{margin:12px 0 0;max-width:460px}
+.sv-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.98rem}
+.sv-row s{color:var(--muted)}
+.sv-bonus{border:0;margin:6px 0;padding:10px 14px;border-radius:12px;color:#fff;font-weight:600;background:linear-gradient(90deg,#e8572b 0%,#f0a92b 45%,#3f9e8f 100%);box-shadow:0 6px 18px rgba(232,87,43,.25)}
+.sv-bonus b{font-size:1.15rem;white-space:nowrap}
+.sv-price{border-bottom:0;font-size:1.1rem}
+.sv-price b{font-size:1.6rem;letter-spacing:-.02em}
+.sv-total{margin:8px 0 0;padding:12px 14px;border-radius:12px;background:rgba(63,158,143,.12);color:#24655b;font-weight:600;font-size:1.05rem}
+.sv-total b{font-size:1.35rem}

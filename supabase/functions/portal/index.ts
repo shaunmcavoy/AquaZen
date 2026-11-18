@@ -142,7 +142,7 @@ ${Number(sale.deposit) > 0 ? `<p>Once you've signed, you can pay your ${payTerms
 // GET ?t=token  -> agreement details for the customer to review.
 // POST {t, signature, typed_name, agree:true} -> customer signs; PDF is created, account made, welcome email sent.
 
-const PUBLIC_FIELDS = ["number","status","sale_date","product_type","tub_make","tub_model","shell_colour","siding","water_care","stereo","starter_kit","steps","lifter","spa_cover","other","est_delivery","hot_tub_value","sauna_make","sauna_model","sauna_electrical","sauna_total","notes","delivery_fee","tax_rate","tax","total","deposit","balance","payment_type","pay_methods","balance_method","rep_name","rep_signed_at","terms_version","delivery_window","msrp","extras","extras_total"];
+const PUBLIC_FIELDS = ["number","status","sale_date","product_type","tub_make","tub_model","shell_colour","siding","water_care","stereo","starter_kit","steps","lifter","spa_cover","other","est_delivery","hot_tub_value","sauna_make","sauna_model","sauna_electrical","sauna_total","notes","delivery_fee","tax_rate","tax","total","deposit","balance","payment_type","pay_methods","balance_method","rep_name","rep_signed_at","terms_version","delivery_window","msrp","zen_price","extras","extras_total"];
 
 async function load(token: string) {
   if (!/^[0-9a-f-]{36}$/i.test(token)) return null;
