@@ -58,17 +58,17 @@ async function route_invite_staff(req: Request): Promise<Response> {
   const email = String(b.email ?? "").trim().toLowerCase();
   const name = String(b.full_name ?? "").trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || !name) return jsonAuth(req, { error: "Enter a name and a valid email." }, 400);
-  const role = b.role === "admin" ? "admin" : "staff";
+  const role = b.role === "admin" ? "admin" : b.role === "delivery" ? "delivery" : "staff";
   const id = await ensureUser(email, name, role);
   await admin().from("profiles").update({ role, full_name: name, phone: String(b.phone ?? "") || null, active: true }).eq("id", id);
-  const link = await loginLink(email, "/staff/");
+  const link = await loginLink(email, role === "delivery" ? "/staff/#deliveries" : "/staff/");
   await sendEmail({
     from: FROM, to: email, reply_to: REPLY_TO, subject: "Welcome to the AquaZen team",
     html: emailShell({
       preheader: "Your staff account is ready.",
-      body: `<p>Hi ${firstNameOf(name)},</p><p>You've been added to the AquaZen team. Your staff portal is where you write up sales, get agreements signed and follow each tub through to delivery.</p>
+      body: `<p>Hi ${firstNameOf(name)},</p><p>You've been added to the AquaZen team. ${role === "delivery" ? "Your portal shows every delivery coming up, with the address, phone number and what's going out. On delivery day you record the serial number and take a few photos of the tub in place, right from your phone, so the customer's warranty details are on file and they never have to hunt for them." : "Your staff portal is where you write up sales, get agreements signed and follow each tub through to delivery."}</p>
 ${button(link, "Open the staff portal")}
-<p style="color:${MUTED}">${role === "admin" ? "As an admin you'll see every customer and deal, so nothing slips through the cracks and every customer gets the same honest, simple experience." : "We run every sale through the portal so every customer gets the same honest, simple experience, and so you can always see where your deals and commission stand."}</p>
+<p style="color:${MUTED}">${role === "delivery" ? "Every customer should feel looked after from the first call to their first soak, and delivery day is the moment they remember." : role === "admin" ? "As an admin you'll see every customer and deal, so nothing slips through the cracks and every customer gets the same honest, simple experience." : "We run every sale through the portal so every customer gets the same honest, simple experience, and so you can always see where your deals and commission stand."}</p>
 <p>Next time, go to aquazen.ca/login. You can set a password there, or just use an email link.</p><p>Shaun</p>`,
     }),
   });
@@ -833,12 +833,218 @@ ${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(s
   return new Response(JSON.stringify({ checked: (open ?? []).length, paid, balances }), { headers: { "Content-Type": "application/json" } });
 }
 
+
+// ---- Delivery team ----
+// The delivery team (role 'delivery'), admins and salespeople (their own deals) see upcoming deliveries,
+// record the serial number, add photos of the tub in place and mark it delivered.
+// deno-lint-ignore no-explicit-any
+async function deliveryCaller(req: Request): Promise<any> {
+  const me = await caller(req);
+  if (!me || !["admin", "staff", "delivery"].includes(me.profile.role)) return null;
+  return me;
+}
+// deno-lint-ignore no-explicit-any
+function canDeliver(me: any, sale: any) { return me.profile.role !== "staff" || sale.salesperson_id === me.user.id; }
+const signedUrls = async (paths: string[]) => {
+  if (!paths?.length) return [];
+  const { data } = await admin().storage.from("agreements").createSignedUrls(paths, 3600);
+  return (data ?? []).map((d) => d.signedUrl).filter(Boolean);
+};
+function readPhotos(raw: unknown, max: number): { bytes: Uint8Array; type: string }[] | string {
+  const out: { bytes: Uint8Array; type: string }[] = [];
+  for (const d of (Array.isArray(raw) ? raw : []).slice(0, max)) {
+    const m = /^data:(image\/(?:jpeg|png));base64,([A-Za-z0-9+/=]+)$/.exec(String(d));
+    if (!m) return "Photos must be JPG or PNG images.";
+    const bin = atob(m[2]);
+    if (bin.length > 4_000_000) return "One of the photos is too large. Try again.";
+    out.push({ bytes: Uint8Array.from(bin, (ch) => ch.charCodeAt(0)), type: m[1] });
+  }
+  return out;
+}
+
+// POST {}  Upcoming deliveries (paid or booked) and anything delivered in the last two weeks.
+async function route_deliveries(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await deliveryCaller(req);
+  if (!me) return jsonAuth(req, { error: "Please sign in as staff." }, 401);
+  const since = new Date(Date.now() - 14 * 864e5).toISOString();
+  let q = admin().from("sales").select("id, number, status, salesperson_id, product_type, tub_make, tub_model, shell_colour, siding, spa_cover, steps, lifter, extras, delivery_window, delivery_date, delivered_at, serial_number, delivery_notes, delivery_photo_paths, balance, balance_paid_at, customers(name, address, city_pc, cell)")
+    .or(`status.in.(signed,deposit_paid,delivery_scheduled),and(status.eq.delivered,delivered_at.gte.${since})`)
+    .order("delivery_date", { ascending: true, nullsFirst: false }).limit(200);
+  if (me.profile.role === "staff") q = q.eq("salesperson_id", me.user.id);
+  const { data, error } = await q;
+  if (error) return jsonAuth(req, { error: "Couldn't load deliveries." }, 500);
+  const rows = [];
+  for (const s of data ?? []) rows.push({ ...s, photos: await signedUrls(s.delivery_photo_paths ?? []) });
+  return jsonAuth(req, { deliveries: rows, role: me.profile.role });
+}
+
+// POST {sale_id, serial_number?, notes?, photos?: [dataUrl], delivered?: boolean}
+async function route_delivery_record(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await deliveryCaller(req);
+  if (!me) return jsonAuth(req, { error: "Please sign in as staff." }, 401);
+  const b = await req.json().catch(() => ({}));
+  const db = admin();
+  const { data: sale } = await db.from("sales").select("*, customers(*)").eq("id", String(b.sale_id ?? "")).maybeSingle();
+  if (!sale) return jsonAuth(req, { error: "Sale not found." }, 404);
+  if (!canDeliver(me, sale)) return jsonAuth(req, { error: "This isn't your sale." }, 403);
+  if (["draft", "awaiting_customer", "cancelled"].includes(sale.status)) return jsonAuth(req, { error: "This sale hasn't been signed yet." }, 409);
+  const photos = readPhotos(b.photos, 8);
+  if (typeof photos === "string") return jsonAuth(req, { error: photos }, 400);
+  const paths: string[] = [...(sale.delivery_photo_paths ?? [])];
+  if (paths.length + photos.length > 16) return jsonAuth(req, { error: "That's plenty of photos for one delivery (16 at most)." }, 400);
+  const stamp = Date.now();
+  for (let i = 0; i < photos.length; i++) {
+    const path = `${sale.id}/delivery-${stamp}-${i + 1}.${photos[i].type === "image/png" ? "png" : "jpg"}`;
+    const up = await db.storage.from("agreements").upload(path, photos[i].bytes, { contentType: photos[i].type, upsert: true });
+    if (up.error) return jsonAuth(req, { error: "A photo didn't upload. Please try again." }, 500);
+    paths.push(path);
+  }
+  const patch: Record<string, unknown> = { delivery_photo_paths: paths };
+  if (b.serial_number !== undefined) patch.serial_number = String(b.serial_number ?? "").trim().slice(0, 80) || null;
+  if (b.notes !== undefined) patch.delivery_notes = String(b.notes ?? "").trim().slice(0, 2000) || null;
+  const delivering = b.delivered === true && sale.status !== "delivered";
+  if (delivering) {
+    if (!String(patch.serial_number ?? sale.serial_number ?? "").trim()) return jsonAuth(req, { error: "Add the serial number before marking it delivered. It's on the label inside the equipment bay." }, 400);
+    Object.assign(patch, { status: "delivered", delivered_at: new Date().toISOString(), delivered_by: me.user.id });
+  }
+  const { error } = await db.from("sales").update(patch).eq("id", sale.id);
+  if (error) return jsonAuth(req, { error: "Couldn't save the delivery." }, 500);
+  await logEvent(sale.id, delivering ? "delivered" : "delivery_updated", me.user.id, { serial: patch.serial_number ?? sale.serial_number ?? null, photos: photos.length });
+  // Welcome to Zen Time: tell the customer their warranty details are safely on file, and where to find help.
+  if (delivering && sale.customers?.email) {
+    const c = sale.customers;
+    try {
+      const link = await loginLink(c.email, "/portal/");
+      await sendEmail({
+        from: FROM, to: c.email, reply_to: REPLY_TO, subject: "Welcome to Zen Time",
+        html: emailShell({ preheader: "Your hot tub is in. Your serial number and photos are on file.", body:
+          `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Your ${escapeHtml(productWhat(sale))} is in and your Zen Time starts tonight. Thank you for trusting us with it.</p>
+${h("Your warranty details are on file")}
+<p>Our delivery team recorded your serial number${patch.serial_number || sale.serial_number ? ` (<b>${escapeHtml(String(patch.serial_number ?? sale.serial_number))}</b>)` : ""} and took photos of your ${productNoun(sale)} in place. They're saved in your portal, so if you ever need warranty work you won't have to go looking for anything.</p>
+${h("Everything in one place")}
+<p>Your portal has water care guides, answers to the questions new owners ask most, and a button to request service. A few minutes of care each week keeps your water clear and soft, so your time in the tub is just for relaxing.</p>
+${button(link, "Open my portal")}
+<p style="color:${MUTED}">Anything at all, call or text me at 236-304-4424.</p><p>Shaun</p>` }),
+      });
+      await logEvent(sale.id, "delivered_emailed", me.user.id, { to: c.email });
+    } catch (e) { console.error("delivered email", e); }
+  }
+  return jsonAuth(req, { ok: true, photos: await signedUrls(paths), status: delivering ? "delivered" : sale.status });
+}
+
+// ---- Customer portal: delivery photos and service requests ----
+// deno-lint-ignore no-explicit-any
+async function customerSales(me: any): Promise<{ ids: string[]; customers: any[] }> {
+  const { data } = await admin().from("customers").select("*").eq("user_id", me.user.id);
+  return { ids: (data ?? []).map((c) => c.id), customers: data ?? [] };
+}
+
+// POST {sale_id}  The customer (or staff) gets their delivery photos and service history.
+async function route_portal_details(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await caller(req);
+  if (!me) return jsonAuth(req, { error: "Please sign in." }, 401);
+  const b = await req.json().catch(() => ({}));
+  const db = admin();
+  const { data: sale } = await db.from("sales").select("id, customer_id, salesperson_id, delivery_photo_paths").eq("id", String(b.sale_id ?? "")).maybeSingle();
+  if (!sale) return jsonAuth(req, { error: "Not found." }, 404);
+  const mine = (await customerSales(me)).ids.includes(sale.customer_id);
+  if (!mine && me.profile.role !== "admin" && !(me.profile.role === "staff" && sale.salesperson_id === me.user.id)) return jsonAuth(req, { error: "Not found." }, 404);
+  const { data: reqs } = await db.from("service_requests").select("number, topic, message, status, booked_for, created_at").eq("customer_id", sale.customer_id).order("created_at", { ascending: false }).limit(20);
+  return jsonAuth(req, { photos: await signedUrls(sale.delivery_photo_paths ?? []), requests: reqs ?? [] });
+}
+
+const TOPICS: Record<string, string> = { water: "Water care", heating: "Heating or temperature", jets: "Jets or pumps", leak: "A leak", controls: "Controls or error code", cover: "Cover or lifter", other: "Something else" };
+
+// POST {sale_id, topic, message, photos?: [dataUrl]}  A customer asks for service. Shaun is emailed right away.
+async function route_service_request(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await caller(req);
+  if (!me) return jsonAuth(req, { error: "Please sign in to your portal first." }, 401);
+  const b = await req.json().catch(() => ({}));
+  const message = String(b.message ?? "").trim().slice(0, 3000);
+  if (message.length < 5) return jsonAuth(req, { error: "Tell us a little about what's going on." }, 400);
+  const topic = TOPICS[String(b.topic)] ? String(b.topic) : "other";
+  const db = admin();
+  const { data: sale } = await db.from("sales").select("*, customers(*)").eq("id", String(b.sale_id ?? "")).maybeSingle();
+  if (!sale || !(await customerSales(me)).ids.includes(sale.customer_id)) return jsonAuth(req, { error: "We couldn't find that hot tub on your account." }, 404);
+  const photos = readPhotos(b.photos, 4);
+  if (typeof photos === "string") return jsonAuth(req, { error: photos }, 400);
+  const { data: row, error } = await db.from("service_requests").insert({ customer_id: sale.customer_id, sale_id: sale.id, created_by: me.user.id, topic, message }).select("id, number").single();
+  if (error || !row) return jsonAuth(req, { error: "Couldn't send your request. Please call or text 236-304-4424." }, 500);
+  const paths: string[] = [];
+  for (let i = 0; i < photos.length; i++) {
+    const path = `${sale.id}/service-${row.number}-${i + 1}.${photos[i].type === "image/png" ? "png" : "jpg"}`;
+    const up = await db.storage.from("agreements").upload(path, photos[i].bytes, { contentType: photos[i].type, upsert: true });
+    if (!up.error) paths.push(path);
+  }
+  if (paths.length) await db.from("service_requests").update({ photo_paths: paths }).eq("id", row.id);
+  const c = sale.customers;
+  const to = Deno.env.get("LEAD_TO") ?? "shaun@aquazen.ca";
+  try {
+    await sendEmail({
+      from: FROM, to, reply_to: c.email || REPLY_TO, subject: `Service request #${row.number}: ${c.name} (${TOPICS[topic]})`,
+      html: emailShell({ preheader: `${c.name} asked for service on their ${productWhat(sale)}.`, body:
+        `<p><b>${escapeHtml(c.name)}</b> asked for service on their ${escapeHtml(productWhat(sale))}${sale.serial_number ? ` (serial ${escapeHtml(sale.serial_number)})` : ""}.</p>
+<p><b>${escapeHtml(TOPICS[topic])}</b></p><p style="white-space:pre-wrap">${escapeHtml(message)}</p>
+<p>${escapeHtml(c.cell ?? "")} &nbsp; ${escapeHtml(c.email ?? "")}<br>${escapeHtml([c.address, c.city_pc].filter(Boolean).join(", "))}</p>
+${paths.length ? `<p>${paths.length} photo${paths.length > 1 ? "s" : ""} attached in the staff portal.</p>` : ""}
+${button(`${SITE_URL}/staff/#service`, "Open in the staff portal")}` }),
+    });
+    await sendEmail({
+      from: FROM, to: c.email, reply_to: REPLY_TO, subject: `We got your service request (#${row.number})`,
+      html: emailShell({ preheader: "Thanks for letting us know. Here's what happens next.", body:
+        `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Thanks for letting us know. Your request is in, and I'll be in touch within one business day to sort it out.</p>
+<p>The sooner we hear about something, the smaller it usually is, so you did exactly the right thing. Your serial number and delivery photos are already on file, so there's nothing else you need to find.</p>
+<p style="color:${MUTED}">If it's urgent, like a leak or no heat in cold weather, call or text me at 236-304-4424.</p><p>Shaun</p>` }),
+    });
+  } catch (e) { console.error("service email", e); }
+  return jsonAuth(req, { ok: true, number: row.number });
+}
+
+// POST {id?}  Staff: list service requests (admins all, salespeople their customers). With id: that request's photos.
+async function route_service_list(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await caller(req);
+  if (!me || !["admin", "staff"].includes(me.profile.role)) return jsonAuth(req, { error: "Please sign in as staff." }, 401);
+  const db = admin();
+  const { data, error } = await db.from("service_requests").select("*, customers(name, cell, email, address, city_pc, created_by), sales(number, product_type, tub_model, serial_number, delivered_at)").order("created_at", { ascending: false }).limit(300);
+  if (error) return jsonAuth(req, { error: "Couldn't load service requests." }, 500);
+  // deno-lint-ignore no-explicit-any
+  const rows = (data ?? []).filter((r: any) => me.profile.role === "admin" || r.customers?.created_by === me.user.id);
+  const out = [];
+  for (const r of rows) out.push({ ...r, photos: await signedUrls(r.photo_paths ?? []) });
+  return jsonAuth(req, { requests: out });
+}
+
+// POST {id, status?, staff_notes?, booked_for?}
+async function route_service_update(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await caller(req);
+  if (!me || !["admin", "staff"].includes(me.profile.role)) return jsonAuth(req, { error: "Please sign in as staff." }, 401);
+  const b = await req.json().catch(() => ({}));
+  const db = admin();
+  const { data: r } = await db.from("service_requests").select("*, customers(created_by)").eq("id", String(b.id ?? "")).maybeSingle();
+  if (!r || (me.profile.role !== "admin" && r.customers?.created_by !== me.user.id)) return jsonAuth(req, { error: "Not found." }, 404);
+  const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (["new", "booked", "done"].includes(b.status)) patch.status = b.status;
+  if (b.staff_notes !== undefined) patch.staff_notes = String(b.staff_notes ?? "").slice(0, 3000) || null;
+  if (b.booked_for !== undefined) patch.booked_for = /^\d{4}-\d{2}-\d{2}$/.test(String(b.booked_for)) ? String(b.booked_for) : null;
+  const { error } = await db.from("service_requests").update(patch).eq("id", r.id);
+  if (error) return jsonAuth(req, { error: "Couldn't save." }, 500);
+  return jsonAuth(req, { ok: true });
+}
+
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "login-link": route_login_link, "invite-staff": route_invite_staff, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,
   "sale-progress": route_sale_progress, "customer-delete": route_customer_delete, "sale-delete": route_sale_delete, "sale-reopen": route_sale_reopen, "past-sale": route_past_sale, "lead-assign": route_lead_assign,
   "qb-status": route_qb_status, "qb-connect": route_qb_connect, "qb-callback": route_qb_callback,
+  "deliveries": route_deliveries, "delivery-record": route_delivery_record, "portal-details": route_portal_details,
+  "service-request": route_service_request, "service-list": route_service_list, "service-update": route_service_update,
   "qb-settings": route_qb_settings, "qb-invoice": route_qb_invoice, "qb-balance-invoice": route_qb_balance_invoice, "qb-sync": route_qb_sync,
 };
 Deno.serve(async (req) => {

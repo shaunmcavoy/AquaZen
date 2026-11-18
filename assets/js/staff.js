@@ -205,13 +205,16 @@
     $$('.tabs a').forEach(function (a) { a.removeAttribute('aria-current'); });
     var tab = view === 'sale' ? (current && current.id ? 'sales' : 'new') : view === 'customer' ? 'customers' : view;
     var t = $('.tabs a[data-tab="' + tab + '"]'); if (t) t.setAttribute('aria-current', 'page');
-    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', money: 'Financials', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
+    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', money: 'Financials', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
     window.scrollTo(0, 0);
   }
 
   function route() {
-    var h = location.hash.slice(1) || 'sales';
-    if (h === 'team' && me.profile.role === 'admin') { show('team'); loadTeam(); loadQb(); }
+    var h = location.hash.slice(1) || (me.profile.role === 'delivery' ? 'deliveries' : 'sales');
+    if (me.profile.role === 'delivery' && h !== 'deliveries') { location.hash = 'deliveries'; return; }
+    if (h === 'deliveries') { show('deliveries'); loadDeliveries(); }
+    else if (h === 'service' && me.profile.role !== 'delivery') { show('service'); loadService(); }
+    else if (h === 'team' && me.profile.role === 'admin') { show('team'); loadTeam(); loadQb(); }
     else if (h === 'products' && me.profile.role === 'admin') { show('products'); loadProducts(); }
     else if (h === 'money' && me.profile.role === 'admin') { show('money'); loadMoney(); }
     else if (h === 'new') { openSale(null); }
@@ -1434,11 +1437,106 @@
     });
   }
 
+
+  // ---------- Deliveries: serial number and photos on delivery day ----------
+  var delivs = [];
+  function loadDeliveries() {
+    AZ.api('deliveries', {}).then(function (r) { delivs = r.deliveries || []; renderDeliveries(); })
+      .catch(function (e) { $('#delivList').innerHTML = '<div class="card"><p>' + AZ.esc(e.message) + '</p></div>'; });
+  }
+  function renderDeliveries() {
+    var today = new Date().toISOString().slice(0, 10);
+    var groups = [['Today', function (s) { return s.status !== 'delivered' && s.delivery_date === today; }],
+      ['Booked', function (s) { return s.status !== 'delivered' && s.delivery_date && s.delivery_date !== today; }],
+      ['Not booked yet', function (s) { return s.status !== 'delivered' && !s.delivery_date; }],
+      ['Delivered in the last two weeks', function (s) { return s.status === 'delivered'; }]];
+    var html = groups.map(function (g) {
+      var rows = delivs.filter(g[1]); if (!rows.length) return '';
+      return '<h3 class="delivgroup">' + g[0] + ' <span>' + rows.length + '</span></h3>' + rows.map(delivCard).join('');
+    }).join('');
+    $('#delivList').innerHTML = html || '<div class="card"><p>Nothing to deliver right now. Paid and booked tubs show up here.</p></div>';
+  }
+  function delivCard(s) {
+    var c = s.customers || {}, done = s.status === 'delivered', addr = [c.address, c.city_pc].filter(Boolean).join(', ');
+    var ex = (s.extras || []).map(function (x) { return x.name; });
+    var specs = [s.shell_colour && 'Shell ' + s.shell_colour, s.siding && 'Siding ' + s.siding, s.spa_cover && 'Cover ' + s.spa_cover].filter(Boolean).concat(ex.length ? ['With ' + ex.join(', ')] : []);
+    return '<article class="card deliv' + (done ? ' done' : '') + '" data-deliv="' + s.id + '">' +
+      '<div class="deliv-head"><div><p class="eyebrow">#' + s.number + ' &middot; ' + (s.delivery_date ? AZ.dayLabel(s.delivery_date) : (s.delivery_window ? 'Asked for ' + AZ.windowLabel(s.delivery_window) : 'Not booked')) + '</p>' +
+      '<h3>' + AZ.esc(c.name || '') + '</h3><p class="deliv-what">' + AZ.esc([s.tub_make, s.tub_model, AZ.noun(s)].filter(Boolean).join(' ')) + '</p>' + (specs.length ? '<p class="muted small">' + AZ.esc(specs.join(' · ')) + '</p>' : '') + '</div>' +
+      (done ? AZ.pill('delivered') : (Number(s.balance) > 0 && !s.balance_paid_at ? '<span class="pill pill-gold">Balance owing</span>' : '')) + '</div>' +
+      '<p class="deliv-contact">' + (addr ? '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">' + AZ.esc(addr) + '</a>' : '') + (c.cell ? ' &nbsp; <a href="tel:' + AZ.esc(c.cell.replace(/[^\d+]/g, '')) + '">' + AZ.esc(c.cell) + '</a>' : '') + '</p>' +
+      '<div class="grid2"><label>Serial number<input data-dserial value="' + AZ.esc(s.serial_number || '') + '" placeholder="On the label in the equipment bay" autocomplete="off"></label>' +
+      '<label>Delivery notes<input data-dnotes value="' + AZ.esc(s.delivery_notes || '') + '" placeholder="Anything worth remembering" autocomplete="off"></label></div>' +
+      '<div class="deliv-photos">' + (s.photos || []).map(function (u) { return '<a href="' + AZ.esc(u) + '" target="_blank" rel="noopener"><img src="' + AZ.esc(u) + '" alt="Delivery photo"></a>'; }).join('') +
+      '<label class="addphoto"><input type="file" accept="image/*" capture="environment" multiple data-dphotos hidden><span>+ Add photos</span></label></div>' +
+      '<p class="muted small" data-dpending></p>' +
+      '<div class="formactions"><button class="btn btn-line" type="button" data-dsave>Save</button>' + (done ? '' : '<button class="btn btn-gold" type="button" data-ddeliver>Mark delivered</button>') + '<p class="formmsg" data-dmsg role="status" aria-live="polite"></p></div>' +
+      '</article>';
+  }
+  var pendingPhotos = {};
+  $('#delivList').addEventListener('change', function (e) {
+    if (!e.target.matches('[data-dphotos]')) return;
+    var card = e.target.closest('[data-deliv]'), id = card.dataset.deliv, files = Array.prototype.slice.call(e.target.files || []);
+    pendingPhotos[id] = (pendingPhotos[id] || []).concat(files).slice(0, 8);
+    card.querySelector('[data-dpending]').textContent = pendingPhotos[id].length + ' new photo' + (pendingPhotos[id].length > 1 ? 's' : '') + ' ready. Tap Save or Mark delivered to upload.';
+    e.target.value = '';
+  });
+  $('#delivList').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-dsave],[data-ddeliver]'); if (!b) return;
+    var card = b.closest('[data-deliv]'), id = card.dataset.deliv, m = card.querySelector('[data-dmsg]'), deliver = b.hasAttribute('data-ddeliver');
+    var serial = card.querySelector('[data-dserial]').value.trim();
+    if (deliver && !serial) { m.textContent = 'Add the serial number first. It’s on the label in the equipment bay.'; return; }
+    var files = pendingPhotos[id] || [];
+    $$('button', card).forEach(function (x) { x.disabled = true; });
+    m.textContent = files.length ? 'Uploading ' + files.length + ' photo' + (files.length > 1 ? 's' : '') + '...' : 'Saving...';
+    Promise.all(files.map(shrink)).then(function (photos) {
+      return AZ.api('delivery-record', { sale_id: id, serial_number: serial, notes: card.querySelector('[data-dnotes]').value, photos: photos, delivered: deliver });
+    }).then(function () {
+      delete pendingPhotos[id]; AZ.toast(deliver ? 'Delivered. The customer has been emailed.' : 'Saved'); loadDeliveries();
+    }).catch(function (err) { m.textContent = err.message; $$('button', card).forEach(function (x) { x.disabled = false; }); });
+  });
+
+  // ---------- Service requests ----------
+  var svc = [], svcSt = 'open';
+  var TOPIC = { water: 'Water care', heating: 'Heating or temperature', jets: 'Jets or pumps', leak: 'A leak', controls: 'Controls or error code', cover: 'Cover or lifter', other: 'Something else' };
+  function loadService() {
+    AZ.api('service-list', {}).then(function (r) { svc = r.requests || []; renderService(); })
+      .catch(function (e) { $('#svcList').innerHTML = '<div class="card"><p>' + AZ.esc(e.message) + '</p></div>'; });
+  }
+  function renderService() {
+    var rows = svc.filter(function (r) { return !svcSt || (svcSt === 'open' ? r.status !== 'done' : r.status === svcSt); });
+    $('#svcList').innerHTML = rows.length ? rows.map(function (r) {
+      var c = r.customers || {}, s = r.sales || {};
+      return '<article class="card svc" data-svc="' + r.id + '"><div class="deliv-head"><div><p class="eyebrow">#' + r.number + ' &middot; ' + AZ.dateTime(r.created_at) + '</p><h3>' + AZ.esc(c.name || '') + ' &middot; ' + AZ.esc(TOPIC[r.topic] || r.topic) + '</h3>' +
+        '<p class="muted small">' + AZ.esc([s.tub_model, s.serial_number && 'Serial ' + s.serial_number, s.delivered_at && 'Delivered ' + AZ.date(s.delivered_at)].filter(Boolean).join(' · ')) + '</p></div>' +
+        '<span class="pill ' + (r.status === 'done' ? 'pill-green' : r.status === 'booked' ? 'pill-gold' : '') + '">' + ({ new: 'New', booked: 'Booked', done: 'Done' }[r.status]) + '</span></div>' +
+        '<p class="svc-msg">' + AZ.esc(r.message) + '</p>' +
+        (r.photos && r.photos.length ? '<div class="deliv-photos">' + r.photos.map(function (u) { return '<a href="' + AZ.esc(u) + '" target="_blank" rel="noopener"><img src="' + AZ.esc(u) + '" alt="Photo from the customer"></a>'; }).join('') + '</div>' : '') +
+        '<p class="deliv-contact">' + (c.cell ? '<a href="tel:' + AZ.esc(c.cell.replace(/[^\d+]/g, '')) + '">' + AZ.esc(c.cell) + '</a> &nbsp; ' : '') + (c.email ? '<a href="mailto:' + AZ.esc(c.email) + '">' + AZ.esc(c.email) + '</a> &nbsp; ' : '') + AZ.esc([c.address, c.city_pc].filter(Boolean).join(', ')) + '</p>' +
+        '<div class="grid3"><label>Status<select data-sst><option value="new"' + (r.status === 'new' ? ' selected' : '') + '>New</option><option value="booked"' + (r.status === 'booked' ? ' selected' : '') + '>Booked</option><option value="done"' + (r.status === 'done' ? ' selected' : '') + '>Done</option></select></label>' +
+        '<label>Booked for<input type="date" data-sdate value="' + AZ.esc(r.booked_for || '') + '"></label><label>Notes<input data-snotes value="' + AZ.esc(r.staff_notes || '') + '" autocomplete="off"></label></div>' +
+        '<div class="formactions"><button class="btn btn-line btn-sm" type="button" data-ssave>Save</button><p class="formmsg" data-smsg role="status" aria-live="polite"></p></div></article>';
+    }).join('') : '<div class="card"><p>' + (svcSt === 'open' ? 'No open service requests. ' : 'Nothing here. ') + 'Customers send requests from their portal, and you get an email when one comes in.</p></div>';
+  }
+  $('#svcFilter').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-st]'); if (!b) return; svcSt = b.dataset.st;
+    $$('#svcFilter button').forEach(function (x) { x.classList.toggle('on', x === b); }); renderService();
+  });
+  $('#svcList').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-ssave]'); if (!b) return;
+    var card = b.closest('[data-svc]'), m = card.querySelector('[data-smsg]');
+    m.textContent = 'Saving...';
+    AZ.api('service-update', { id: card.dataset.svc, status: card.querySelector('[data-sst]').value, booked_for: card.querySelector('[data-sdate]').value, staff_notes: card.querySelector('[data-snotes]').value })
+      .then(function () { AZ.toast('Saved'); loadService(); }).catch(function (err) { m.textContent = err.message; });
+  });
+
   // ---------- Start ----------
-  AZ.requireRole(['admin', 'staff']).then(function (m) {
+  AZ.requireRole(['admin', 'staff', 'delivery']).then(function (m) {
     me = m;
     $('#whoami').textContent = me.profile.full_name || me.profile.email;
     if (me.profile.role === 'admin') $$('.admin-only').forEach(function (el) { el.hidden = false; });
+    // The delivery team only sees Deliveries.
+    if (me.profile.role === 'delivery') $$('.tabs a').forEach(function (a) { a.hidden = a.dataset.tab !== 'deliveries'; });
     $('#signOut').addEventListener('click', AZ.signOut);
     window.addEventListener('hashchange', route); route();
     // First time in: ask for a display name for agreements.

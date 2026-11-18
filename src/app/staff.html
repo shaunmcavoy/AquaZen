@@ -8,6 +8,8 @@
       <a href="#sales" data-tab="sales" aria-current="page">Sales</a>
       <a href="#customers" data-tab="customers">Customers</a>
       <a href="#new" data-tab="new">New sale</a>
+      <a href="#deliveries" data-tab="deliveries">Deliveries</a>
+      <a href="#service" data-tab="service">Service</a>
       <a href="#money" data-tab="money" class="admin-only" hidden>Financials</a>
       <a href="#products" data-tab="products" class="admin-only" hidden>Products</a>
       <a href="#team" data-tab="team" class="admin-only" hidden>Team</a>
@@ -340,6 +342,19 @@
       </div>
     </div>
 
+    <!-- Deliveries (delivery team, admins, salespeople for their own deals) -->
+    <div id="view-deliveries" class="view" hidden>
+      <p class="muted small">Every tub that's paid or booked for delivery. On delivery day, record the serial number (on the label inside the equipment bay) and take a few photos of the tub in place: the front, the equipment bay with the label, and the cover on. They're saved to the customer's portal for their warranty, so they never have to hunt for them.</p>
+      <div id="delivList"><div class="card"><p>Loading deliveries...</p></div></div>
+    </div>
+
+    <!-- Service requests -->
+    <div id="view-service" class="view" hidden>
+      <div class="listhead"><p class="muted small">Requests customers send from their portal. You get an email the moment one comes in. Book it, add a note, and mark it done when it's sorted.</p>
+        <div class="seg" id="svcFilter" role="group" aria-label="Show"><button type="button" class="on" data-st="open">Open</button><button type="button" data-st="done">Done</button><button type="button" data-st="">All</button></div></div>
+      <div id="svcList"><div class="card"><p>Loading...</p></div></div>
+    </div>
+
     <!-- Products (admins) -->
     <div id="view-products" class="view" hidden>
       <div class="card">
@@ -416,7 +431,7 @@
             <label>Full name<input name="full_name" required></label>
             <label>Email<input name="email" type="email" required></label>
             <label>Phone<input name="phone" type="tel"></label>
-            <label>Access<select name="role"><option value="staff">Salesperson: sees only their own customers and deals</option><option value="admin">Admin: sees every customer and deal</option></select></label>
+            <label>Access<select name="role"><option value="staff">Salesperson: sees only their own customers and deals</option><option value="admin">Admin: sees every customer and deal</option><option value="delivery">Delivery team: sees deliveries only, records serial numbers and photos</option></select></label>
             <button class="btn btn-gold" type="submit">Send invite</button>
             <p class="formmsg" role="status" aria-live="polite"></p>
           </form>
