@@ -516,3 +516,8 @@ a.model:hover img{transform:translateY(-4px)}
 .zen-float a:focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media (max-width:640px){.zen-float{left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px))}.zen-float a{justify-content:space-between}}
 @media (prefers-reduced-motion:reduce){.zen-float{transition:opacity .2s}}
+
+/* Sign in link in the header */
+.nav-links .nav-signin{color:#a1a1a6;border-left:1px solid rgba(255,255,255,.18);padding-left:18px}
+.nav-links .nav-signin:hover{color:#fff}
+.mmenu-sub{display:block;font-size:13px;color:#86868b;font-weight:400;margin-top:2px}

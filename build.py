@@ -103,6 +103,7 @@ def header():
       <a href="/#water">Mini pools</a>
       <a href="/how-we-deliver-zen/">How we deliver Zen</a>
       <a href="/#visit">Visit</a>
+      <a class="nav-signin" href="/login/">Sign in</a>
     </nav>
     <a class="pill pill-sm" href="/find-your-zen/">Find your Zen</a>
     <button class="nav-burger" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><span></span><span></span></button>
@@ -122,6 +123,7 @@ def header():
     <a href="/#water">Mini pools</a>
     <a href="/how-we-deliver-zen/">How we deliver Zen</a>
     <a href="/#visit">Visit</a>
+    <a href="/login/">Sign in <span class="mmenu-sub">Customers and staff</span></a>
     <a class="pill" href="/find-your-zen/">Find your Zen</a>
     <a class="mmenu-call" href="tel:+12363044424">Call or text 236-304-4424</a>
   </div>
@@ -198,7 +200,7 @@ FOOT = """
     <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC.</p>
     <p><a class="plain" href="tel:+12363044424">236-304-4424</a> &nbsp; <a class="plain" href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
     <p>Hot tub photos and specifications courtesy of Aquasolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
-    <p><a class="plain" href="/privacy/">Privacy</a> &nbsp; <a class="plain" href="/terms/">Terms</a></p>
+    <p><a class="plain" href="/privacy/">Privacy</a> &nbsp; <a class="plain" href="/terms/">Terms</a> &nbsp; <a class="plain" href="/login/">Customer &amp; staff sign-in</a></p>
   </div>
 </footer>
 <script src="/assets/js/menu.js"></script>
