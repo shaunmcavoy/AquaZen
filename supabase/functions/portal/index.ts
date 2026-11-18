@@ -906,7 +906,8 @@ async function route_delivery_record(req: Request): Promise<Response> {
   if (b.notes !== undefined) patch.delivery_notes = String(b.notes ?? "").trim().slice(0, 2000) || null;
   const delivering = b.delivered === true && sale.status !== "delivered";
   if (delivering) {
-    if (!String(patch.serial_number ?? sale.serial_number ?? "").trim()) return jsonAuth(req, { error: "Add the serial number before marking it delivered. It's on the label inside the equipment bay." }, 400);
+    const finalSerial = "serial_number" in patch ? patch.serial_number : sale.serial_number;
+    if (!String(finalSerial ?? "").trim()) return jsonAuth(req, { error: "Add the serial number before marking it delivered. It's on the label inside the equipment bay." }, 400);
     Object.assign(patch, { status: "delivered", delivered_at: new Date().toISOString(), delivered_by: me.user.id });
   }
   const { error } = await db.from("sales").update(patch).eq("id", sale.id);
@@ -922,7 +923,7 @@ async function route_delivery_record(req: Request): Promise<Response> {
         html: emailShell({ preheader: "Your hot tub is in. Your serial number and photos are on file.", body:
           `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Your ${escapeHtml(productWhat(sale))} is in and your Zen Time starts tonight. Thank you for trusting us with it.</p>
 ${h("Your warranty details are on file")}
-<p>Our delivery team recorded your serial number${patch.serial_number || sale.serial_number ? ` (<b>${escapeHtml(String(patch.serial_number ?? sale.serial_number))}</b>)` : ""} and took photos of your ${productNoun(sale)} in place. They're saved in your portal, so if you ever need warranty work you won't have to go looking for anything.</p>
+<p>Our delivery team recorded your serial number${("serial_number" in patch ? patch.serial_number : sale.serial_number) ? ` (<b>${escapeHtml(String("serial_number" in patch ? patch.serial_number : sale.serial_number))}</b>)` : ""} and took photos of your ${productNoun(sale)} in place. They're saved in your portal, so if you ever need warranty work you won't have to go looking for anything.</p>
 ${h("Everything in one place")}
 <p>Your portal has water care guides, answers to the questions new owners ask most, and a button to request service. A few minutes of care each week keeps your water clear and soft, so your time in the tub is just for relaxing.</p>
 ${button(link, "Open my portal")}
