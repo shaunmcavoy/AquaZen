@@ -163,10 +163,10 @@
       var ac = {}; (r[1].data || []).forEach(function (a) { ac[a.id] = num(a.cost); });
       var ln = (r[2].data || []).filter(function (l) { return l.id === pc.line_id; })[0], pad = ln ? num(ln.pad) : 0;
       var trueCost = num(pc.cost) + ex.reduce(function (t, x) { return t + (ac[x.id] || 0); }, 0);
-      var before = rev - trueCost - pad, keep = before - comm, box = $('#dealPanel'), pc2 = function (x) { return rev ? ' <em>' + (Math.round(x / rev * 1000) / 10) + '%</em>' : ''; };
+      var before = rev - trueCost, keep = before - comm, box = $('#dealPanel'), pc2 = function (x) { return rev ? ' <em>' + (Math.round(x / rev * 1000) / 10) + '%</em>' : ''; };
       $$('.admin', box).forEach(function (x) { x.remove(); });
-      box.insertAdjacentHTML('beforeend', '<div class="admin"><span>Your profit before commission (admins only)</span><b class="' + (before < 0 ? 'neg' : '') + '">' + AZ.money(before) + pc2(before) + '</b><small>What you keep when you sell it yourself.</small></div>' +
-        '<div class="admin"><span>Your profit after commission</span><b class="' + (keep < 0 ? 'neg' : '') + '">' + AZ.money(keep) + pc2(keep) + '</b><small>After true cost ' + AZ.money(trueCost) + ', pad ' + AZ.money(pad) + ' and commission. The pad pays freight and running costs.</small></div>');
+      box.insertAdjacentHTML('beforeend', '<div class="admin"><span>Your profit before commission (admins only)</span><b class="' + (before < 0 ? 'neg' : '') + '">' + AZ.money(before) + pc2(before) + '</b><small>Price less true cost. The ' + AZ.money(pad) + ' pad is yours, it only lowers the salesperson\u2019s GP.</small></div>' +
+        '<div class="admin"><span>Your profit after commission</span><b class="' + (keep < 0 ? 'neg' : '') + '">' + AZ.money(keep) + pc2(keep) + '</b><small>After true cost ' + AZ.money(trueCost) + ' and commission ' + AZ.money(comm) + '.</small></div>');
     });
   }
   function drawSnap() {
@@ -1067,8 +1067,10 @@
     // The floor is on TRUE cost (not the padded sales cost): price must keep the minimum margin over what we pay.
     var sales = cost + pad, o = { sales: sales, min: Math.ceil(cost / (1 - pset.min_margin_pct / 100)) };
     if (price == null || price === '' || !+price) return o;
+    // The pad lowers the salesperson's GP but stays with the business: our profit is price - true cost (- commission).
     price = +price; o.price = price; o.gp = price - sales; o.margin = o.gp / price * 100;
-    o.comm = o.gp > 0 ? o.gp * pset.commission_pct / 100 : 0; o.profit = o.gp - o.comm; o.low = cost > 0 && price < o.min;
+    o.comm = o.gp > 0 ? o.gp * pset.commission_pct / 100 : 0;
+    o.before = price - cost; o.beforeMargin = o.before / price * 100; o.profit = o.before - o.comm; o.low = cost > 0 && price < o.min;
     return o;
   }
   var dash = '<span class="muted">-</span>';
@@ -1085,7 +1087,7 @@
   function gpCells(o) {
     if (o.gp == null) return '<td class="num g-sales">' + dash + '</td><td class="num g-sales">' + dash + '</td><td class="num g-admin">' + dash + '</td><td class="num g-admin">' + dash + '</td>';
     return '<td class="num g-sales"><b class="' + (o.gp < 0 ? 'neg' : '') + '">' + AZ.money(o.gp) + '</b><span class="pct">' + (Math.round(o.margin * 10) / 10) + '%</span></td>' +
-      '<td class="num g-sales">' + AZ.money(o.comm) + '</td><td class="num g-admin"><b class="' + (o.gp < 0 ? 'neg' : '') + '">' + AZ.money(o.gp) + '</b><span class="pct">' + (Math.round(o.margin * 10) / 10) + '% margin</span></td><td class="num g-admin"><b class="' + (o.profit < 0 ? 'neg' : '') + '">' + AZ.money(o.profit) + '</b><span class="pct">' + (Math.round(o.profit / o.price * 1000) / 10) + '% margin</span></td>';
+      '<td class="num g-sales">' + AZ.money(o.comm) + '</td><td class="num g-admin"><b class="' + (o.before < 0 ? 'neg' : '') + '">' + AZ.money(o.before) + '</b><span class="pct">' + (Math.round(o.beforeMargin * 10) / 10) + '% margin</span></td><td class="num g-admin"><b class="' + (o.profit < 0 ? 'neg' : '') + '">' + AZ.money(o.profit) + '</b><span class="pct">' + (Math.round(o.profit / o.price * 1000) / 10) + '% margin</span></td>';
   }
   function moneyInput(c, f, label) {
     var v = c[f] == null ? '' : c[f];
