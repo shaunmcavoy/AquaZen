@@ -101,7 +101,7 @@ def header():
       <button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-tubs">Hot tubs</button>
       {'<button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-swim">Swim spas</button>' if SWIM_READY else '<a href="/#water">Swim spas</a>'}
       <a href="/#water">Mini pools</a>
-      <a href="/#why">Why AquaZen</a>
+      <a href="/how-we-deliver-zen/">How we deliver Zen</a>
       <a href="/#visit">Visit</a>
     </nav>
     <a class="pill pill-sm" href="/find-your-zen/">Find your Zen</a>
@@ -120,7 +120,7 @@ def header():
     <details><summary>Hot tubs</summary><ul>{m_tubs}<li><a href="/hot-tubs/">All hot tubs</a></li></ul></details>
     {f'<details><summary>Swim spas</summary><ul>{m_swim}<li><a href="/swim-spas/">All swim spas</a></li></ul></details>' if SWIM_READY else '<a href="/#water">Swim spas</a>'}
     <a href="/#water">Mini pools</a>
-    <a href="/#why">Why AquaZen</a>
+    <a href="/how-we-deliver-zen/">How we deliver Zen</a>
     <a href="/#visit">Visit</a>
     <a class="pill" href="/find-your-zen/">Find your Zen</a>
     <a class="mmenu-call" href="tel:+12363044424">Call or text 236-304-4424</a>
@@ -163,6 +163,7 @@ def built(kind):
 <section class="equip equip-sm">
   <div class="wrap center"><h2 class="h2">Why it's different.</h2></div>
   <div class="wrap tiles {'tiles-3 tiles-4' if kind == 'tub' else 'tiles-3'}">{tiles}</div>
+  {'<div class="wrap center equip-more"><a class="pill" href="/how-we-deliver-zen/">See how we deliver Zen</a></div>' if kind == 'tub' else ''}
 </section>
 """
 
@@ -483,6 +484,15 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
     write(base.strip("/") + f"/{k}/index.html", page)
 
 
+def build_how():
+    """How we deliver Zen: the scroll presentation that sells the tub and leads to Find your Zen."""
+    body = open(os.path.join(ROOT, "src", "how.html")).read()
+    page = head("How we deliver Zen | AquaZen", "You expect a luxury spa without the stress. Here's how an Aquasolus hot tub delivers it: the massage, the water flow, the double ozonator and the energy.")
+    page = page.replace('<body class="tubs">', '<body class="tubs how">')
+    foot = FOOT.split("</main>", 1)[1].replace('<script src="/assets/js/tubs.js"></script>', '<script src="/assets/js/how.js"></script>')
+    write("how-we-deliver-zen/index.html", page + body + "\n</main>" + foot)
+
+
 def build_legal():
     """Privacy policy and terms of use, from src/legal/*.md."""
     import markdown
@@ -545,7 +555,7 @@ def stamp_assets():
     import hashlib
     import re
     ver = {}
-    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js"]:
+    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/how.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js"]:
         ver[os.path.basename(rel)] = hashlib.md5(open(os.path.join(ROOT, rel), "rb").read()).hexdigest()[:8]
     pat = re.compile(r'((?:\.\./|/)?assets/(?:css|js)/)(' + "|".join(re.escape(k) for k in ver) + r')(\?v=[0-9a-f]+)?')
     for dirpath, _, files in os.walk(ROOT):
@@ -575,6 +585,7 @@ if __name__ == "__main__":
         print("swim spa photos missing: swim spa pages and dropdown held back")
     inject_home_header()
     build_legal()
+    build_how()
     build_app()
     stamp_assets()
     print("built", 1 + len(SERIES) + len(MODELS) + 1 + len(SWIM), "pages")

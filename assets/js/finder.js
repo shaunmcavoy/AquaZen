@@ -290,7 +290,8 @@
       '<h1 class="fz-title sunset" tabindex="-1">Thank you, ' + esc(contact.first.trim()) + '.</h1>' +
       '<p class="fz-sub">Shaun has your answers and will call you' + when + ' to book a quiet visit. He reads every one himself, because the right tub starts with how you want to live, not with what is on the floor.</p>' +
       '<p class="fz-sub">Can\'t wait? Call or text <a href="tel:+12363044424">236-304-4424</a>.</p>' +
-      '<a class="pill" href="../">Back to AquaZen</a></div>';
+      '<p class="fz-sub">While you wait, have a look around. Every Aquasolus hot tub, with the details that matter.</p>' +
+      '<div class="fz-done-ctas"><a class="pill" href="../hot-tubs/">Browse our hot tubs</a><a class="link-btn" href="../">Back to AquaZen</a></div></div>';
     form.querySelector('.fz-title').focus();
     window.scrollTo({ top: 0 });
   }
