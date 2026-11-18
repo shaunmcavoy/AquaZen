@@ -309,6 +309,19 @@
         <tfoot id="moneyFoot"></tfoot>
       </table></div>
       <p class="muted small" id="moneyNote"></p>
+
+      <div class="card" id="commCard">
+        <h3>Commissions</h3>
+        <p class="muted small">Each salesperson earns their commission on a deal's GP once the customer has paid in full. The GP and commission are locked when the customer signs. Mark a commission paid when you pay it out.</p>
+        <div class="commsum" id="commSum"></div>
+        <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Salesperson</th><th>#</th><th>Customer</th><th>What</th><th>Signed</th><th class="num">GP</th><th class="num">Commission</th><th>Status</th><th></th></tr></thead><tbody id="commRows"><tr><td colspan="9" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card" id="padCard">
+        <h3>Pad check</h3>
+        <p class="muted small">The pad each deal set aside, against what it actually cost us in freight and other costs (entered on each sale under Profit). A positive difference means the pad covered it with room to spare. Use it to fine-tune each line's pad in Products.</p>
+        <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Line</th><th class="num">Deals</th><th class="num">Pad set aside</th><th class="num">Actually spent</th><th class="num">Difference</th><th class="num">Average per deal</th></tr></thead><tbody id="padRows"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
     </div>
 
     <!-- Products (admins) -->

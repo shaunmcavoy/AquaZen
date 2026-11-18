@@ -860,10 +860,12 @@
   function loadMoney() {
     $('#moneyRows').innerHTML = '<tr><td colspan="9" class="empty">Loading...</td></tr>';
     Promise.all([
-      sb.from('sales').select('id,number,status,product_type,tub_model,sauna_model,hot_tub_value,sauna_total,extras_total,delivery_fee,sale_date,customer_signed_at,recorded_past,customers(name)').in('status', SIGNED).limit(5000),
-      sb.from('sale_costs').select('*').limit(5000)
+      sb.from('sales').select('id,number,status,product_type,tub_model,tub_line,sauna_model,hot_tub_value,sauna_total,extras_total,delivery_fee,sale_date,customer_signed_at,recorded_past,payment_type,deposit,balance,deposit_paid_at,balance_paid_at,salesperson_id,customers(name),profiles!sales_salesperson_id_fkey(full_name,email)').in('status', SIGNED).limit(5000),
+      sb.from('sale_costs').select('*').limit(5000),
+      sb.from('sale_deal').select('*').limit(5000)
     ]).then(function (res) {
       var costs = {}; (res[1].data || []).forEach(function (c) { costs[c.sale_id] = c; });
+      dealsBy = {}; (res[2].data || []).forEach(function (d) { dealsBy[d.sale_id] = d; });
       moneyData = (res[0].data || []).map(function (s) { return { s: s, d: soldDate(s), c: costs[s.id] }; });
       var years = {}; moneyData.forEach(function (x) { years[x.d.getFullYear()] = 1; });
       var now = new Date().getFullYear(); years[now] = 1;
@@ -873,8 +875,66 @@
       renderMoney();
     });
   }
+
+  // ---------- Commissions and pad check (Financials, admins) ----------
+  var dealsBy = {};
+  // Paid in full: everything paid on signing, or the balance has been paid.
+  function paidInFull(s) {
+    if (s.balance_paid_at) return s.balance_paid_at;
+    if (s.deposit_paid_at && (s.payment_type === 'full' || num(s.balance) <= 0)) return s.deposit_paid_at;
+    return null;
+  }
+  function repName(s) { return s.profiles ? (s.profiles.full_name || s.profiles.email) : 'No salesperson'; }
+  function renderCommissions() {
+    var year = Number($('#moneyYear').value);
+    var rows = moneyData.filter(function (x) { return dealsBy[x.s.id] && x.d.getFullYear() === year; })
+      .sort(function (a, b) { return repName(a.s).localeCompare(repName(b.s)) || b.d - a.d; });
+    var sum = {};
+    rows.forEach(function (x) {
+      var d = dealsBy[x.s.id], n = repName(x.s), st = d.commission_paid_at ? 'paid' : paidInFull(x.s) ? 'owed' : 'waiting';
+      x.comm = st; sum[n] = sum[n] || { owed: 0, waiting: 0, paid: 0 }; sum[n][st] += num(d.commission);
+    });
+    $('#commSum').innerHTML = Object.keys(sum).length ? Object.keys(sum).map(function (n) {
+      var t = sum[n];
+      return '<div><b>' + AZ.esc(n) + '</b><span class="owed">Owed now ' + AZ.money(t.owed) + '</span><span>Waiting for full payment ' + AZ.money(t.waiting) + '</span><span>Paid in ' + year + ' ' + AZ.money(t.paid) + '</span></div>';
+    }).join('') : '';
+    var LBL = { owed: '<span class="pill pill-gold">Owed now</span>', waiting: '<span class="pill">Waiting for full payment</span>' };
+    $('#commRows').innerHTML = rows.length ? rows.map(function (x) {
+      var d = dealsBy[x.s.id];
+      var status = x.comm === 'paid' ? '<span class="pill pill-green">Paid ' + AZ.date(d.commission_paid_at) + '</span>' : LBL[x.comm];
+      var btn = x.comm === 'owed' ? '<button class="btn btn-ink btn-sm" type="button" data-cpay="' + x.s.id + '">Mark paid</button>' : x.comm === 'paid' ? '<button class="linkbtn" type="button" data-cundo="' + x.s.id + '">Undo</button>' : '';
+      return '<tr><td>' + AZ.esc(repName(x.s)) + '</td><td><a href="#sale-' + x.s.id + '">' + x.s.number + '</a></td><td>' + AZ.esc(x.s.customers && x.s.customers.name) + '</td><td>' + AZ.esc(AZ.what(x.s) || '') + '</td><td>' + AZ.date(x.d) + '</td>' +
+        '<td class="num">' + AZ.money(d.deal_gp) + '</td><td class="num"><b>' + AZ.money(d.commission) + '</b></td><td>' + status + '</td><td>' + btn + '</td></tr>';
+    }).join('') : '<tr><td colspan="9" class="empty">No commissions yet for ' + year + '. They show up here once a deal built with the price list is signed.</td></tr>';
+  }
+  $('#commRows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cpay],[data-cundo]'); if (!b) return;
+    var id = b.dataset.cpay || b.dataset.cundo, when = b.dataset.cpay ? new Date().toISOString() : null;
+    if (b.dataset.cundo && b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to undo'; setTimeout(function () { b.dataset.confirm = ''; b.textContent = 'Undo'; }, 4000); return; }
+    sb.from('sale_deal').update({ commission_paid_at: when, updated_at: new Date().toISOString() }).eq('sale_id', id).then(function (r) {
+      if (r.error) return AZ.toast(r.error.message);
+      dealsBy[id].commission_paid_at = when; AZ.toast(when ? 'Commission marked paid' : 'Commission back to owed'); renderCommissions();
+    });
+  });
+  function renderPads() {
+    var year = Number($('#moneyYear').value), by = {};
+    moneyData.forEach(function (x) {
+      if (x.d.getFullYear() !== year || !x.c) return;
+      var pad = num(x.c.pad), spent = num(x.c.warehouse_shipping) + num(x.c.other_costs);
+      if (!pad && !spent) return;
+      var line = x.s.tub_line || ({ swim_spa: 'Swim spas', mini_pool: 'Mini pools' }[x.s.product_type]) || 'Other';
+      by[line] = by[line] || { n: 0, pad: 0, spent: 0 }; by[line].n++; by[line].pad += pad; by[line].spent += spent;
+    });
+    var keys = Object.keys(by);
+    $('#padRows').innerHTML = keys.length ? keys.map(function (k) {
+      var t = by[k], diff = t.pad - t.spent;
+      return '<tr><td class="model">' + AZ.esc(k) + '</td><td class="num">' + t.n + '</td><td class="num">' + AZ.money(t.pad) + '</td><td class="num">' + AZ.money(t.spent) + '</td><td class="num"><b class="' + (diff < 0 ? 'neg' : 'pos') + '">' + AZ.money(diff) + '</b></td><td class="num">' + AZ.money(diff / t.n) + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">Nothing to compare yet for ' + year + '. Once deals have a pad and you enter their freight and other costs, it shows here by line.</td></tr>';
+  }
+
   function renderMoney() {
     if (!moneyData) return;
+    renderCommissions(); renderPads();
     var year = Number($('#moneyYear').value), thisMonth = new Date().getFullYear() === year ? new Date().getMonth() : 11;
     var m = MONTHS.map(function () { return { units: 0, sold: 0, profit: 0, costedSold: 0, deals: 0, missing: 0 }; });
     moneyData.forEach(function (x) {
