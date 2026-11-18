@@ -1136,8 +1136,27 @@
         if (c.line_id) return; var id = lineId(c.product_type, lineOfModel(c.product_type, c.model));
         if (id) { c.line_id = id; sb.from('product_costs').update({ line_id: id }).eq('id', c.id).then(function () {}); }
       });
-      var rows = list.filter(function (c) { return !costCat || c.product_type === costCat; });
+      // Group by line in line order (Series One, Two, Three, swim spas, mini pools), models in the website's order.
+      var order = {}, P = window.AZ_PRODUCTS || {};
+      Object.keys(P).forEach(function (t) { (P[t].groups || []).forEach(function (g) { (g.items || []).forEach(function (it, i) { order[t + '|' + it.n.toLowerCase()] = i; }); }); });
+      var lsort = function (c) { var l = lineById(c.line_id); return l ? l.sort : 9999; };
+      var rows = list.filter(function (c) { return !costCat || c.product_type === costCat; }).sort(function (a, b) {
+        var oa = order[a.product_type + '|' + a.model.toLowerCase()], ob = order[b.product_type + '|' + b.model.toLowerCase()];
+        return lsort(a) - lsort(b) || (oa == null ? 999 : oa) - (ob == null ? 999 : ob) || a.model.localeCompare(b.model);
+      });
+      var lastLine = null;
       redraw($('#costRows'), rows.length ? rows.map(function (c) {
+        var head = '';
+        if (c.line_id !== lastLine) {
+          lastLine = c.line_id; var ln = lineById(c.line_id);
+          head = '<tr class="linehead"><td colspan="13">' + (ln ? AZ.esc(ln.name) + '<span>' + CAT[ln.product_type] + 's &middot; pad ' + AZ.money(ln.pad) + ' per unit</span>' : 'No line yet<span>Pick a line for these models</span>') + '</td></tr>';
+        }
+        return head + rowFor(c);
+      }).join('') : '<tr><td colspan="13" class="empty">' + (list.length ? 'Nothing in this category yet.' : 'No models yet. Upload your price sheet, or add a model.') + '</td></tr>');
+    });
+  }
+  function rowFor(c) {
+    {
         var l = lineById(c.line_id), pad = l ? +l.pad : 0, o = calc(c.cost, pad, c.sale_price);
         var save = c.msrp != null && c.sale_price != null ? AZ.money(c.msrp - c.sale_price) : dash;
         return '<tr data-cost="' + c.id + '"' + (o.low ? ' class="low"' : '') + '><td>' + lineSelect(c) + '</td><td class="model">' + AZ.esc(c.model) +
@@ -1145,8 +1164,7 @@
           '<td class="num g-admin">' + moneyInput(c, 'cost', 'True cost') + '</td><td class="num g-admin">' + AZ.money(pad) + '</td><td class="num">' + AZ.money(o.sales) + '</td>' +
           '<td class="num">' + moneyInput(c, 'msrp', 'MSRP') + '</td><td class="num">' + moneyInput(c, 'sale_price', 'Zen price') + '</td><td class="num">' + save + '</td>' +
           gpCells(o) + '<td class="src">' + AZ.esc(c.note || '') + '</td><td><button class="linkbtn" type="button" data-del="' + c.id + '">Remove</button></td></tr>';
-      }).join('') : '<tr><td colspan="13" class="empty">' + (list.length ? 'Nothing in this category yet.' : 'No models yet. Upload your price sheet, or add a model.') + '</td></tr>');
-    });
+    }
   }
   $('#costCat').addEventListener('click', function (e) {
     var b = e.target.closest('[data-cat]'); if (!b) return;
