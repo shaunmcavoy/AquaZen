@@ -290,9 +290,12 @@ a{color:inherit}
 
 /* Picks */
 .picks-sec{background:var(--paper);color:var(--ink);padding:110px 0 100px}
-.picks-sec .h2{margin-bottom:56px}
+.picks-sec .h2{margin-bottom:12px}
+.picks-lede{color:var(--ink-2);margin:0 0 48px;font-size:19px}
+.picks-help{margin-top:56px;color:var(--ink-2)}
+.pick{padding:0 0 8px}.pick:hover .pick-go{text-decoration:underline}
 .picks{display:grid;gap:24px}
-.picks-3{grid-template-columns:repeat(3,1fr)}.picks-4{grid-template-columns:repeat(4,1fr)}.picks-5{grid-template-columns:repeat(5,1fr)}
+.picks-3{grid-template-columns:repeat(3,1fr)}.picks-4{grid-template-columns:repeat(4,1fr)}.picks-5{grid-template-columns:repeat(3,1fr)}
 .picks-sm-row{grid-template-columns:repeat(4,1fr);margin-bottom:28px}
 .pick{display:flex;flex-direction:column;align-items:center;text-align:center;text-decoration:none;color:var(--ink);min-width:0}
 .pick img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r-md);margin-bottom:18px;transition:transform .4s ease}

@@ -279,22 +279,6 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
 
     stats = "".join(f'<div class="stat"><span class="stat-n">{e(n)}</span><span class="stat-l">{e(l)}</span></div>' for n, l in s["stats"])
 
-    # The immersive scene: each model's overhead photo tilts and turns as you scroll
-    layers = "".join(
-        f'<img class="orbit-img" data-i="{i}" src="{IMG}{ov(k, m)}.webp" alt="{e(m["name"])} from above" loading="{"eager" if i == 0 else "lazy"}">'
-        for i, (k, m) in enumerate(ms)
-    )
-    captions = "".join(
-        f"""<div class="orbit-cap" data-i="{i}">
-        <p class="orbit-n">{i + 1} of {len(ms)}</p>
-        <h3>{e(m['name'])}</h3>
-        <p class="orbit-tag">{e(m['tag'])}</p>
-        <ul class="orbit-facts"><li><b>{m['people']}</b> people</li><li><b>{m['jets']}</b> jets</li><li>{e(seats_line(m))}</li>{('<li>' + e(m['system']) + '</li>') if m.get('system') else ''}</ul>
-        <a class="link" href="{base}{k}/">See the {e(m['name'])}</a>
-      </div>"""
-        for i, (k, m) in enumerate(ms)
-    )
-
     feats = "".join(
         f"""<article class="card"><img src="{IMG}{img}.webp" alt="" loading="lazy"><div class="card-copy"><h3>{e(t)}</h3><p>{e(d)}</p></div></article>"""
         for img, t, d in s["features"]
@@ -305,8 +289,8 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
       <img src="{IMG}{qt(k, m)}.webp" alt="{e(m['name'])} {noun}" loading="lazy">
       <span class="pick-name">{e(m['name'])}</span>
       <span class="pick-tag">{e(m['tag'])}</span>
-      <span class="pick-facts">{m['people']} people &middot; {m['jets']} jets</span>
-      <span class="pick-go">Learn more</span>
+      <span class="pick-facts">{m['people']} people &middot; {m['jets']} jets &middot; {e(seats_line(m))}</span>
+      <span class="pick-go">See the {e(m['name'])}</span>
     </a>"""
         for k, m in ms
     )
@@ -333,12 +317,10 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
   </div>
 </section>
 
-<section class="orbit" data-orbit style="--count:{len(ms)}" aria-label="The {e(s['name'])} models">
-  <div class="orbit-sticky">
-    <div class="orbit-stage" aria-hidden="true">{layers}</div>
-    <div class="orbit-caps">{captions}</div>
-    <div class="orbit-dots" aria-hidden="true">{''.join('<span></span>' for _ in ms)}</div>
-  </div>
+<section class="picks-sec" id="models">
+  <div class="wrap center"><h2 class="h2">Choose your {e(s['name'])}.</h2><p class="picks-lede">Tap any {noun} for the full details, photos and specs.</p></div>
+  <div class="wrap picks picks-{len(ms)}">{picks}</div>
+  <p class="wrap center picks-help">Not sure which one fits? <a class="link" href="/find-your-zen/">Find your Zen</a> and Shaun will help you choose.</p>
 </section>
 
 <section class="highlights">
@@ -351,10 +333,6 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
 </section>
 
 {built(kind)}
-<section class="picks-sec" id="models">
-  <div class="wrap center"><h2 class="h2">Choose your {e(s['name'])}.</h2></div>
-  <div class="wrap picks picks-{len(ms)}">{picks}</div>
-</section>
 
 <section class="compare">
   <div class="wrap">
