@@ -147,9 +147,12 @@
     if (!c || !price) { p.hidden = true; return; }
     var ex = chosenExtras(), rev = price, sc = num(c.sales_cost);
     ex.forEach(function (x) { rev += x.price; sc += x.sales_cost; });
-    var gp = rev - sc, comm = gp > 0 ? gp * dealSet.commission_pct / 100 : 0;
+    // No commission when an admin is the salesperson on the deal (the database does the same).
+    var selfSold = me && me.profile.role === 'admin' && (!current || !current.salesperson_id || current.salesperson_id === me.user.id);
+    var gp = rev - sc, comm = gp > 0 && !selfSold ? gp * dealSet.commission_pct / 100 : 0;
     var html = '<div><span>Deal GP</span><b class="' + (gp < 0 ? 'neg' : '') + '">' + AZ.money(gp) + '</b><small>' + (rev ? (Math.round(gp / rev * 1000) / 10) + '% of ' + AZ.money(rev) : '') + '</small></div>' +
-      '<div class="you"><span>Your commission (' + dealSet.commission_pct + '% of GP)</span><b>' + AZ.money(comm) + '</b><small>Paid when the deal is paid in full</small></div>';
+      (selfSold ? '<div class="you"><span>Commission</span><b>$0.00</b><small>You\u2019re selling this one yourself, so there\u2019s no commission to pay</small></div>'
+        : '<div class="you"><span>Your commission (' + dealSet.commission_pct + '% of GP)</span><b>' + AZ.money(comm) + '</b><small>Paid when the deal is paid in full</small></div>');
     p.innerHTML = html; p.hidden = false;
     if (me && me.profile.role === 'admin') adminProfit(c, ex, rev, comm);
   }
@@ -160,9 +163,10 @@
       var ac = {}; (r[1].data || []).forEach(function (a) { ac[a.id] = num(a.cost); });
       var ln = (r[2].data || []).filter(function (l) { return l.id === pc.line_id; })[0], pad = ln ? num(ln.pad) : 0;
       var trueCost = num(pc.cost) + ex.reduce(function (t, x) { return t + (ac[x.id] || 0); }, 0);
-      var keep = rev - trueCost - pad - comm, box = $('#dealPanel');
-      if (box.querySelector('.admin')) box.querySelector('.admin').remove();
-      box.insertAdjacentHTML('beforeend', '<div class="admin"><span>Your profit (admins only)</span><b class="' + (keep < 0 ? 'neg' : '') + '">' + AZ.money(keep) + (rev ? ' <em>' + (Math.round(keep / rev * 1000) / 10) + '%</em>' : '') + '</b><small>Margin after commission. After true cost ' + AZ.money(trueCost) + ', pad ' + AZ.money(pad) + ' and commission. The pad pays freight and running costs.</small></div>');
+      var before = rev - trueCost - pad, keep = before - comm, box = $('#dealPanel'), pc2 = function (x) { return rev ? ' <em>' + (Math.round(x / rev * 1000) / 10) + '%</em>' : ''; };
+      $$('.admin', box).forEach(function (x) { x.remove(); });
+      box.insertAdjacentHTML('beforeend', '<div class="admin"><span>Your profit before commission (admins only)</span><b class="' + (before < 0 ? 'neg' : '') + '">' + AZ.money(before) + pc2(before) + '</b><small>What you keep when you sell it yourself.</small></div>' +
+        '<div class="admin"><span>Your profit after commission</span><b class="' + (keep < 0 ? 'neg' : '') + '">' + AZ.money(keep) + pc2(keep) + '</b><small>After true cost ' + AZ.money(trueCost) + ', pad ' + AZ.money(pad) + ' and commission. The pad pays freight and running costs.</small></div>');
     });
   }
   function drawSnap() {
@@ -1079,9 +1083,9 @@
     }
   }
   function gpCells(o) {
-    if (o.gp == null) return '<td class="num g-sales">' + dash + '</td><td class="num g-sales">' + dash + '</td><td class="num g-admin">' + dash + '</td>';
+    if (o.gp == null) return '<td class="num g-sales">' + dash + '</td><td class="num g-sales">' + dash + '</td><td class="num g-admin">' + dash + '</td><td class="num g-admin">' + dash + '</td>';
     return '<td class="num g-sales"><b class="' + (o.gp < 0 ? 'neg' : '') + '">' + AZ.money(o.gp) + '</b><span class="pct">' + (Math.round(o.margin * 10) / 10) + '%</span></td>' +
-      '<td class="num g-sales">' + AZ.money(o.comm) + '</td><td class="num g-admin"><b class="' + (o.profit < 0 ? 'neg' : '') + '">' + AZ.money(o.profit) + '</b><span class="pct">' + (Math.round(o.profit / o.price * 1000) / 10) + '% margin</span></td>';
+      '<td class="num g-sales">' + AZ.money(o.comm) + '</td><td class="num g-admin"><b class="' + (o.gp < 0 ? 'neg' : '') + '">' + AZ.money(o.gp) + '</b><span class="pct">' + (Math.round(o.margin * 10) / 10) + '% margin</span></td><td class="num g-admin"><b class="' + (o.profit < 0 ? 'neg' : '') + '">' + AZ.money(o.profit) + '</b><span class="pct">' + (Math.round(o.profit / o.price * 1000) / 10) + '% margin</span></td>';
   }
   function moneyInput(c, f, label) {
     var v = c[f] == null ? '' : c[f];
@@ -1149,10 +1153,10 @@
         var head = '';
         if (c.line_id !== lastLine) {
           lastLine = c.line_id; var ln = lineById(c.line_id);
-          head = '<tr class="linehead"><td colspan="13">' + (ln ? AZ.esc(ln.name) + '<span>' + CAT[ln.product_type] + 's &middot; pad ' + AZ.money(ln.pad) + ' per unit</span>' : 'No line yet<span>Pick a line for these models</span>') + '</td></tr>';
+          head = '<tr class="linehead"><td colspan="14">' + (ln ? AZ.esc(ln.name) + '<span>' + CAT[ln.product_type] + 's &middot; pad ' + AZ.money(ln.pad) + ' per unit</span>' : 'No line yet<span>Pick a line for these models</span>') + '</td></tr>';
         }
         return head + rowFor(c);
-      }).join('') : '<tr><td colspan="13" class="empty">' + (list.length ? 'Nothing in this category yet.' : 'No models yet. Upload your price sheet, or add a model.') + '</td></tr>');
+      }).join('') : '<tr><td colspan="14" class="empty">' + (list.length ? 'Nothing in this category yet.' : 'No models yet. Upload your price sheet, or add a model.') + '</td></tr>');
     });
   }
   function rowFor(c) {
@@ -1198,7 +1202,7 @@
 
   function loadAddons() {
     sb.from('addons').select('*').order('sort').order('name').then(function (r) {
-      if (r.error) { $('#addonRows').innerHTML = '<tr><td colspan="10" class="empty">' + AZ.esc(r.error.message) + '</td></tr>'; return; }
+      if (r.error) { $('#addonRows').innerHTML = '<tr><td colspan="11" class="empty">' + AZ.esc(r.error.message) + '</td></tr>'; return; }
       var list = r.data || [];
       redraw($('#addonRows'), list.length ? list.map(function (a) {
         var o = calc(a.cost, a.pad, a.sale_price); o.low = false; // The lowest-margin rule is for hot tubs, swim spas and mini pools, not add-ons.
@@ -1207,7 +1211,7 @@
           '<td class="num">' + moneyInput(a, 'sale_price', 'Sale price') + '</td>' + gpCells(o) +
           '<td><label class="switch"><input type="checkbox" data-offer' + (a.offered ? ' checked' : '') + ' aria-label="We offer ' + AZ.esc(a.name) + '"><span>' + (a.offered ? 'Yes' : 'No') + '</span></label></td>' +
           '<td><button class="linkbtn" type="button" data-adel="' + a.id + '">Remove</button></td></tr>';
-      }).join('') : '<tr><td colspan="10" class="empty">No add-ons yet. Add a cover lifter, steps or delivery.</td></tr>');
+      }).join('') : '<tr><td colspan="11" class="empty">No add-ons yet. Add a cover lifter, steps or delivery.</td></tr>');
     });
   }
   $('#addonRows').addEventListener('change', function (e) {

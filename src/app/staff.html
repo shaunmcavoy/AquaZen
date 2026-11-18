@@ -344,7 +344,7 @@
 
       <div class="card" id="costCard">
         <h3>Price list</h3>
-        <p class="muted small">Type a true cost, MSRP or Zen price right in the table and it saves on its own. <b>What the salesperson sees</b> is their GP and commission. <b>Your profit</b> is what's left after the pad and the commission.</p>
+        <p class="muted small">Type a true cost, MSRP or Zen price right in the table and it saves on its own. <b>What the salesperson sees</b> is their GP and commission. <b>Profit before commission</b> is the price less true cost and pad, what you keep when you sell it yourself. <b>Profit after commission</b> is what's left once a salesperson is paid.</p>
         <div class="formactions">
           <label class="btn btn-ink filebtn">Upload a spreadsheet<input type="file" id="costFile" accept=".xlsx,.xls,.csv" hidden></label>
           <label class="inline">US dollar rate<input id="costRate" type="number" step="0.00001" min="0" value="1.42554"></label>
@@ -368,9 +368,9 @@
           <div class="formactions"><button class="btn btn-gold" type="submit">Add model</button><button class="linkbtn" type="button" id="costAddCancel">Cancel</button></div>
         </form>
         <div class="tablewrap"><table class="saletable costtable pricetable"><thead>
-          <tr class="grouphead"><th colspan="2"></th><th colspan="3" class="g-admin">Admins only</th><th colspan="3">Customer sees</th><th colspan="2" class="g-sales">Salesperson sees</th><th class="g-admin">You</th><th colspan="2"></th></tr>
-          <tr><th>Line</th><th>Model</th><th class="num g-admin">True cost</th><th class="num g-admin">Pad</th><th class="num">Sales cost</th><th class="num">MSRP</th><th class="num">Zen price</th><th class="num">They save</th><th class="num g-sales">GP</th><th class="num g-sales">Commission</th><th class="num g-admin">Your profit</th><th>Where the cost came from</th><th></th></tr>
-        </thead><tbody id="costRows"><tr><td colspan="13" class="empty">Loading...</td></tr></tbody></table></div>
+          <tr class="grouphead"><th colspan="2"></th><th colspan="3" class="g-admin">Admins only</th><th colspan="3">Customer sees</th><th colspan="2" class="g-sales">Salesperson sees</th><th colspan="2" class="g-admin">You</th><th colspan="2"></th></tr>
+          <tr><th>Line</th><th>Model</th><th class="num g-admin">True cost</th><th class="num g-admin">Pad</th><th class="num">Sales cost</th><th class="num">MSRP</th><th class="num">Zen price</th><th class="num">They save</th><th class="num g-sales">GP</th><th class="num g-sales">Commission</th><th class="num g-admin">Profit before commission</th><th class="num g-admin">Profit after commission</th><th>Where the cost came from</th><th></th></tr>
+        </thead><tbody id="costRows"><tr><td colspan="14" class="empty">Loading...</td></tr></tbody></table></div>
       </div>
 
       <div class="card" id="extrasCard">
@@ -386,7 +386,7 @@
           </div>
           <div class="formactions"><button class="btn btn-gold" type="submit">Add it</button><button class="linkbtn" type="button" id="addonAddCancel">Cancel</button></div>
         </form>
-        <div class="tablewrap"><table class="saletable costtable pricetable"><thead><tr><th>Add-on</th><th class="num g-admin">True cost</th><th class="num g-admin">Pad</th><th class="num">Sales cost</th><th class="num">Sale price</th><th class="num g-sales">GP</th><th class="num g-sales">Commission</th><th class="num g-admin">Your profit</th><th>We offer this</th><th></th></tr></thead><tbody id="addonRows"><tr><td colspan="10" class="empty">Loading...</td></tr></tbody></table></div>
+        <div class="tablewrap"><table class="saletable costtable pricetable"><thead><tr><th>Add-on</th><th class="num g-admin">True cost</th><th class="num g-admin">Pad</th><th class="num">Sales cost</th><th class="num">Sale price</th><th class="num g-sales">GP</th><th class="num g-sales">Commission</th><th class="num g-admin">Profit before commission</th><th class="num g-admin">Profit after commission</th><th>We offer this</th><th></th></tr></thead><tbody id="addonRows"><tr><td colspan="11" class="empty">Loading...</td></tr></tbody></table></div>
       </div>
     </div>
 
