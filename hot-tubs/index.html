@@ -16,14 +16,45 @@
 <header class="nav" id="top">
   <div class="nav-in">
     <a class="nav-logo" href="/" aria-label="AquaZen home"><img src="/assets/img/logo-word.png" alt="AquaZen" width="112" height="32"></a>
-    <nav class="nav-links" aria-label="Sections">
-      <a href="/hot-tubs/">Hot tubs</a>
+    <nav class="nav-links" aria-label="Main">
+      <button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-tubs">Hot tubs</button>
       <a href="/#water">Swim spas</a>
       <a href="/#water">Mini pools</a>
       <a href="/#why">Why AquaZen</a>
       <a href="/#visit">Visit</a>
     </nav>
     <a class="pill pill-sm" href="/find-your-zen/">Find your Zen</a>
+    <button class="nav-burger" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><span></span><span></span></button>
+  </div>
+  <div class="mega" id="mega-tubs" hidden>
+    <div class="mega-in">
+      <div class="mega-col">
+          <a class="mega-head" href="/hot-tubs/series-one/">Series One</a>
+          <p class="mega-sub">AquaPure &middot; 4 to 7 people</p>
+          <ul><li><a href="/hot-tubs/series-one/brook/">Brook<span>4 people &middot; 23 jets</span></a></li><li><a href="/hot-tubs/series-one/zephyr/">Zephyr<span>5 people &middot; 25 jets</span></a></li><li><a href="/hot-tubs/series-one/cypress/">Cypress<span>6 people &middot; 26 jets</span></a></li><li><a href="/hot-tubs/series-one/cove/">Cove<span>7 people &middot; 27 jets</span></a></li></ul>
+        </div><div class="mega-col">
+          <a class="mega-head" href="/hot-tubs/series-two/">Series Two</a>
+          <p class="mega-sub">NaturaBalance &middot; 3 to 7 people</p>
+          <ul><li><a href="/hot-tubs/series-two/sierra/">Sierra<span>3 people &middot; 40 jets</span></a></li><li><a href="/hot-tubs/series-two/harmony/">Harmony<span>5 people &middot; 42 jets</span></a></li><li><a href="/hot-tubs/series-two/eden/">Eden<span>6 people &middot; 42 jets</span></a></li><li><a href="/hot-tubs/series-two/aspen/">Aspen<span>6 people &middot; 48 jets</span></a></li><li><a href="/hot-tubs/series-two/calma/">Calma<span>7 people &middot; 38 jets</span></a></li></ul>
+        </div><div class="mega-col">
+          <a class="mega-head" href="/hot-tubs/series-three/">Series Three</a>
+          <p class="mega-sub">AquaLux &middot; 5 to 7 people</p>
+          <ul><li><a href="/hot-tubs/series-three/cascade/">Cascade<span>5 people &middot; 45 jets</span></a></li><li><a href="/hot-tubs/series-three/serenity/">Serenity<span>6 people &middot; 49 jets</span></a></li><li><a href="/hot-tubs/series-three/zenith/">Zenith<span>7 people &middot; 61 jets</span></a></li><li><a href="/hot-tubs/series-three/solstice/">Solstice<span>7 people &middot; 41 jets</span></a></li></ul>
+        </div>
+      <div class="mega-col mega-side">
+        <a class="mega-promo" href="/hot-tubs/"><img src="/assets/img/models/cove-quarter.webp" alt="" loading="lazy"><span class="mega-promo-t">All hot tubs</span><span class="mega-promo-d">Thirteen tubs, three series. Compare them all.</span></a>
+        <a class="mega-zen" href="/find-your-zen/">Not sure? Find your Zen</a>
+      </div>
+    </div>
+  </div>
+  <div class="mmenu" id="mmenu" hidden>
+    <details><summary>Hot tubs</summary><ul><li><a href="/hot-tubs/series-one/">Series One <span>AquaPure</span></a></li><li><a href="/hot-tubs/series-two/">Series Two <span>NaturaBalance</span></a></li><li><a href="/hot-tubs/series-three/">Series Three <span>AquaLux</span></a></li><li><a href="/hot-tubs/">All hot tubs</a></li></ul></details>
+    <a href="/#water">Swim spas</a>
+    <a href="/#water">Mini pools</a>
+    <a href="/#why">Why AquaZen</a>
+    <a href="/#visit">Visit</a>
+    <a class="pill" href="/find-your-zen/">Find your Zen</a>
+    <a class="mmenu-call" href="tel:+12363044424">Call or text 236-304-4424</a>
   </div>
 </header>
 <div class="subnav"><div class="subnav-in"><p class="crumbs"><strong>Hot tubs</strong></p></div></div>
@@ -88,6 +119,7 @@
     <p>Hot tub photos and specifications courtesy of Aquasolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
   </div>
 </footer>
+<script src="/assets/js/menu.js"></script>
 <script src="/assets/js/tubs.js"></script>
 </body>
 </html>

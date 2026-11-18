@@ -365,3 +365,57 @@ a.model{text-decoration:none;color:inherit;display:block}
 a.model img{transition:transform .4s ease}
 a.model:hover img{transform:translateY(-4px)}
 .model-go{display:inline-block;margin-top:14px;color:var(--deep);font-weight:500;font-size:15px}
+
+/* ===== Header dropdowns (Apple-style) ===== */
+.nav-drop{background:none;border:0;color:#d2d2d7;font:inherit;font-size:13px;cursor:pointer;padding:0;letter-spacing:inherit}
+.nav-drop:hover,.nav-drop[aria-expanded="true"]{color:var(--paper)}
+.nav-links{align-items:center}
+.nav.mega-open{background:#161617}
+.mega{position:absolute;left:0;right:0;top:100%;background:#161617;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(255,255,255,.08);opacity:0;transform:translateY(-6px);transition:opacity .22s ease,transform .22s ease;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.mega.on{opacity:1;transform:none}
+.mega-in{width:min(1080px,100% - 32px);margin-inline:auto;display:grid;grid-template-columns:repeat(3,1fr) 1.15fr;gap:36px;padding:36px 0 44px}
+#mega-swim .mega-in{grid-template-columns:1fr 1fr 1.15fr}
+.mega-col{min-width:0}
+.mega-head{display:inline-block;font-size:22px;font-weight:700;letter-spacing:-.03em;color:var(--paper);text-decoration:none}
+.mega-head:hover{color:var(--sage)}
+.mega-sub{margin:4px 0 14px;font-size:13px;color:var(--dim)}
+.mega ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.mega li a{display:flex;flex-direction:column;padding:7px 0;color:#e8e8ed;text-decoration:none;font-size:16px;font-weight:600}
+.mega li a span{font-size:12px;font-weight:400;color:var(--dim);margin-top:2px}
+.mega li a:hover{color:var(--paper)}
+.mega li a:hover span{color:#a1a1a6}
+.mega-side{display:flex;flex-direction:column;gap:14px}
+.mega-promo{display:flex;flex-direction:column;text-decoration:none;color:var(--paper);background:#1d1d1f;border-radius:18px;overflow:hidden}
+.mega-promo img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.mega-promo-t{font-size:17px;font-weight:700;padding:14px 16px 2px}
+.mega-promo-d{font-size:13px;color:var(--dim);padding:0 16px 16px}
+.mega-promo:hover .mega-promo-t{color:var(--sage)}
+.mega-zen{color:var(--sage);text-decoration:none;font-weight:500;font-size:15px}
+.mega-zen:hover{text-decoration:underline}
+
+/* Phone menu */
+.nav-burger{display:none;width:40px;height:40px;margin-left:8px;border:0;background:none;cursor:pointer;position:relative}
+.nav-burger span{position:absolute;left:11px;right:11px;height:1.5px;background:var(--paper);transition:transform .25s ease,top .25s ease}
+.nav-burger span:first-child{top:16px}.nav-burger span:last-child{top:23px}
+.nav-burger[aria-expanded="true"] span:first-child{top:19.5px;transform:rotate(45deg)}
+.nav-burger[aria-expanded="true"] span:last-child{top:19.5px;transform:rotate(-45deg)}
+.mmenu{position:absolute;left:0;right:0;top:100%;height:calc(100vh - 52px);height:calc(100dvh - 52px);background:#000;overflow-y:auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:4px}
+.mmenu>a:not(.pill),.mmenu summary{display:block;padding:14px 0;font-size:24px;font-weight:700;letter-spacing:-.025em;color:var(--paper);text-decoration:none;border-bottom:1px solid #1c1c1e;cursor:pointer;list-style:none}
+.mmenu summary::-webkit-details-marker{display:none}
+.mmenu summary::after{content:"+";float:right;color:var(--dim);font-weight:400}
+.mmenu details[open] summary::after{content:"\2013"}
+.mmenu ul{list-style:none;margin:0;padding:6px 0 12px 4px}
+.mmenu li a{display:block;padding:9px 0;font-size:18px;color:#d2d2d7;text-decoration:none}
+.mmenu li a span{color:var(--dim);font-size:14px}
+.mmenu .pill{align-self:flex-start;margin-top:24px}
+.mmenu-call{margin-top:14px;color:var(--teal) !important;font-size:17px !important;font-weight:500 !important;border:0 !important}
+@media (max-width:760px){
+  .nav-burger{display:block}
+  .mega{display:none !important}
+}
+@media (prefers-reduced-motion:reduce){.mega{transition:none}}
+.equip-sm{padding:110px 0}
+.tiles-3{grid-template-columns:repeat(3,1fr);margin-top:48px}
+.tiles-3 .tile{min-height:300px}
+@media (max-width:900px){.tiles-3{grid-template-columns:1fr}.tiles-3 .tile{min-height:0}}
+.tiles-3 .tile{justify-content:flex-start}

@@ -14,6 +14,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA = json.load(open(os.path.join(ROOT, "src", "tubs.json")))
 SERIES = DATA["series"]
 MODELS = DATA["models"]
+SWIM = DATA["swimspa_models"]
+# Swim spa pages and their dropdown only go live once every photo is in assets/img/models/.
+SWIM_READY = all(os.path.exists(os.path.join(ROOT, "assets/img/models", p + ".webp")) for k in DATA["swimspas"]["models"] for p in DATA["swimspa_models"][k]["photos"])
 IMG = "/assets/img/models/"
 
 e = html.escape
@@ -36,19 +39,129 @@ def head(title, desc, extra=""):
 <link rel="stylesheet" href="/assets/css/site.css">
 {extra}</head>
 <body class="tubs">
-<header class="nav" id="top">
+{header()}"""
+
+
+def header():
+    """Site header with Apple-style dropdowns for hot tubs and swim spas, plus a phone menu."""
+    tub_cols = ""
+    for se in SERIES:
+        items = "".join(
+            f'<li><a href="/hot-tubs/{se["slug"]}/{k}/">{e(MODELS[k]["name"])}<span>{MODELS[k]["people"]} people &middot; {MODELS[k]["jets"]} jets</span></a></li>'
+            for k in se["models"]
+        )
+        tub_cols += f"""<div class="mega-col">
+          <a class="mega-head" href="/hot-tubs/{se['slug']}/">{e(se['name'])}</a>
+          <p class="mega-sub">{e(se['range'])} &middot; {e(se['stats'][1][0])} people</p>
+          <ul>{items}</ul>
+        </div>"""
+    sw = DATA["swimspas"]
+    river = [k for k in sw["models"] if SWIM[k]["system"] == "River jets"]
+    turb = [k for k in sw["models"] if SWIM[k]["system"] != "River jets"]
+
+    def swim_items(keys):
+        return "".join(
+            f'<li><a href="/swim-spas/{k}/">{e(SWIM[k]["name"])}<span>{SWIM[k]["length"]} &middot; {SWIM[k]["people"]} people</span></a></li>'
+            for k in keys
+        )
+
+    swim_cols = f"""<div class="mega-col">
+          <a class="mega-head" href="/swim-spas/">River jets</a>
+          <p class="mega-sub">A smooth, adjustable current</p>
+          <ul>{swim_items(river)}</ul>
+        </div>
+        <div class="mega-col">
+          <a class="mega-head" href="/swim-spas/">9-speed turbine</a>
+          <p class="mega-sub">A wider, deeper current for training</p>
+          <ul>{swim_items(turb)}</ul>
+        </div>"""
+
+    def promo(img, title, text, href):
+        return f"""<a class="mega-promo" href="{href}"><img src="{IMG}{img}.webp" alt="" loading="lazy"><span class="mega-promo-t">{e(title)}</span><span class="mega-promo-d">{e(text)}</span></a>"""
+
+    m_tubs = "".join(
+        f'<li><a href="/hot-tubs/{se["slug"]}/">{e(se["name"])} <span>{e(se["range"])}</span></a></li>' for se in SERIES
+    )
+    m_swim = "".join(f'<li><a href="/swim-spas/{k}/">{e(SWIM[k]["name"])}</a></li>' for k in sw["models"])
+
+    swim_mega = f"""  <div class="mega" id="mega-swim" hidden>
+    <div class="mega-in">
+      {swim_cols}
+      <div class="mega-col mega-side">
+        {promo("solara-quarter", "All swim spas", "Six swim spas, 14 to 19 ft. Swim, train and soak.", "/swim-spas/")}
+        <a class="mega-zen" href="/find-your-zen/">Not sure? Find your Zen</a>
+      </div>
+    </div>
+  </div>
+""" if SWIM_READY else ""
+    return f"""<header class="nav" id="top">
   <div class="nav-in">
     <a class="nav-logo" href="/" aria-label="AquaZen home"><img src="/assets/img/logo-word.png" alt="AquaZen" width="112" height="32"></a>
-    <nav class="nav-links" aria-label="Sections">
-      <a href="/hot-tubs/">Hot tubs</a>
-      <a href="/#water">Swim spas</a>
+    <nav class="nav-links" aria-label="Main">
+      <button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-tubs">Hot tubs</button>
+      {'<button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-swim">Swim spas</button>' if SWIM_READY else '<a href="/#water">Swim spas</a>'}
       <a href="/#water">Mini pools</a>
       <a href="/#why">Why AquaZen</a>
       <a href="/#visit">Visit</a>
     </nav>
     <a class="pill pill-sm" href="/find-your-zen/">Find your Zen</a>
+    <button class="nav-burger" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><span></span><span></span></button>
+  </div>
+  <div class="mega" id="mega-tubs" hidden>
+    <div class="mega-in">
+      {tub_cols}
+      <div class="mega-col mega-side">
+        {promo("cove-quarter", "All hot tubs", "Thirteen tubs, three series. Compare them all.", "/hot-tubs/")}
+        <a class="mega-zen" href="/find-your-zen/">Not sure? Find your Zen</a>
+      </div>
+    </div>
+  </div>
+{swim_mega}  <div class="mmenu" id="mmenu" hidden>
+    <details><summary>Hot tubs</summary><ul>{m_tubs}<li><a href="/hot-tubs/">All hot tubs</a></li></ul></details>
+    {f'<details><summary>Swim spas</summary><ul>{m_swim}<li><a href="/swim-spas/">All swim spas</a></li></ul></details>' if SWIM_READY else '<a href="/#water">Swim spas</a>'}
+    <a href="/#water">Mini pools</a>
+    <a href="/#why">Why AquaZen</a>
+    <a href="/#visit">Visit</a>
+    <a class="pill" href="/find-your-zen/">Find your Zen</a>
+    <a class="mmenu-call" href="tel:+12363044424">Call or text 236-304-4424</a>
   </div>
 </header>
+"""
+
+
+def inject_home_header():
+    """Put the same header on the hand-written home page, between markers."""
+    for path in ["index.html"]:
+        full = os.path.join(ROOT, path)
+        txt = open(full).read()
+        start, end = "<!-- HEADER -->", "<!-- /HEADER -->"
+        if start not in txt:
+            a = txt.index('<header class="nav"')
+            b = txt.index("</header>", a) + len("</header>")
+            txt = txt[:a] + start + "\n" + end + txt[b:]
+        a = txt.index(start) + len(start)
+        b = txt.index(end)
+        txt = txt[:a] + "\n" + header() + txt[b:]
+        if "/assets/js/menu.js" not in txt:
+            txt = txt.replace("</body>", '<script src="/assets/js/menu.js"></script>\n</body>')
+        open(full, "w").write(txt)
+
+
+def built(kind):
+    """The three things that set Aquasolus apart, written for the Lower Mainland."""
+    if kind == "tub":
+        water = ("Water this clean takes more than ozone.", "Every hot tub has an ozonator. Ours holds the ozone under water in a mixing chamber for at least 45 seconds so it actually works on the water, then sends it past a UV light. The cleanest water possible in a hot tub.")
+        build = ("Build quality, second to none.", "A 304 stainless steel frame that won't rot or rust, on a structured ABS base pan that seals and protects the bottom of the tub. Built for the longest life you can get.")
+    else:
+        water = ("Clean water, simply.", "Ozone water care comes standard, and soft Lower Mainland water keeps the routine short. We show you exactly how before delivery.")
+        build = ("Built to carry the weight.", "A 304 stainless steel frame that won't rot or rust, made to hold thousands of litres for years.")
+    eff = ("Easy on the planet. And your hydro bill.", "Full AQ10 insulation keeps the heat the pumps make inside and puts it back into the water, instead of losing it to the air. Less wasted heat, less electricity.")
+    tiles = "".join(f'<div class="tile"><h3>{e(t)}</h3><p>{e(d)}</p></div>' for t, d in (water, eff, build))
+    return f"""
+<section class="equip equip-sm">
+  <div class="wrap center"><h2 class="h2">Why it's different.</h2></div>
+  <div class="wrap tiles tiles-3">{tiles}</div>
+</section>
 """
 
 
@@ -84,10 +197,19 @@ FOOT = """
     <p>Hot tub photos and specifications courtesy of Aquasolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
   </div>
 </footer>
+<script src="/assets/js/menu.js"></script>
 <script src="/assets/js/tubs.js"></script>
 </body>
 </html>
 """
+
+
+def ov(k, m):
+    return m.get("overhead", k + "-overhead")
+
+
+def qt(k, m):
+    return m.get("quarter", k + "-quarter")
 
 
 def seats_line(m):
@@ -142,17 +264,20 @@ def build_hub():
 
 
 # ---------- Series: /hot-tubs/<series>/ ----------
-def build_series(s):
-    ms = [(k, MODELS[k]) for k in s["models"]]
-    links = [(m["name"], f"/hot-tubs/{s['slug']}/{k}/", False) for k, m in ms]
-    page = head(f"{s['name']} hot tubs | AquaZen", f"{s['name']} ({s['range']}): {s['lede']}")
-    page += subnav([("Hot tubs", "/hot-tubs/"), (s["name"], None)], links)
+def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
+    base = base or "/hot-tubs/" + s["slug"] + "/"
+    crumbs = [("Hot tubs", "/hot-tubs/")] if crumbs is None else crumbs
+    noun = "hot tub" if kind == "tub" else "swim spa"
+    ms = [(k, models[k]) for k in s["models"]]
+    links = [(m["name"], f"{base}{k}/", False) for k, m in ms]
+    page = head(f"{s['name']}{' hot tubs' if kind == 'tub' else ''} | AquaZen", f"{s['name']} ({s['range']}): {s['lede']}")
+    page += subnav(crumbs + [(s["name"], None)], links)
 
     stats = "".join(f'<div class="stat"><span class="stat-n">{e(n)}</span><span class="stat-l">{e(l)}</span></div>' for n, l in s["stats"])
 
     # The immersive scene: each model's overhead photo tilts and turns as you scroll
     layers = "".join(
-        f'<img class="orbit-img" data-i="{i}" src="{IMG}{k}-overhead.webp" alt="{e(m["name"])} from above" loading="{"eager" if i == 0 else "lazy"}">'
+        f'<img class="orbit-img" data-i="{i}" src="{IMG}{ov(k, m)}.webp" alt="{e(m["name"])} from above" loading="{"eager" if i == 0 else "lazy"}">'
         for i, (k, m) in enumerate(ms)
     )
     captions = "".join(
@@ -160,8 +285,8 @@ def build_series(s):
         <p class="orbit-n">{i + 1} of {len(ms)}</p>
         <h3>{e(m['name'])}</h3>
         <p class="orbit-tag">{e(m['tag'])}</p>
-        <ul class="orbit-facts"><li><b>{m['people']}</b> people</li><li><b>{m['jets']}</b> jets</li><li>{e(seats_line(m))}</li></ul>
-        <a class="link" href="/hot-tubs/{s['slug']}/{k}/">See the {e(m['name'])}</a>
+        <ul class="orbit-facts"><li><b>{m['people']}</b> people</li><li><b>{m['jets']}</b> jets</li><li>{e(seats_line(m))}</li>{('<li>' + e(m['system']) + '</li>') if m.get('system') else ''}</ul>
+        <a class="link" href="{base}{k}/">See the {e(m['name'])}</a>
       </div>"""
         for i, (k, m) in enumerate(ms)
     )
@@ -172,8 +297,8 @@ def build_series(s):
     )
 
     picks = "".join(
-        f"""<a class="pick" href="/hot-tubs/{s['slug']}/{k}/">
-      <img src="{IMG}{k}-quarter.webp" alt="{e(m['name'])} hot tub" loading="lazy">
+        f"""<a class="pick" href="{base}{k}/">
+      <img src="{IMG}{qt(k, m)}.webp" alt="{e(m['name'])} {noun}" loading="lazy">
       <span class="pick-name">{e(m['name'])}</span>
       <span class="pick-tag">{e(m['tag'])}</span>
       <span class="pick-facts">{m['people']} people &middot; {m['jets']} jets</span>
@@ -183,7 +308,7 @@ def build_series(s):
     )
 
     rows = "".join(
-        f"""<tr><th scope="row"><a href="/hot-tubs/{s['slug']}/{k}/">{e(m['name'])}</a></th><td>{m['people']}</td><td>{m['seats']} / {m['loungers']}</td><td>{e(m['in'])}</td><td>{m['gal']} US gal</td><td>{m['jets']}</td><td>{e(m['power'])}</td></tr>"""
+        f"""<tr><th scope="row"><a href="{base}{k}/">{e(m['name'])}</a></th><td>{m['people']}</td><td>{m['seats']} / {m['loungers']}</td><td>{e(m['in'])}</td><td>{m['gal']} US gal</td><td>{m['jets']}</td><td>{e(m['power'])}</td></tr>"""
         for k, m in ms
     )
 
@@ -221,6 +346,7 @@ def build_series(s):
   </div>
 </section>
 
+{built(kind)}
 <section class="picks-sec" id="models">
   <div class="wrap center"><h2 class="h2">Choose your {e(s['name'])}.</h2></div>
   <div class="wrap picks picks-{len(ms)}">{picks}</div>
@@ -244,15 +370,19 @@ def build_series(s):
 </section>
 """
     page += FOOT.format(fz="/find-your-zen/")
-    write(f"hot-tubs/{s['slug']}/index.html", page)
+    write(base.strip("/") + "/index.html", page)
 
 
 # ---------- Model: /hot-tubs/<series>/<model>/ ----------
-def build_model(k, m):
-    s = series_by_slug(m["series"])
-    sibs = [(MODELS[x]["name"], f"/hot-tubs/{s['slug']}/{x}/", x == k) for x in s["models"]]
-    page = head(f"{m['name']} hot tub | {s['name']} | AquaZen", f"The Aquasolus {m['name']}: {m['tag']} {m['people']} people, {m['jets']} jets. See it at AquaZen in Burnaby.")
-    page += subnav([("Hot tubs", "/hot-tubs/"), (s["name"], f"/hot-tubs/{s['slug']}/"), (m["name"], None)], sibs)
+def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub"):
+    s = s or series_by_slug(m["series"])
+    base = base or "/hot-tubs/" + s["slug"] + "/"
+    crumbs = [("Hot tubs", "/hot-tubs/")] if crumbs is None else crumbs
+    noun = "hot tub" if kind == "tub" else "swim spa"
+    swimrow = f'<div><dt>Swim system</dt><dd>{e(m["system"])}</dd><dd class="spec-sub">{e(m["length"])} long</dd></div>' if m.get("system") else ""
+    sibs = [(models[x]["name"], f"{base}{x}/", x == k) for x in s["models"]]
+    page = head(f"{m['name']} {noun} | AquaZen", f"The Aquasolus {m['name']} {noun}: {m['tag']} {m['people']} people, {m['jets']} jets. See it at AquaZen in Burnaby.")
+    page += subnav(crumbs + [(s["name"], base), (m["name"], None)], sibs)
 
     photos = m["photos"]
     gallery = "".join(
@@ -265,7 +395,7 @@ def build_model(k, m):
     )
     jetmix = f'<dd class="spec-sub">{e(m["jetmix"])}</dd>' if m["jetmix"] else ""
     others = "".join(
-        f"""<a class="pick pick-sm" href="/hot-tubs/{s['slug']}/{x}/"><img src="{IMG}{x}-quarter.webp" alt="" loading="lazy"><span class="pick-name">{e(MODELS[x]['name'])}</span><span class="pick-facts">{MODELS[x]['people']} people &middot; {MODELS[x]['jets']} jets</span></a>"""
+        f"""<a class="pick pick-sm" href="{base}{x}/"><img src="{IMG}{qt(x, models[x])}.webp" alt="" loading="lazy"><span class="pick-name">{e(models[x]['name'])}</span><span class="pick-facts">{models[x]['people']} people &middot; {models[x]['jets']} jets</span></a>"""
         for x in s["models"] if x != k
     )
 
@@ -277,7 +407,7 @@ def build_model(k, m):
     <p class="m-tag">{e(m['tag'])}</p>
     <div class="hero-ctas"><a class="pill" href="/find-your-zen/?model={k}">Find your Zen</a><a class="link" href="#specs">Tech specs</a></div>
   </div>
-  <div class="tilt" data-tilt><img src="{IMG}{photos[0]}.webp" alt="The {e(m['name'])} hot tub" fetchpriority="high"></div>
+  <div class="tilt" data-tilt><img src="{IMG}{photos[0]}.webp" alt="The {e(m['name'])} {noun}" fetchpriority="high"></div>
 </section>
 
 <section class="m-stats">
@@ -291,7 +421,7 @@ def build_model(k, m):
 
 <section class="orbit orbit-one" data-orbit style="--count:1" aria-label="The {e(m['name'])} from above">
   <div class="orbit-sticky">
-    <div class="orbit-stage" aria-hidden="true"><img class="orbit-img" data-i="0" src="{IMG}{k}-overhead.webp" alt="" loading="lazy"></div>
+    <div class="orbit-stage" aria-hidden="true"><img class="orbit-img" data-i="0" src="{IMG}{ov(k, m)}.webp" alt="" loading="lazy"></div>
     <div class="orbit-caps"><div class="orbit-cap" data-i="0">
       <h3>Made for</h3>
       <p class="orbit-tag">{e(m['fit'])}</p>
@@ -314,22 +444,23 @@ def build_model(k, m):
   </div>
 </section>
 
+{built(kind)}
 <section class="specs" id="specs">
   <div class="wrap">
     <h2 class="h2">Tech specs</h2>
     <dl class="spec-grid">
-      <div><dt>Capacity</dt><dd>{m['people']} people</dd><dd class="spec-sub">{e(seats_line(m))}</dd></div>
+      {swimrow}<div><dt>Capacity</dt><dd>{m['people']} people</dd><dd class="spec-sub">{e(seats_line(m))}</dd></div>
       <div><dt>Jets</dt><dd>{m['jets']} jets</dd>{jetmix}</div>
       <div><dt>Size</dt><dd>{e(m['in'])}</dd><dd class="spec-sub">{e(m['mm'])}, length x width x height</dd></div>
       <div><dt>Water</dt><dd>{m['gal']} US gallons</dd><dd class="spec-sub">{m['l']} litres</dd></div>
       <div><dt>Weight</dt><dd>{e(m['dry'])} empty</dd><dd class="spec-sub">{e(m['full'])} full</dd></div>
       <div><dt>Power</dt><dd>{e(m['power'])}</dd></div>
       <div><dt>Pumps</dt><dd>{e(m['pumps'])}</dd><dd class="spec-sub">Plus a circulation pump</dd></div>
-      <div><dt>Heater</dt><dd>{e(m['heater'])}</dd></div>
-      <div><dt>Controls</dt><dd>{e(m['panel'])}</dd></div>
-      <div><dt>Water care</dt><dd>{'Ozone, UV and Gecko WaterLab' if s['slug'] == 'series-three' else 'Ozone, standard'}</dd><dd class="spec-sub">Simple with soft Lower Mainland water</dd></div>
+      <div><dt>Heater and controls</dt><dd>{e(m['heater'])}</dd><dd class="spec-sub">{e(m['panel'])} control panel</dd></div>
+      <div><dt>Water care</dt><dd>{'Ozone with a 45-second mixing chamber, then UV' if kind == 'tub' else 'Ozone, standard'}</dd><dd class="spec-sub">{'Plus Gecko WaterLab real-time monitoring' if s['slug'] == 'series-three' else 'Simple with soft Lower Mainland water'}</dd></div>
+      <div><dt>Efficiency</dt><dd>AQ10 full insulation</dd><dd class="spec-sub">Heat from the pumps is kept in and put back into the water</dd></div>
       <div><dt>Shell colours</dt><dd class="swatches"><span><img src="{IMG}swatch-sterling.webp" alt="" width="28" height="28">Sterling Silver</span><span><img src="{IMG}swatch-odyssey.webp" alt="" width="28" height="28">Odyssey Grey</span></dd></div>
-      <div><dt>Built to last</dt><dd>304 stainless steel frame, AQ10 full insulation</dd><dd class="spec-sub">{e(DATA['warranty'])}</dd></div>
+      <div><dt>Built to last</dt><dd>{'304 stainless steel frame on a structured ABS base pan' if kind == 'tub' else '304 stainless steel frame'}</dd><dd class="spec-sub">{e(DATA['warranty'])}</dd></div>
     </dl>
   </div>
 </section>
@@ -337,7 +468,7 @@ def build_model(k, m):
 <section class="picks-sec">
   <div class="wrap center"><h2 class="h2">More in {e(s['name'])}</h2></div>
   <div class="wrap picks picks-sm-row">{others}</div>
-  <p class="wrap center"><a class="link" href="/hot-tubs/{s['slug']}/">See all of {e(s['name'])}</a></p>
+  <p class="wrap center"><a class="link" href="{base}">See all of {e(s['name'])}</a></p>
 </section>
 
 <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo">
@@ -346,7 +477,7 @@ def build_model(k, m):
 </div>
 """
     page += FOOT.format(fz=f"/find-your-zen/?model={k}")
-    write(f"hot-tubs/{s['slug']}/{k}/index.html", page)
+    write(base.strip("/") + f"/{k}/index.html", page)
 
 
 if __name__ == "__main__":
@@ -355,4 +486,12 @@ if __name__ == "__main__":
         build_series(s)
         for k in s["models"]:
             build_model(k, MODELS[k])
-    print("built", 1 + len(SERIES) + sum(len(s["models"]) for s in SERIES), "pages")
+    sw = DATA["swimspas"]
+    if SWIM_READY:
+        build_series(sw, SWIM, "/swim-spas/", [], "swim")
+        for k in sw["models"]:
+            build_model(k, SWIM[k], sw, SWIM, "/swim-spas/", [], "swim")
+    else:
+        print("swim spa photos missing: swim spa pages and dropdown held back")
+    inject_home_header()
+    print("built", 1 + len(SERIES) + len(MODELS) + 1 + len(SWIM), "pages")

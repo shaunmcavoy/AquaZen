@@ -1,75 +1,753 @@
 {
-  "note": "Specs from aquasolus.com/ca model pages (Technical Specification tables), November 2026. Taglines and fit notes are AquaZen's own words, written from the specs.",
-  "warranty": "10 years on the shell structure and up to 2 years on parts, under the Aquasolus Solace Guarantee.",
-  "series": [
-    {
-      "slug": "series-one",
-      "name": "Series One",
-      "range": "AquaPure",
-      "headline": "Plug in. Find your Zen.",
-      "lede": "Four hot tubs for 4 to 7 people that run on a standard 120V outlet, or a 40 amp line if you have one. The simplest way to start your Zen Time.",
-      "hero": "cove-quarter",
-      "stats": [["4", "models"], ["4 to 7", "people"], ["23 to 27", "jets"], ["120V", "plug and play"]],
-      "features": [
-        ["feat-headrest", "Sculpted headrests", "Soft, shaped headrests that hold your head and neck, so you can actually let go."],
-        ["feat-waterfall", "Infinity waterfall", "A gentle sheet of water into the tub. The sound alone slows you down."],
-        ["feat-diverter", "Diverter control", "Move the flow to the seats that need it most, with one turn."],
-        ["feat-audio", "Built-in audio", "Bluetooth sound with speakers in the tub. Your playlist, or nothing but the night."],
-        ["feat-jets", "Hydrotherapy jets", "A mix of small, medium, large and extra large jets for every part of your back."]
-      ],
-      "honest": "Plug and play is simple, with one trade-off. On a regular outlet the heater and the jets share the power, so on a cold night the water takes longer to warm back up. If you'll soak every night through the winter, have a look at Series Two. If you want the easiest start, this is it.",
-      "models": ["brook", "zephyr", "cypress", "cove"]
-    },
-    {
-      "slug": "series-two",
-      "name": "Series Two",
-      "range": "NaturaBalance",
-      "headline": "Full power, every night.",
-      "lede": "Five hot tubs for 3 to 7 people with two pumps on a dedicated 60 amp line, so the heater and the jets run at full power together. Made for nightly Zen Time, right through winter.",
-      "hero": "eden-quarter",
-      "stats": [["5", "models"], ["3 to 7", "people"], ["38 to 48", "jets"], ["2", "pumps in every tub"]],
-      "features": [
-        ["feat-jets", "Two pumps, more jets", "Two 6 BHP pumps drive 38 to 48 jets, so every seat gets a real massage."],
-        ["feat-headrest", "Sculpted headrests", "Soft, shaped headrests that hold your head and neck, so you can actually let go."],
-        ["feat-waterfall", "Infinity waterfall", "A gentle sheet of water into the tub. The sound alone slows you down."],
-        ["feat-diverter", "Diverter control", "Move the flow to the seats that need it most, with one turn."],
-        ["feat-audio", "Built-in audio", "Bluetooth sound with speakers in the tub. Your playlist, or nothing but the night."]
-      ],
-      "honest": "A dedicated 60 amp line needs a licensed electrician, and it is worth it if you'll use the tub most nights. Already have an old hot tub line? Tell us its size in Find your Zen and we'll check whether it will work. Four of the five have a lounger; the Calma has seven upright seats for the most room.",
-      "models": ["sierra", "harmony", "eden", "aspen", "calma"]
-    },
-    {
-      "slug": "series-three",
-      "name": "Series Three",
-      "range": "AquaLux",
-      "headline": "The peak of Zen.",
-      "lede": "Our most advanced hot tubs. Programmable massage, real-time water monitoring and the full EcoPure water system, in four models for 5 to 7 people.",
-      "hero": "serenity-quarter",
-      "stats": [["4", "models"], ["5 to 7", "people"], ["41 to 61", "jets"], ["UV + ozone", "water care"]],
-      "features": [
-        ["feat-interior", "Programmable massage", "A variable-speed massage pump runs sequences you choose, from slow and soft to deep."],
-        ["feat-jets", "Real-time water monitoring", "Gecko WaterLab watches the water for you, with UV and ozone keeping it clear."],
-        ["feat-waterfall", "Infinity waterfall", "A gentle sheet of water into the tub. The sound alone slows you down."],
-        ["feat-speaker", "Light and sound", "Colour lighting inside, glowing corners outside, and built-in Bluetooth audio."],
-        ["feat-headrest", "Sculpted headrests", "Soft, shaped headrests that hold your head and neck, so you can actually let go."]
-      ],
-      "honest": "Series Three is for people who want the best water and the best massage, and will use both. Every model needs its own 60 amp line from a licensed electrician. If the simpler controls of Series Two would make you just as happy, I'll tell you.",
-      "models": ["cascade", "serenity", "zenith", "solstice"]
-    }
-  ],
-  "models": {
-    "brook": {"name": "Brook", "series": "series-one", "tag": "The compact one. Four seats, on a standard outlet.", "fit": "Couples and small families, and smaller patios. The easiest way to start.", "people": 4, "seats": 4, "loungers": 0, "jets": 23, "jetmix": "2 small, 11 medium, 7 large, 3 extra large", "in": "84 x 71 x 31 in", "mm": "2,130 x 1,800 x 800 mm", "gal": "264", "l": "1,000", "dry": "262 kg (578 lb)", "full": "1,262 kg (2,782 lb)", "power": "15 A 120V, or 40 A 240V", "pumps": "1 x 1.5 BHP (0.75 HP continuous)", "heater": "Gecko 1 kW at 120V, or 4 kW at 240V", "panel": "Gecko K330", "photos": ["brook-quarter", "brook-overhead", "brook-d1", "brook-d2", "brook-d3"]},
-    "zephyr": {"name": "Zephyr", "series": "series-one", "tag": "Two loungers, three seats, room for five.", "fit": "Two people who both want to stretch out, with room for the kids or friends.", "people": 5, "seats": 3, "loungers": 2, "jets": 25, "jetmix": "4 small, 8 medium, 11 large, 3 extra large", "in": "84 x 84 x 35 in", "mm": "2,130 x 2,130 x 900 mm", "gal": "343", "l": "1,300", "dry": "288 kg (635 lb)", "full": "1,588 kg (3,501 lb)", "power": "15 A 120V, or 40 A 240V", "pumps": "1 x 1.5 BHP (0.75 HP continuous)", "heater": "Gecko 1 kW at 120V, or 4 kW at 240V", "panel": "Gecko K330", "photos": ["zephyr-quarter", "zephyr-overhead", "zephyr-d1", "zephyr-d2"]},
-    "cypress": {"name": "Cypress", "series": "series-one", "tag": "A lounger and five seats, on a standard outlet.", "fit": "Families who want a lounger without giving up seats.", "people": 6, "seats": 5, "loungers": 1, "jets": 26, "jetmix": "2 small, 13 medium, 8 large, 3 extra large", "in": "84 x 84 x 35 in", "mm": "2,130 x 2,130 x 900 mm", "gal": "317", "l": "1,200", "dry": "290 kg (639 lb)", "full": "1,490 kg (3,285 lb)", "power": "15 A 120V, or 40 A 240V", "pumps": "1 x 1.5 BHP (0.75 HP continuous)", "heater": "Gecko 1 kW at 120V, or 4 kW at 240V", "panel": "Gecko K330", "photos": ["cypress-quarter", "cypress-overhead", "cypress-d1", "cypress-d2"]},
-    "cove": {"name": "Cove", "series": "series-one", "tag": "Seven upright seats. The most room in Series One.", "fit": "Bigger families and anyone who has friends over often.", "people": 7, "seats": 7, "loungers": 0, "jets": 27, "jetmix": "7 medium, 16 large, 4 extra large", "in": "84 x 84 x 35 in", "mm": "2,130 x 2,130 x 900 mm", "gal": "317", "l": "1,200", "dry": "298.5 kg (658 lb)", "full": "1,498.5 kg (3,303 lb)", "power": "15 A 120V, or 40 A 240V", "pumps": "1 x 1.5 BHP (0.75 HP continuous)", "heater": "Gecko 1 kW at 120V, or 4 kW at 240V", "panel": "Gecko K330", "photos": ["cove-quarter", "cove-overhead", "cove-d1", "cove-d2"]},
-    "sierra": {"name": "Sierra", "series": "series-two", "tag": "Two loungers and a seat. Zen for two, or three.", "fit": "Couples who want to lie back side by side, every night.", "people": 3, "seats": 1, "loungers": 2, "jets": 40, "jetmix": "", "in": "89 x 71 x 31 in", "mm": "2,250 x 1,800 x 800 mm", "gal": "343", "l": "1,300", "dry": "300 kg (661 lb)", "full": "1,600 kg (3,527 lb)", "power": "60 A 240V dedicated line", "pumps": "2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K506", "photos": ["sierra-quarter", "sierra-overhead"]},
-    "harmony": {"name": "Harmony", "series": "series-two", "tag": "Two loungers, three seats and 42 jets.", "fit": "Couples and small families who want two loungers and full power.", "people": 5, "seats": 3, "loungers": 2, "jets": 42, "jetmix": "6 small, 18 medium, 12 large, 6 extra large", "in": "84 x 84 x 37 in", "mm": "2,130 x 2,130 x 940 mm", "gal": "343", "l": "1,300", "dry": "336 kg (741 lb)", "full": "1,636 kg (3,607 lb)", "power": "60 A 240V dedicated line", "pumps": "2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K506", "photos": ["harmony-quarter", "harmony-overhead"]},
-    "eden": {"name": "Eden", "series": "series-two", "tag": "Six people, one lounger, 42 jets.", "fit": "Families of four to six who use the tub most nights.", "people": 6, "seats": 5, "loungers": 1, "jets": 42, "jetmix": "6 small, 16 medium, 4 large, 16 extra large", "in": "84 x 84 x 37 in", "mm": "2,130 x 2,130 x 940 mm", "gal": "317", "l": "1,200", "dry": "342 kg (754 lb)", "full": "1,542 kg (3,401 lb)", "power": "60 A 240V dedicated line", "pumps": "2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K506", "photos": ["eden-quarter", "eden-overhead"]},
-    "aspen": {"name": "Aspen", "series": "series-two", "tag": "Six people, one lounger and 48 jets, the most in Series Two.", "fit": "Anyone who wants the deepest massage in the series, with room for six.", "people": 6, "seats": 5, "loungers": 1, "jets": 48, "jetmix": "6 small, 20 medium, 15 large, 5 extra large", "in": "91 x 79 x 37 in", "mm": "2,320 x 2,000 x 940 mm", "gal": "343", "l": "1,300", "dry": "333 kg (734 lb)", "full": "1,633 kg (3,600 lb)", "power": "60 A 240V dedicated line", "pumps": "2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K506", "photos": ["aspen-quarter", "aspen-overhead", "aspen-d1", "aspen-d2", "aspen-d3"]},
-    "calma": {"name": "Calma", "series": "series-two", "tag": "Seven upright seats, for the whole family.", "fit": "Big families and people who entertain, with full power for every seat.", "people": 7, "seats": 7, "loungers": 0, "jets": 38, "jetmix": "8 small, 2 medium, 20 large, 7 extra large", "in": "84 x 84 x 37 in", "mm": "2,130 x 2,130 x 940 mm", "gal": "317", "l": "1,200", "dry": "351 kg (774 lb)", "full": "1,551 kg (3,419 lb)", "power": "60 A 240V dedicated line", "pumps": "2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K506", "photos": ["calma-quarter", "calma-overhead", "calma-d1", "calma-d2"]},
-    "cascade": {"name": "Cascade", "series": "series-three", "tag": "Two full-length loungers, three seats, 45 jets.", "fit": "Couples who both want a lounger, with programmable massage.", "people": 5, "seats": 3, "loungers": 2, "jets": 45, "jetmix": "", "in": "91 x 91 x 37 in", "mm": "2,300 x 2,300 x 940 mm", "gal": "396", "l": "1,500", "dry": "369 kg (800 lb)", "full": "1,869 kg (4,120 lb)", "power": "60 A 240V dedicated line", "pumps": "1 x 6 BHP variable massage + 2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K1001", "photos": ["cascade-quarter", "cascade-overhead"]},
-    "serenity": {"name": "Serenity", "series": "series-three", "tag": "Six people, a full-length lounger, 49 jets.", "fit": "Families who want the best water care and a lounger for the end of the day.", "people": 6, "seats": 5, "loungers": 1, "jets": 49, "jetmix": "", "in": "91 x 91 x 37 in", "mm": "2,300 x 2,300 x 940 mm", "gal": "396", "l": "1,500", "dry": "369 kg (800 lb)", "full": "1,869 kg (4,120 lb)", "power": "60 A 240V dedicated line", "pumps": "1 x 6 BHP variable massage + 2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K1001", "photos": ["serenity-quarter", "serenity-overhead"]},
-    "zenith": {"name": "Zenith", "series": "series-three", "tag": "Our largest tub. Seven people, 61 jets.", "fit": "Big families and anyone who wants the most room and the most jets.", "people": 7, "seats": 6, "loungers": 1, "jets": 61, "jetmix": "", "in": "110 x 91 x 37 in", "mm": "2,800 x 2,300 x 940 mm", "gal": "502", "l": "1,900", "dry": "508 kg (1,120 lb)", "full": "2,408 kg (5,309 lb)", "power": "60 A 240V dedicated line", "pumps": "1 x 6 BHP variable massage + 3 x 5 BHP (2 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K1001", "photos": ["zenith-quarter", "zenith-overhead"]},
-    "solstice": {"name": "Solstice", "series": "series-three", "tag": "Seven upright seats, made for gathering.", "fit": "Families and friends who soak together, with the best water care.", "people": 7, "seats": 7, "loungers": 0, "jets": 41, "jetmix": "", "in": "91 x 91 x 37 in", "mm": "2,300 x 2,300 x 940 mm", "gal": "396", "l": "1,500", "dry": "369 kg (800 lb)", "full": "1,869 kg (4,120 lb)", "power": "60 A 240V dedicated line", "pumps": "1 x 6 BHP variable massage + 2 x 6 BHP (3 HP continuous)", "heater": "Gecko 4 kW, 240V", "panel": "Gecko K1001", "photos": ["solstice-quarter", "solstice-overhead"]}
+ "note": "Specs from aquasolus.com/ca model pages (Technical Specification tables), November 2026. Taglines and fit notes are AquaZen's own words, written from the specs.",
+ "warranty": "10 years on the shell structure and up to 2 years on parts, under the Aquasolus Solace Guarantee.",
+ "series": [
+  {
+   "slug": "series-one",
+   "name": "Series One",
+   "range": "AquaPure",
+   "headline": "Plug in. Find your Zen.",
+   "lede": "Four hot tubs for 4 to 7 people that run on a standard 120V outlet, or a 40 amp line if you have one. The simplest way to start your Zen Time.",
+   "hero": "cove-quarter",
+   "stats": [
+    [
+     "4",
+     "models"
+    ],
+    [
+     "4 to 7",
+     "people"
+    ],
+    [
+     "23 to 27",
+     "jets"
+    ],
+    [
+     "120V",
+     "plug and play"
+    ]
+   ],
+   "features": [
+    [
+     "feat-headrest",
+     "Sculpted headrests",
+     "Soft, shaped headrests that hold your head and neck, so you can actually let go."
+    ],
+    [
+     "feat-waterfall",
+     "Infinity waterfall",
+     "A gentle sheet of water into the tub. The sound alone slows you down."
+    ],
+    [
+     "feat-diverter",
+     "Diverter control",
+     "Move the flow to the seats that need it most, with one turn."
+    ],
+    [
+     "feat-audio",
+     "Built-in audio",
+     "Bluetooth sound with speakers in the tub. Your playlist, or nothing but the night."
+    ],
+    [
+     "feat-jets",
+     "Hydrotherapy jets",
+     "A mix of small, medium, large and extra large jets for every part of your back."
+    ]
+   ],
+   "honest": "Plug and play is simple, with one trade-off. On a regular outlet the heater and the jets share the power, so on a chilly night the water takes longer to warm back up. If you'll soak every night all year, have a look at Series Two. If you want the easiest start, this is it.",
+   "models": [
+    "brook",
+    "zephyr",
+    "cypress",
+    "cove"
+   ]
+  },
+  {
+   "slug": "series-two",
+   "name": "Series Two",
+   "range": "NaturaBalance",
+   "headline": "Full power, every night.",
+   "lede": "Five hot tubs for 3 to 7 people with two pumps on a dedicated 60 amp line, so the heater and the jets run at full power together. Made for nightly Zen Time, all year round.",
+   "hero": "eden-quarter",
+   "stats": [
+    [
+     "5",
+     "models"
+    ],
+    [
+     "3 to 7",
+     "people"
+    ],
+    [
+     "38 to 48",
+     "jets"
+    ],
+    [
+     "2",
+     "pumps in every tub"
+    ]
+   ],
+   "features": [
+    [
+     "feat-jets",
+     "Two pumps, more jets",
+     "Two 6 BHP pumps drive 38 to 48 jets, so every seat gets a real massage."
+    ],
+    [
+     "feat-headrest",
+     "Sculpted headrests",
+     "Soft, shaped headrests that hold your head and neck, so you can actually let go."
+    ],
+    [
+     "feat-waterfall",
+     "Infinity waterfall",
+     "A gentle sheet of water into the tub. The sound alone slows you down."
+    ],
+    [
+     "feat-diverter",
+     "Diverter control",
+     "Move the flow to the seats that need it most, with one turn."
+    ],
+    [
+     "feat-audio",
+     "Built-in audio",
+     "Bluetooth sound with speakers in the tub. Your playlist, or nothing but the night."
+    ]
+   ],
+   "honest": "A dedicated 60 amp line needs a licensed electrician, and it is worth it if you'll use the tub most nights. Already have an old hot tub line? Tell us its size in Find your Zen and we'll check whether it will work. Four of the five have a lounger; the Calma has seven upright seats for the most room.",
+   "models": [
+    "sierra",
+    "harmony",
+    "eden",
+    "aspen",
+    "calma"
+   ]
+  },
+  {
+   "slug": "series-three",
+   "name": "Series Three",
+   "range": "AquaLux",
+   "headline": "The peak of Zen.",
+   "lede": "Our most advanced hot tubs. Programmable massage, real-time water monitoring and the full EcoPure water system, in four models for 5 to 7 people.",
+   "hero": "serenity-quarter",
+   "stats": [
+    [
+     "4",
+     "models"
+    ],
+    [
+     "5 to 7",
+     "people"
+    ],
+    [
+     "41 to 61",
+     "jets"
+    ],
+    [
+     "UV + ozone",
+     "water care"
+    ]
+   ],
+   "features": [
+    [
+     "feat-interior",
+     "Programmable massage",
+     "A variable-speed massage pump runs sequences you choose, from slow and soft to deep."
+    ],
+    [
+     "feat-jets",
+     "Real-time water monitoring",
+     "Gecko WaterLab watches the water for you, with UV and ozone keeping it clear."
+    ],
+    [
+     "feat-waterfall",
+     "Infinity waterfall",
+     "A gentle sheet of water into the tub. The sound alone slows you down."
+    ],
+    [
+     "feat-speaker",
+     "Light and sound",
+     "Colour lighting inside, glowing corners outside, and built-in Bluetooth audio."
+    ],
+    [
+     "feat-headrest",
+     "Sculpted headrests",
+     "Soft, shaped headrests that hold your head and neck, so you can actually let go."
+    ]
+   ],
+   "honest": "Series Three is for people who want the best water and the best massage, and will use both. Every model needs its own 60 amp line from a licensed electrician. If the simpler controls of Series Two would make you just as happy, I'll tell you.",
+   "models": [
+    "cascade",
+    "serenity",
+    "zenith",
+    "solstice"
+   ]
   }
+ ],
+ "models": {
+  "brook": {
+   "name": "Brook",
+   "series": "series-one",
+   "tag": "The compact one. Four seats, on a standard outlet.",
+   "fit": "Couples and small families, and smaller patios. The easiest way to start.",
+   "people": 4,
+   "seats": 4,
+   "loungers": 0,
+   "jets": 23,
+   "jetmix": "2 small, 11 medium, 7 large, 3 extra large",
+   "in": "84 x 71 x 31 in",
+   "mm": "2,130 x 1,800 x 800 mm",
+   "gal": "264",
+   "l": "1,000",
+   "dry": "262 kg (578 lb)",
+   "full": "1,262 kg (2,782 lb)",
+   "power": "15 A 120V, or 40 A 240V",
+   "pumps": "1 x 1.5 BHP (0.75 HP continuous)",
+   "heater": "Gecko 1 kW at 120V, or 4 kW at 240V",
+   "panel": "Gecko K330",
+   "photos": [
+    "brook-quarter",
+    "brook-overhead",
+    "brook-d1",
+    "brook-d2",
+    "brook-d3"
+   ]
+  },
+  "zephyr": {
+   "name": "Zephyr",
+   "series": "series-one",
+   "tag": "Two loungers, three seats, room for five.",
+   "fit": "Two people who both want to stretch out, with room for the kids or friends.",
+   "people": 5,
+   "seats": 3,
+   "loungers": 2,
+   "jets": 25,
+   "jetmix": "4 small, 8 medium, 11 large, 3 extra large",
+   "in": "84 x 84 x 35 in",
+   "mm": "2,130 x 2,130 x 900 mm",
+   "gal": "343",
+   "l": "1,300",
+   "dry": "288 kg (635 lb)",
+   "full": "1,588 kg (3,501 lb)",
+   "power": "15 A 120V, or 40 A 240V",
+   "pumps": "1 x 1.5 BHP (0.75 HP continuous)",
+   "heater": "Gecko 1 kW at 120V, or 4 kW at 240V",
+   "panel": "Gecko K330",
+   "photos": [
+    "zephyr-quarter",
+    "zephyr-overhead",
+    "zephyr-d1",
+    "zephyr-d2"
+   ]
+  },
+  "cypress": {
+   "name": "Cypress",
+   "series": "series-one",
+   "tag": "A lounger and five seats, on a standard outlet.",
+   "fit": "Families who want a lounger without giving up seats.",
+   "people": 6,
+   "seats": 5,
+   "loungers": 1,
+   "jets": 26,
+   "jetmix": "2 small, 13 medium, 8 large, 3 extra large",
+   "in": "84 x 84 x 35 in",
+   "mm": "2,130 x 2,130 x 900 mm",
+   "gal": "317",
+   "l": "1,200",
+   "dry": "290 kg (639 lb)",
+   "full": "1,490 kg (3,285 lb)",
+   "power": "15 A 120V, or 40 A 240V",
+   "pumps": "1 x 1.5 BHP (0.75 HP continuous)",
+   "heater": "Gecko 1 kW at 120V, or 4 kW at 240V",
+   "panel": "Gecko K330",
+   "photos": [
+    "cypress-quarter",
+    "cypress-overhead",
+    "cypress-d1",
+    "cypress-d2"
+   ]
+  },
+  "cove": {
+   "name": "Cove",
+   "series": "series-one",
+   "tag": "Seven upright seats. The most room in Series One.",
+   "fit": "Bigger families and anyone who has friends over often.",
+   "people": 7,
+   "seats": 7,
+   "loungers": 0,
+   "jets": 27,
+   "jetmix": "7 medium, 16 large, 4 extra large",
+   "in": "84 x 84 x 35 in",
+   "mm": "2,130 x 2,130 x 900 mm",
+   "gal": "317",
+   "l": "1,200",
+   "dry": "298.5 kg (658 lb)",
+   "full": "1,498.5 kg (3,303 lb)",
+   "power": "15 A 120V, or 40 A 240V",
+   "pumps": "1 x 1.5 BHP (0.75 HP continuous)",
+   "heater": "Gecko 1 kW at 120V, or 4 kW at 240V",
+   "panel": "Gecko K330",
+   "photos": [
+    "cove-quarter",
+    "cove-overhead",
+    "cove-d1",
+    "cove-d2"
+   ]
+  },
+  "sierra": {
+   "name": "Sierra",
+   "series": "series-two",
+   "tag": "Two loungers and a seat. Zen for two, or three.",
+   "fit": "Couples who want to lie back side by side, every night.",
+   "people": 3,
+   "seats": 1,
+   "loungers": 2,
+   "jets": 40,
+   "jetmix": "",
+   "in": "89 x 71 x 31 in",
+   "mm": "2,250 x 1,800 x 800 mm",
+   "gal": "343",
+   "l": "1,300",
+   "dry": "300 kg (661 lb)",
+   "full": "1,600 kg (3,527 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K506",
+   "photos": [
+    "sierra-quarter",
+    "sierra-overhead"
+   ]
+  },
+  "harmony": {
+   "name": "Harmony",
+   "series": "series-two",
+   "tag": "Two loungers, three seats and 42 jets.",
+   "fit": "Couples and small families who want two loungers and full power.",
+   "people": 5,
+   "seats": 3,
+   "loungers": 2,
+   "jets": 42,
+   "jetmix": "6 small, 18 medium, 12 large, 6 extra large",
+   "in": "84 x 84 x 37 in",
+   "mm": "2,130 x 2,130 x 940 mm",
+   "gal": "343",
+   "l": "1,300",
+   "dry": "336 kg (741 lb)",
+   "full": "1,636 kg (3,607 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K506",
+   "photos": [
+    "harmony-quarter",
+    "harmony-overhead"
+   ]
+  },
+  "eden": {
+   "name": "Eden",
+   "series": "series-two",
+   "tag": "Six people, one lounger, 42 jets.",
+   "fit": "Families of four to six who use the tub most nights.",
+   "people": 6,
+   "seats": 5,
+   "loungers": 1,
+   "jets": 42,
+   "jetmix": "6 small, 16 medium, 4 large, 16 extra large",
+   "in": "84 x 84 x 37 in",
+   "mm": "2,130 x 2,130 x 940 mm",
+   "gal": "317",
+   "l": "1,200",
+   "dry": "342 kg (754 lb)",
+   "full": "1,542 kg (3,401 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K506",
+   "photos": [
+    "eden-quarter",
+    "eden-overhead"
+   ]
+  },
+  "aspen": {
+   "name": "Aspen",
+   "series": "series-two",
+   "tag": "Six people, one lounger and 48 jets, the most in Series Two.",
+   "fit": "Anyone who wants the deepest massage in the series, with room for six.",
+   "people": 6,
+   "seats": 5,
+   "loungers": 1,
+   "jets": 48,
+   "jetmix": "6 small, 20 medium, 15 large, 5 extra large",
+   "in": "91 x 79 x 37 in",
+   "mm": "2,320 x 2,000 x 940 mm",
+   "gal": "343",
+   "l": "1,300",
+   "dry": "333 kg (734 lb)",
+   "full": "1,633 kg (3,600 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K506",
+   "photos": [
+    "aspen-quarter",
+    "aspen-overhead",
+    "aspen-d1",
+    "aspen-d2",
+    "aspen-d3"
+   ]
+  },
+  "calma": {
+   "name": "Calma",
+   "series": "series-two",
+   "tag": "Seven upright seats, for the whole family.",
+   "fit": "Big families and people who entertain, with full power for every seat.",
+   "people": 7,
+   "seats": 7,
+   "loungers": 0,
+   "jets": 38,
+   "jetmix": "8 small, 2 medium, 20 large, 7 extra large",
+   "in": "84 x 84 x 37 in",
+   "mm": "2,130 x 2,130 x 940 mm",
+   "gal": "317",
+   "l": "1,200",
+   "dry": "351 kg (774 lb)",
+   "full": "1,551 kg (3,419 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K506",
+   "photos": [
+    "calma-quarter",
+    "calma-overhead",
+    "calma-d1",
+    "calma-d2"
+   ]
+  },
+  "cascade": {
+   "name": "Cascade",
+   "series": "series-three",
+   "tag": "Two full-length loungers, three seats, 45 jets.",
+   "fit": "Couples who both want a lounger, with programmable massage.",
+   "people": 5,
+   "seats": 3,
+   "loungers": 2,
+   "jets": 45,
+   "jetmix": "",
+   "in": "91 x 91 x 37 in",
+   "mm": "2,300 x 2,300 x 940 mm",
+   "gal": "396",
+   "l": "1,500",
+   "dry": "369 kg (800 lb)",
+   "full": "1,869 kg (4,120 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "1 x 6 BHP variable massage + 2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "cascade-quarter",
+    "cascade-overhead"
+   ]
+  },
+  "serenity": {
+   "name": "Serenity",
+   "series": "series-three",
+   "tag": "Six people, a full-length lounger, 49 jets.",
+   "fit": "Families who want the best water care and a lounger for the end of the day.",
+   "people": 6,
+   "seats": 5,
+   "loungers": 1,
+   "jets": 49,
+   "jetmix": "",
+   "in": "91 x 91 x 37 in",
+   "mm": "2,300 x 2,300 x 940 mm",
+   "gal": "396",
+   "l": "1,500",
+   "dry": "369 kg (800 lb)",
+   "full": "1,869 kg (4,120 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "1 x 6 BHP variable massage + 2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "serenity-quarter",
+    "serenity-overhead"
+   ]
+  },
+  "zenith": {
+   "name": "Zenith",
+   "series": "series-three",
+   "tag": "Our largest tub. Seven people, 61 jets.",
+   "fit": "Big families and anyone who wants the most room and the most jets.",
+   "people": 7,
+   "seats": 6,
+   "loungers": 1,
+   "jets": 61,
+   "jetmix": "",
+   "in": "110 x 91 x 37 in",
+   "mm": "2,800 x 2,300 x 940 mm",
+   "gal": "502",
+   "l": "1,900",
+   "dry": "508 kg (1,120 lb)",
+   "full": "2,408 kg (5,309 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "1 x 6 BHP variable massage + 3 x 5 BHP (2 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "zenith-quarter",
+    "zenith-overhead"
+   ]
+  },
+  "solstice": {
+   "name": "Solstice",
+   "series": "series-three",
+   "tag": "Seven upright seats, made for gathering.",
+   "fit": "Families and friends who soak together, with the best water care.",
+   "people": 7,
+   "seats": 7,
+   "loungers": 0,
+   "jets": 41,
+   "jetmix": "",
+   "in": "91 x 91 x 37 in",
+   "mm": "2,300 x 2,300 x 940 mm",
+   "gal": "396",
+   "l": "1,500",
+   "dry": "369 kg (800 lb)",
+   "full": "1,869 kg (4,120 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "1 x 6 BHP variable massage + 2 x 6 BHP (3 HP continuous)",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "solstice-quarter",
+    "solstice-overhead"
+   ]
+  }
+ },
+ "swimspas": {
+  "slug": "swim-spas",
+  "name": "Swim spas",
+  "range": "Aquasolus Swim Spa Series",
+  "headline": "Swim, train and soak. At home.",
+  "lede": "Six Aquasolus swim spas, 14 to 19 ft long, for 2 to 12 people. Swim against river jets or a 9-speed turbine, then sit back under the hydrotherapy jets when you're done.",
+  "hero": "solara-quarter",
+  "stats": [
+   [
+    "6",
+    "models"
+   ],
+   [
+    "14 to 19 ft",
+    "long"
+   ],
+   [
+    "2 to 12",
+    "people"
+   ],
+   [
+    "2",
+    "swim systems"
+   ]
+  ],
+  "features": [
+   [
+    "flow-d1",
+    "Two ways to swim",
+    "River jets give a smooth, adjustable current. Professional models use a 9-speed hydraulic turbine for a wider, deeper flow."
+   ],
+   [
+    "feat-jets",
+    "Hydrotherapy seats",
+    "When the workout is done, sit back under the jets and let your muscles recover."
+   ],
+   [
+    "flow-d2",
+    "Gecko K1001 controls",
+    "One panel for the current, the jets, the lights and the temperature."
+   ],
+   [
+    "flow-d3",
+    "Light and sound",
+    "Colour lighting and Bluetooth audio come standard on every swim spa."
+   ],
+   [
+    "feat-headrest",
+    "Built to last",
+    "A 304 stainless steel frame, and AQ10 insulation that keeps the heat in the water instead of the air."
+   ]
+  ],
+  "honest": "A swim spa is a bigger project than a hot tub. Full of water they weigh between 5,000 and 13,160 kg, so you need a proper base, a 240V supply and room to get it into the yard. We'll talk through the base, the power and the access with you before you order, so there are no surprises on delivery day.",
+  "models": [
+   "solara",
+   "drift",
+   "fusion",
+   "fusion-professional",
+   "flow",
+   "flow-professional"
+  ]
+ },
+ "swimspa_models": {
+  "solara": {
+   "name": "Solara",
+   "system": "River jets",
+   "length": "14 ft",
+   "tag": "Twelve places and 53 jets. The social swim spa.",
+   "fit": "Big families and friends who want to soak together, with a current for exercise.",
+   "people": 12,
+   "seats": 10,
+   "loungers": 2,
+   "jets": 53,
+   "jetmix": "",
+   "in": "169 x 90 x 49 in",
+   "mm": "4,300 x 2,280 x 1,245 mm",
+   "gal": "1,083",
+   "l": "4,100",
+   "dry": "900 kg (1,984 lb)",
+   "full": "5,000 kg (11,023 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "2 x 6 BHP (3 HP continuous) spa + 2 x 5 BHP (2 HP continuous) swim",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "solara-quarter",
+    "solara-overhead"
+   ]
+  },
+  "drift": {
+   "name": "Drift",
+   "system": "River jets",
+   "length": "14 ft",
+   "tag": "A full swim lane in a 14 ft footprint.",
+   "fit": "Swimmers with a smaller yard or tight access who still want a deep lane.",
+   "people": 2,
+   "seats": 2,
+   "loungers": 0,
+   "jets": 16,
+   "jetmix": "",
+   "in": "169 x 90 x 61 in",
+   "mm": "4,300 x 2,280 x 1,555 mm",
+   "gal": "1,691",
+   "l": "6,400",
+   "dry": "1,090 kg (2,403 lb)",
+   "full": "7,490 kg (16,513 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "1 x 5 BHP (2 HP continuous) spa + 3 x 6 BHP (3 HP continuous) swim",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "drift-quarter",
+    "drift-overhead"
+   ]
+  },
+  "fusion": {
+   "name": "Fusion",
+   "system": "River jets",
+   "length": "19 ft",
+   "tag": "Two zones: swim on one side, soak on the other.",
+   "fit": "Families who want a real swim and a separate hot tub zone, in one.",
+   "people": 3,
+   "seats": 2,
+   "loungers": 1,
+   "jets": 32,
+   "jetmix": "",
+   "in": "232 x 90 x 61 in",
+   "mm": "5,900 x 2,280 x 1,550 mm",
+   "gal": "291 spa + 1,770 swim",
+   "l": "1,100 spa + 6,700 swim",
+   "dry": "1,560 kg (3,439 lb)",
+   "full": "9,360 kg (20,635 lb)",
+   "power": "Spa 50 A and swim 60 A, both 240V",
+   "pumps": "2 x 5 BHP (2 HP continuous) spa + 3 x 6 BHP (3 HP continuous) swim",
+   "heater": "2 x Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "fusion-quarter",
+    "fusion-overhead"
+   ]
+  },
+  "fusion-professional": {
+   "name": "Fusion Professional",
+   "system": "9-speed turbine",
+   "length": "19 ft",
+   "tag": "Two zones, with a turbine swim current.",
+   "fit": "Serious swimmers who also want a proper hot tub zone.",
+   "people": 3,
+   "seats": 2,
+   "loungers": 1,
+   "jets": 32,
+   "jetmix": "",
+   "in": "232 x 90 x 61 in",
+   "mm": "5,900 x 2,280 x 1,550 mm",
+   "gal": "291 spa + 1,770 swim",
+   "l": "1,100 spa + 6,700 swim",
+   "dry": "1,560 kg (3,439 lb)",
+   "full": "9,360 kg (20,635 lb)",
+   "power": "Spa 50 A, swim 30 A and turbine 30 A, all 240V",
+   "pumps": "2 x 5 BHP (2 HP continuous) spa + 9-speed 4 kW hydraulic turbine",
+   "heater": "2 x Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "fusion-professional-quarter",
+    "fusion-professional-overhead"
+   ]
+  },
+  "flow": {
+   "name": "Flow",
+   "system": "River jets",
+   "length": "19 ft",
+   "tag": "A 19 ft swim lane with a river current.",
+   "fit": "Swimmers who want the longest lane and room to train.",
+   "people": 2,
+   "seats": 2,
+   "loungers": 0,
+   "jets": 24,
+   "jetmix": "",
+   "in": "232 x 90 x 61 in",
+   "mm": "5,900 x 2,280 x 1,550 mm",
+   "gal": "3,064",
+   "l": "11,600",
+   "dry": "1,560 kg (3,439 lb)",
+   "full": "13,160 kg (29,013 lb)",
+   "power": "60 A 240V dedicated line",
+   "pumps": "1 x 5 BHP (2 HP continuous) spa + 3 x 6 BHP (3 HP continuous) swim",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "flow-quarter",
+    "flow-overhead"
+   ]
+  },
+  "flow-professional": {
+   "name": "Flow Professional",
+   "system": "9-speed turbine",
+   "length": "19 ft",
+   "tag": "The 19 ft lane with a turbine current.",
+   "fit": "Swimmers who train seriously and want the smoothest, widest current.",
+   "people": 2,
+   "seats": 2,
+   "loungers": 0,
+   "jets": 21,
+   "jetmix": "",
+   "in": "232 x 90 x 61 in",
+   "mm": "5,900 x 2,280 x 1,550 mm",
+   "gal": "3,064",
+   "l": "11,600",
+   "dry": "1,560 kg (3,439 lb)",
+   "full": "13,160 kg (29,013 lb)",
+   "power": "Spa 40 A and turbine 30 A, both 240V",
+   "pumps": "1 x 5 BHP (3 HP continuous) spa + 9-speed 4 kW hydraulic turbine",
+   "heater": "Gecko 4 kW, 240V",
+   "panel": "Gecko K1001",
+   "photos": [
+    "flow-quarter",
+    "flow-overhead",
+    "flow-d1",
+    "flow-d2",
+    "flow-d3"
+   ],
+   "overhead": "flow-overhead",
+   "quarter": "flow-quarter"
+  }
+ }
 }
