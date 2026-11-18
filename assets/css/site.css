@@ -293,6 +293,8 @@ a{color:inherit}
 .picks-sec .h2{margin-bottom:12px}
 .picks-lede{color:var(--ink-2);margin:0 0 48px;font-size:19px}
 .picks-help{margin-top:56px;color:var(--ink-2)}
+.picks-help p{margin:0 0 18px}
+.pill-dark{background:var(--black);color:#fff}.pill-dark:hover{background:#2c2c2e}
 .pick{padding:0 0 8px}.pick:hover .pick-go{text-decoration:underline}
 .picks{display:grid;gap:24px}
 .picks-3{grid-template-columns:repeat(3,1fr)}.picks-4{grid-template-columns:repeat(4,1fr)}.picks-5{grid-template-columns:repeat(3,1fr)}
@@ -498,3 +500,17 @@ a.model:hover img{transform:translateY(-4px)}
 .tile-link:hover{background:#232325}
 .tile-link h3::after{content:"";display:inline-block;width:.45em;height:.45em;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:translateY(-.1em) rotate(45deg);margin-left:.35em;opacity:.6}
 .fz-done-ctas{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:center;margin-top:8px}
+
+/* Floating Find your Zen */
+.zen-float{position:fixed;z-index:60;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(140%);opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none}
+.zen-float.on{transform:none;opacity:1;pointer-events:auto}
+.zen-float a{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px;border-radius:999px;background:rgba(22,22,23,.92);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);color:#fff;text-decoration:none;box-shadow:0 10px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
+.zf-mark{width:26px;height:26px;border-radius:50%;background:var(--sunset);flex:none}
+.zf-text{display:flex;flex-direction:column;line-height:1.2}
+.zf-text b{font-size:16px;font-weight:600}
+.zf-text small{font-size:12px;color:#a1a1a6}
+.zf-go{background:var(--paper);color:var(--black);font-weight:600;font-size:15px;padding:9px 18px;border-radius:999px;margin-left:6px;transition:background .2s}
+.zen-float a:hover .zf-go{background:var(--cream)}
+.zen-float a:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media (max-width:640px){.zen-float{left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px))}.zen-float a{justify-content:space-between}}
+@media (prefers-reduced-motion:reduce){.zen-float{transition:opacity .2s}}

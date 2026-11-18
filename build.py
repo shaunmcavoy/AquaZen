@@ -320,7 +320,7 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
 <section class="picks-sec" id="models">
   <div class="wrap center"><h2 class="h2">Choose your {e(s['name'])}.</h2><p class="picks-lede">Tap any {noun} for the full details, photos and specs.</p></div>
   <div class="wrap picks picks-{len(ms)}">{picks}</div>
-  <p class="wrap center picks-help">Not sure which one fits? <a class="link" href="/find-your-zen/">Find your Zen</a> and Shaun will help you choose.</p>
+  <div class="wrap center picks-help"><p>Not sure which one fits? Answer a few quick questions and Shaun will help you choose.</p><a class="pill pill-dark" href="/find-your-zen/">Find your Zen</a></div>
 </section>
 
 <section class="highlights">
