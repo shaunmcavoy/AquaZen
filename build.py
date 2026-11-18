@@ -195,6 +195,7 @@ FOOT = """
     <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC.</p>
     <p><a class="plain" href="tel:+12363044424">236-304-4424</a> &nbsp; <a class="plain" href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
     <p>Hot tub photos and specifications courtesy of Aquasolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
+    <p><a class="plain" href="/privacy/">Privacy</a> &nbsp; <a class="plain" href="/terms/">Terms</a></p>
   </div>
 </footer>
 <script src="/assets/js/menu.js"></script>
@@ -480,6 +481,21 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
     write(base.strip("/") + f"/{k}/index.html", page)
 
 
+def build_legal():
+    """Privacy policy and terms of use, from src/legal/*.md."""
+    import markdown
+    for slug, title, lead in [("privacy", "Privacy policy", "What we collect, why, and how we look after it."),
+                              ("terms", "Terms of use", "The terms for our website, customer portal and staff portal.")]:
+        body = markdown.markdown(open(os.path.join(ROOT, "src", "legal", slug + ".md")).read())
+        page = head(f"{title} | AquaZen", lead)
+        page += f"""<main>
+<section class="tub-intro"><div class="wrap center"><h1 class="display">{title}</h1><p class="lede">{lead} Last updated November 17, 2026.</p></div></section>
+<section class="legal"><div class="wrap prose">{body}</div></section>
+"""
+        page += FOOT.format(fz="/find-your-zen/")
+        write(f"{slug}/index.html", page)
+
+
 def build_app():
     """Back office pages: sign-in, staff portal, online signing and customer portal. Not indexed by search engines."""
     def img_for(photos, fallback):
@@ -556,6 +572,7 @@ if __name__ == "__main__":
     else:
         print("swim spa photos missing: swim spa pages and dropdown held back")
     inject_home_header()
+    build_legal()
     build_app()
     stamp_assets()
     print("built", 1 + len(SERIES) + len(MODELS) + 1 + len(SWIM), "pages")

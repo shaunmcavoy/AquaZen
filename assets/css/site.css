@@ -420,3 +420,10 @@ a.model:hover img{transform:translateY(-4px)}
 @media (max-width:900px){.tiles-3{grid-template-columns:1fr}.tiles-3 .tile{min-height:0}}
 .tiles-3 .tile{justify-content:flex-start}
 .mmenu .pill{margin-left:0}
+
+/* Privacy and terms */
+.legal{background:#fff;padding-block:24px 80px}
+.prose{max-width:720px;margin:0 auto}
+.prose h2{font-size:1.5rem;letter-spacing:-.02em;margin:40px 0 12px}
+.prose p,.prose li{color:#1d1d1f;line-height:1.65;margin:0 0 12px}
+.prose ul{padding-left:20px;margin:0 0 16px}
