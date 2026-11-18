@@ -82,11 +82,16 @@ export async function buildAgreementPdf(opts: {
     row(msrp > zen
       ? [["MSRP", money(msrp), 0.34], ["Your Zen price", money(zen), 0.33], ["You save", money(msrp - zen), 0.33]]
       : [[valueLabel, money(sale.hot_tub_value), 0.34], ["", "", 0.66]]);
-    const extras: { name: string; price: number }[] = Array.isArray(sale.extras) ? sale.extras : [];
+    const extras: { name: string; price: number; list?: number }[] = Array.isArray(sale.extras) ? sale.extras : [];
     if (extras.length) {
       section("ADD-ONS");
+      const exVal = (x: { price: number; list?: number }) => {
+        const p = Number(x.price), l = Number(x.list ?? 0);
+        if (p <= 0) return l > 0 ? `Included (${money(l)} value)` : "Included";
+        return l > p ? `${money(p)} (was ${money(l)})` : money(p);
+      };
       for (let i = 0; i < extras.length; i += 3) {
-        const cells = extras.slice(i, i + 3).map((x) => [String(x.name), money(x.price), 0.33] as [string, string, number]);
+        const cells = extras.slice(i, i + 3).map((x) => [String(x.name), exVal(x), 0.33] as [string, string, number]);
         while (cells.length < 3) cells.push(["", "", 0.33]);
         row(cells);
       }

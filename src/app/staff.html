@@ -179,15 +179,29 @@
         </div>
       </form>
 
-      <!-- Sign and send -->
+      <!-- Ready to sign: opens the customer view (no costs, GP or profit on screen) -->
+      <div id="readyPanel" class="card signpanel" hidden>
+        <h3>Ready to sign?</h3>
+        <p class="muted">Open the customer view to go over the deal together and sign. It shows only what the customer needs: the tub, MSRP, Zen price and savings, add-ons and totals. No costs, GP, commission or profit. You sign there, then hand them your device or send it to their phone.</p>
+        <div class="formactions">
+          <button class="btn btn-gold" type="button" id="presentBtn">Open the customer view</button>
+          <p class="formmsg" id="presentMsg" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <!-- Customer view -->
+      <div id="presentBar" class="presentbar" hidden><button type="button" class="linkbtn" id="presentExit">&larr; Back to the deal</button></div>
+      <div id="presentSummary" class="card present" hidden></div>
+
+      <!-- Sign and send (shown in the customer view) -->
       <div id="signPanel" class="card signpanel" hidden>
-        <h3>Sign and send to the customer</h3>
-        <p class="muted">Sign below as the company representative. This locks the agreement so the customer signs exactly what you agreed together.</p>
+        <h3>Sign your agreement</h3>
+        <p class="muted">First, I sign as your AquaZen representative. That locks the agreement, so you sign exactly what we went over together. Then it's your turn, right here or on your own phone.</p>
         <div class="sigwrap"><canvas id="repSig" aria-label="Signature pad"></canvas><button type="button" class="linkbtn" id="repSigClear">Clear</button></div>
         <p class="sigline">Signed by <b id="repName"></b></p>
         <div class="formactions">
-          <button class="btn btn-gold" type="button" id="signEmail">Sign and email the customer</button>
-          <button class="btn btn-ink" type="button" id="signHere">Sign, then customer signs on this device</button>
+          <button class="btn btn-ink" type="button" id="signHere">Sign, then the customer signs here</button>
+          <button class="btn btn-gold" type="button" id="signEmail">Sign and send to the customer's phone or email</button>
           <p class="formmsg" id="signMsg" role="status" aria-live="polite"></p>
         </div>
       </div>

@@ -82,37 +82,54 @@
     var m = (modelVal(prodModel, prodOther) || '').toLowerCase();
     return (cat || []).filter(function (c) { return c.product_type === prodType.value && c.model.toLowerCase() === m; })[0] || null;
   }
-  function drawExtras(saved, delOn) {
+  // Add-ons, delivery included, are all extras on the sale. Each can be at its regular price, discounted, or included free.
+  // Older sales kept delivery in delivery_fee; those are shown as the Delivery add-on and moved over on the next save.
+  function drawExtras(saved, legacyDelivery) {
     var by = {}; (saved || []).forEach(function (x) { by[x.id] = x; });
     var list = extrasCat.slice();
-    (saved || []).forEach(function (x) { if (!list.some(function (a) { return a.id === x.id; })) list.push({ id: x.id, name: x.name, sale_price: x.price, sales_cost: 0, gone: true }); });
+    (saved || []).forEach(function (x) { if (!list.some(function (a) { return a.id === x.id; })) list.push({ id: x.id, name: x.name, sale_price: x.list != null ? x.list : x.price, sales_cost: 0 }); });
     $('#extrasList').innerHTML = list.length ? list.map(function (a) {
-      var on = isDelivery(a) ? !!delOn : !!by[a.id], price = isDelivery(a) ? (delOn ? num(form.delivery_fee.value) : a.sale_price) : (by[a.id] ? by[a.id].price : a.sale_price);
-      return '<label class="extra' + (on ? ' on' : '') + '"><input type="checkbox" data-x="' + a.id + '"' + (on ? ' checked' : '') + '>' +
-        '<span class="xname">' + AZ.esc(a.name) + '</span><span class="xprice">$<input type="number" min="0" step="0.01" inputmode="decimal" data-xp="' + a.id + '" value="' + (price == null ? '' : price) + '" aria-label="Price for ' + AZ.esc(a.name) + '"></span></label>';
+      var legacy = isDelivery(a) && !by[a.id] && legacyDelivery > 0;
+      var on = !!by[a.id] || legacy, price = by[a.id] ? by[a.id].price : legacy ? legacyDelivery : a.sale_price;
+      return '<div class="extra' + (on ? ' on' : '') + '" data-xrow="' + a.id + '" data-list="' + (a.sale_price == null ? '' : a.sale_price) + '">' +
+        '<label class="xpick"><input type="checkbox" data-x="' + a.id + '"' + (on ? ' checked' : '') + '><span class="xname">' + AZ.esc(a.name) + '</span></label>' +
+        '<span class="xprice">$<input type="number" min="0" step="0.01" inputmode="decimal" data-xp="' + a.id + '" value="' + (price == null ? '' : price) + '" aria-label="Price for ' + AZ.esc(a.name) + '"></span>' +
+        '<button type="button" class="xfree" data-xfree="' + a.id + '">Included</button>' +
+        '<span class="xnote"></span></div>';
     }).join('') : '<p class="muted small">No add-ons set up yet. An admin can add them in Products.</p>';
+    $$('#extrasList .extra').forEach(noteFor);
+    var hasDel = extrasCat.some(isDelivery);
+    form.delivery_fee.closest('label').hidden = hasDel;
+    if (hasDel) form.delivery_fee.value = '';
+  }
+  // Under each add-on: "Included" when it's free, or the regular price when it's discounted.
+  function noteFor(row) {
+    var list = num(row.dataset.list), p = row.querySelector('[data-xp]'), on = row.querySelector('[data-x]').checked, v = p.value.trim() === '' ? list : num(p.value);
+    var note = row.querySelector('.xnote');
+    note.textContent = !on ? (list ? 'Regular ' + AZ.money(list) : '') : v === 0 ? 'Included at no charge' + (list ? ' (a ' + AZ.money(list) + ' value)' : '') : list && v < list ? 'Discounted from ' + AZ.money(list) : '';
+    row.classList.toggle('free', on && v === 0);
   }
   function extraFor(id) { return extrasCat.filter(function (a) { return a.id === id; })[0]; }
   function chosenExtras() {
     return $$('#extrasList input[data-x]').filter(function (c) { return c.checked; }).map(function (c) {
-      var a = extraFor(c.dataset.x) || { id: c.dataset.x, name: c.closest('label').querySelector('.xname').textContent, sales_cost: 0 };
-      return { id: a.id, name: a.name, price: num($('#extrasList input[data-xp="' + a.id + '"]').value), sales_cost: num(a.sales_cost), delivery: isDelivery(a) };
+      var row = c.closest('.extra'), a = extraFor(c.dataset.x) || { id: c.dataset.x, name: row.querySelector('.xname').textContent, sales_cost: 0 };
+      return { id: a.id, name: a.name, price: num(row.querySelector('[data-xp]').value), sales_cost: num(a.sales_cost) };
     });
   }
-  function extrasTotal() { return chosenExtras().filter(function (x) { return !x.delivery; }).reduce(function (t, x) { return t + x.price; }, 0); }
+  function extrasTotal() { return chosenExtras().reduce(function (t, x) { return t + x.price; }, 0); }
   $('#extrasList').addEventListener('change', function (e) {
-    var id = e.target.dataset.x || e.target.dataset.xp; if (!id) return;
-    var lab = e.target.closest('label'), box = lab.querySelector('input[data-x]'), a = extraFor(id);
+    var row = e.target.closest('.extra'); if (!row) return;
+    var box = row.querySelector('[data-x]');
     if (e.target.dataset.xp && !box.checked) box.checked = true;
-    lab.classList.toggle('on', box.checked);
-    if (a && isDelivery(a)) form.delivery_fee.value = box.checked ? num(lab.querySelector('[data-xp]').value) : '';
-    sums();
+    if (e.target.dataset.x && box.checked && row.querySelector('[data-xp]').value.trim() === '') row.querySelector('[data-xp]').value = row.dataset.list;
+    row.classList.toggle('on', box.checked); noteFor(row); sums();
   });
-  $('#extrasList').addEventListener('input', function (e) { if (e.target.dataset.xp) { var a = extraFor(e.target.dataset.xp), box = e.target.closest('label').querySelector('[data-x]'); if (a && isDelivery(a) && box.checked) form.delivery_fee.value = e.target.value; sums(); } });
-  form.delivery_fee.addEventListener('input', function () {
-    var d = extrasCat.filter(isDelivery)[0]; if (!d) return;
-    var box = $('#extrasList input[data-x="' + d.id + '"]'), pr = $('#extrasList input[data-xp="' + d.id + '"]');
-    if (box) { box.checked = num(form.delivery_fee.value) > 0; box.closest('label').classList.toggle('on', box.checked); if (box.checked) pr.value = form.delivery_fee.value; }
+  $('#extrasList').addEventListener('input', function (e) { var row = e.target.closest('.extra'); if (row && e.target.dataset.xp) { noteFor(row); sums(); } });
+  $('#extrasList').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-xfree]'); if (!b) return;
+    var row = b.closest('.extra'), box = row.querySelector('[data-x]'), p = row.querySelector('[data-xp]');
+    if (box.checked && num(p.value) === 0) { p.value = row.dataset.list; } else { box.checked = true; p.value = 0; }
+    row.classList.toggle('on', box.checked); noteFor(row); sums();
   });
   function dealPrice() {
     var c = catItem(), el = $('#dealPrice');
@@ -278,9 +295,9 @@
     if (!form.balance_method.value) form.balance_method.value = 'before_delivery';
     floorAt = null; snap = null;
     loadDealData().then(function () {
-      drawExtras(s && s.extras, s ? Number(s.delivery_fee) > 0 : false);
+      drawExtras(s && s.extras, s ? Number(s.delivery_fee) : 0);
       if (s && s.id && s.status !== 'draft') sb.from('sale_deal').select('*').eq('sale_id', s.id).maybeSingle().then(function (r) { snap = r.data; deal(); });
-      if ($('#saveBtn').hidden) $$('#extrasList input').forEach(function (i) { i.disabled = true; });
+      if ($('#saveBtn').hidden) $$('#extrasList input,#extrasList button').forEach(function (i) { i.disabled = true; });
       sums(); showFloor(); if (!s || s.status === 'draft') checkFloor();
     });
     sums();
@@ -293,7 +310,8 @@
   var newForCustomer = null; // starting a sale for an existing customer (a lead)
   function openSale(id, custId) {
     current = null; newForCustomer = null; form.querySelector('.formmsg').textContent = '';
-    ['#signPanel', '#paperPanel', '#waitPanel', '#donePanel', '#eventsPanel', '#saleDanger', '#profitCard'].forEach(function (p) { $(p).hidden = true; });
+    exitPresent();
+    ['#signPanel', '#readyPanel', '#paperPanel', '#waitPanel', '#donePanel', '#eventsPanel', '#saleDanger', '#profitCard'].forEach(function (p) { $(p).hidden = true; });
     if (!id) {
       fill(null, null); lock(false); $('#saleHeading').textContent = 'New sale'; $('#saleStatus').innerHTML = ''; show('sale');
       if (custId) sb.from('customers').select('*').eq('id', custId).maybeSingle().then(function (r) {
@@ -310,7 +328,8 @@
       $('#saleHeading').textContent = 'Sale #' + current.number + ' · ' + (current.customers ? current.customers.name : '');
       $('#saleStatus').innerHTML = AZ.pill(current.status);
       lock(current.status !== 'draft');
-      if (current.status === 'draft') { $('#signPanel').hidden = false; $('#repName').textContent = me.profile.full_name || me.profile.email; if (!pad) pad = AZ.signaturePad($('#repSig')); else pad.clear(); }
+      if (current.status === 'draft') { $('#readyPanel').hidden = false; $('#presentMsg').textContent = ''; $('#repName').textContent = me.profile.full_name || me.profile.email; }
+      if (presentNext) { presentNext = false; if (current.status === 'draft') enterPresent(); }
       if (current.status === 'draft' || current.status === 'awaiting_customer') {
         $('#paperPanel').hidden = false; $('#paperConfirm').checked = false; $('#paperPhotos').value = '';
         $('#printMsg').textContent = ''; $('#paperMsg').textContent = ''; photoCount();
@@ -365,7 +384,8 @@
       s.sauna_total = am ? num(form.sauna_total.value) : 0;
     }
     if (!s.sale_date) delete s.sale_date;
-    s.extras = chosenExtras().filter(function (x) { return !x.delivery; }).map(function (x) { return { id: x.id, name: x.name, price: x.price }; });
+    s.extras = chosenExtras().map(function (x) { return { id: x.id, name: x.name, price: x.price }; });
+    if (extrasCat.some(isDelivery)) s.delivery_fee = 0; // delivery is an add-on now
     return { c: c, s: s };
   }
 
@@ -429,6 +449,62 @@
       .catch(function (err) { m.textContent = err.message; })
       .finally(function () { b.disabled = false; });
   });
+
+
+  // ---------- Customer view: go over the deal and sign with nothing staff-only on screen ----------
+  var presentNext = false;
+  function enterPresent() {
+    renderPresent(current, current.customers || {});
+    document.body.classList.add('presenting');
+    $('#presentBar').hidden = false; $('#presentSummary').hidden = false; $('#signPanel').hidden = false;
+    if (!pad) pad = AZ.signaturePad($('#repSig')); else pad.clear();
+    $('#signMsg').textContent = '';
+    window.scrollTo(0, 0);
+  }
+  function exitPresent() {
+    document.body.classList.remove('presenting');
+    $('#presentBar').hidden = true; $('#presentSummary').hidden = true; $('#signPanel').hidden = true;
+  }
+  $('#presentExit').addEventListener('click', function () { exitPresent(); if (current && current.id) openSale(current.id); });
+  $('#presentBtn').addEventListener('click', function () {
+    var m = $('#presentMsg'), d = collect(), b = this;
+    if (!current || !current.id) return;
+    if (!d.c.name || !d.c.email) { m.textContent = 'Add the customer’s name and email first.'; return; }
+    if (floorAt && me.profile.role !== 'admin') { m.textContent = 'The price is below what we can sell it for. Fix that first.'; return; }
+    b.disabled = true; m.textContent = 'Saving...';
+    sb.from('customers').update(d.c).eq('id', current.customer_id)
+      .then(function (r1) { if (r1.error) throw r1.error; return sb.from('sales').update(d.s).eq('id', current.id); })
+      .then(function (r2) { if (r2.error) throw r2.error; presentNext = true; openSale(current.id); })
+      .catch(function (err) { m.textContent = err.message || 'Could not save.'; })
+      .finally(function () { b.disabled = false; });
+  });
+  function renderPresent(s, c) {
+    var kind = s.product_type || 'hot_tub', noun = AZ.noun(s), pic = AZ.productFor(kind, s.tub_model);
+    var row = function (k, v) { return v ? '<div><dt>' + k + '</dt><dd>' + AZ.esc(v) + '</dd></div>' : ''; };
+    var price = num(s.hot_tub_value), msrp = num(s.msrp), save = msrp > price ? msrp - price : 0;
+    var ex = Array.isArray(s.extras) ? s.extras : [], exSave = 0;
+    var exRows = ex.map(function (x) {
+      var p = num(x.price), l = num(x.list); if (l > p) exSave += l - p;
+      return '<div><dt>' + AZ.esc(x.name) + (p > 0 && l > p ? ' <span class="was">was ' + AZ.money(l) + '</span>' : '') + '</dt><dd>' + (p > 0 ? AZ.money(p) : 'Included' + (l ? ' <span class="was">a ' + AZ.money(l) + ' value</span>' : '')) + '</dd></div>';
+    }).join('');
+    var sub = price + num(s.sauna_total) + num(s.extras_total) + num(s.delivery_fee), full = s.payment_type === 'full';
+    $('#presentSummary').innerHTML =
+      '<div class="present-top">' + (pic ? '<img src="/assets/img/' + pic.img + '.webp" alt="The ' + AZ.esc(s.tub_model) + ' ' + noun + '">' : '') +
+      '<div><p class="eyebrow">Prepared for ' + AZ.esc(c.name || '') + '</p><h2>' + AZ.esc((s.tub_make ? s.tub_make + ' ' : '') + (s.tub_model || '') + ' ' + noun) + '</h2>' +
+      (save ? '<p class="zenline"><span>MSRP <s>' + AZ.money(msrp) + '</s></span><span class="zen">Your Zen price ' + AZ.money(price) + '</span><span class="save">You save ' + AZ.money(save + exSave) + '</span></p>' : '<p class="zenline"><span class="zen">' + AZ.money(price) + '</span></p>') +
+      '</div></div>' +
+      '<div class="present-cols"><div><h3>Your ' + noun + '</h3><dl class="kv">' + row('Shell colour', s.shell_colour) + row('Siding', s.siding) + row('Water care', s.water_care) + row('Stereo', s.stereo) + row('Starter kit', s.starter_kit) + row('Cover', s.spa_cover) + row('Other', s.other) + '</dl>' +
+      (exRows ? '<h3>Add-ons</h3><dl class="sums">' + exRows + '</dl>' : '') + '</div>' +
+      '<div><h3>Your price</h3><dl class="sums">' +
+      '<div><dt>' + AZ.cap(noun) + '</dt><dd>' + AZ.money(price) + '</dd></div>' +
+      (num(s.extras_total) ? '<div><dt>Add-ons</dt><dd>' + AZ.money(s.extras_total) + '</dd></div>' : '') +
+      (num(s.delivery_fee) ? '<div><dt>Delivery</dt><dd>' + AZ.money(s.delivery_fee) + '</dd></div>' : '') +
+      '<div><dt>Subtotal</dt><dd>' + AZ.money(sub) + '</dd></div><div><dt>GST 5% + PST 7%</dt><dd>' + AZ.money(s.tax) + '</dd></div>' +
+      '<div class="strong"><dt>Total</dt><dd>' + AZ.money(s.total) + '</dd></div>' +
+      '<div><dt>' + (full ? 'Paid in full when you sign' : 'Paid when you sign') + '</dt><dd>' + AZ.money(s.deposit) + '</dd></div>' +
+      (full ? '' : '<div class="strong"><dt>Balance before delivery</dt><dd>' + AZ.money(s.balance) + '</dd></div>') + '</dl>' +
+      '<p class="muted small">You’ll pick your delivery window when you sign, and pay through a secure QuickBooks link right after.</p></div></div>';
+  }
 
   $('#repSigClear').addEventListener('click', function () { pad && pad.clear(); });
   function sendForSignature(emailCustomer) {

@@ -280,8 +280,8 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .pricetable td.model{min-width:170px;white-space:normal}
 
 /* Deal builder */
-.extras{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
-.extra{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.extras{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.extra{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:6px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
 .extra.on{border-color:var(--ink);background:rgba(0,0,0,.03)}
 .extra input[type=checkbox]{width:18px;height:18px;accent-color:var(--ink)}
 .extra .xname{flex:1;font-weight:600}
@@ -301,7 +301,12 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .dealpanel small{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}
 .zenprice{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.035);color:var(--muted)}
 .zenprice b{color:var(--ink)}
-.saleform label.extra{display:flex;grid-template-columns:none;font-size:.95rem}
+.saleform label.xpick{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.95rem}
+.extra .xfree{font:inherit;font-size:.8rem;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;white-space:nowrap}
+.extra.free .xfree{background:var(--ink);color:#fff;border-color:transparent}
+.extra .xnote{grid-column:1 / -1;font-size:.78rem;color:var(--muted);min-height:0}
+.extra .xnote:empty{display:none}
+.extra.free .xnote{color:#2f6f6a;font-weight:600}
 .saleform .extra .xprice input{width:90px}
 /* Commissions and pad check */
 #commCard,#padCard{margin-top:20px}
@@ -318,3 +323,18 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .pricetable tr.linehead td{background:var(--ink);color:#fff;font-weight:700;font-size:1rem;padding:10px 14px;letter-spacing:-.01em}
 .pricetable tr.linehead span{font-weight:400;font-size:.82rem;color:rgba(255,255,255,.7);margin-left:12px}
 .dealpanel b em{font-style:normal;font-size:.95rem;color:var(--muted);font-weight:600}
+
+/* Customer view: nothing staff-only on screen */
+.was{font-size:.8em;color:var(--muted);font-weight:400;text-decoration:none;margin-left:4px}
+body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#presentSummary):not(#signPanel){display:none!important}
+.presentbar{margin:0 0 12px}
+.present{padding:28px}
+.present-top{display:grid;grid-template-columns:minmax(0,280px) 1fr;gap:24px;align-items:center;margin-bottom:20px}
+.present-top img{width:100%;border-radius:14px;aspect-ratio:1;object-fit:cover}
+.present-top h2{font-size:clamp(26px,4vw,36px);letter-spacing:-.03em;margin:4px 0 10px}
+.zenline{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin:0}
+.zenline s{color:var(--muted)}
+.zenline .zen{font-size:1.5rem;font-weight:700;letter-spacing:-.02em}
+.zenline .save{color:#2f6f6a;font-weight:700}
+.present-cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:760px){.present-top,.present-cols{grid-template-columns:1fr}}
