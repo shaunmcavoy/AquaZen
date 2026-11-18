@@ -54,7 +54,7 @@
       $(s, '.o-bubbles').classList.toggle('on', p > 0.18);
     },
     energy: function (s, p) {
-      var press = seg(p, 0.15, 0.45), tub = seg(p, 0.7, 0.8);
+      var press = seg(p, 0.15, 0.4), tub = seg(p, 0.8, 0.86);
       $(s, '.e-needle-48').setAttribute('transform', 'rotate(' + lerp(-70, 62, press) + ')');
       $(s, '.e-needle-56').setAttribute('transform', 'rotate(' + lerp(-70, -48, press) + ')');
       $(s, '.e-flow-48').classList.toggle('jitter', press > 0.5);
