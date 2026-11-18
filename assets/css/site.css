@@ -64,9 +64,11 @@ a{color:inherit}
 @media (max-width:760px){.hero{height:150vh}.hero-frame{width:calc(88vw + var(--p,0)*12vw);height:calc(42vh + var(--p,0)*40vh)}}
 
 /* Statement, words light up on scroll */
-.statement{height:220vh;position:relative;background:var(--black)}
+.statement{height:320vh;position:relative;background:var(--black)}
 .statement-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center}
-.statement-text{width:min(980px,100% - 32px);margin:0 auto;font-size:clamp(32px,5.4vw,64px);line-height:1.12;font-weight:700;letter-spacing:-.035em}
+.statement-text{width:min(980px,100% - 32px);margin:0 auto;font-size:clamp(26px,3.7vw,46px);line-height:1.18;font-weight:700;letter-spacing:-.03em}
+.statement-text p{margin:0}
+.statement-close{margin-top:.9em!important;font-size:1.45em;letter-spacing:-.04em}
 .statement-text .w{color:#333336;transition:color .25s}
 .statement-text .w.on{color:var(--paper)}
 

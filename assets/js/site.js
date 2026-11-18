@@ -2,14 +2,13 @@
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Split the statement into words so they can light up one at a time
-  var st = document.querySelector('[data-words]');
   var words = [];
-  if (st) {
-    st.innerHTML = st.textContent.trim().split(/\s+/).map(function (w) {
+  Array.prototype.forEach.call(document.querySelectorAll('[data-words]'), function (st) {
+    st.innerHTML = st.innerHTML.trim().split(/\s+/).map(function (w) {
       return '<span class="w">' + w + '</span>';
     }).join(' ');
-    words = st.querySelectorAll('.w');
-  }
+  });
+  words = document.querySelectorAll('[data-words] .w');
 
   var hero = document.querySelector('.hero');
   var statement = document.querySelector('.statement');
