@@ -91,7 +91,7 @@
       }).join('');
       return '<article class="card mytub">' +
         '<div class="mytub-top">' +
-          (pic ? '<img src="/assets/img/' + pic.img + '.webp" alt="Your ' + AZ.esc(pic.n) + ' ' + noun + '" width="560" height="560">' : '') +
+          (pic ? '<img src="/assets/img/' + (pic.top || pic.img) + '.webp" alt="Your ' + AZ.esc(pic.n) + ' ' + noun + '" width="560" height="560">' : '') +
           '<div><p class="eyebrow teal">Your ' + AZ.esc(kind === 'hot_tub' && s.tub_line ? s.tub_line + ' line ' : '') + noun + '</p>' +
           '<h2>' + AZ.esc(isSauna ? 'The ' + (s.sauna_model || 'sauna') : (s.tub_model ? 'The ' + s.tub_model : 'Your purchase')) + '</h2>' +
           (!isSauna && s.sauna_model ? '<p class="muted">Plus the ' + AZ.esc(s.sauna_model) + ' sauna</p>' : '') +
