@@ -148,6 +148,19 @@ create table public.product_costs (
   unique (product_type, model)
 );
 
+-- ---------- Add-ons we offer (admin catalogue: cost and sale price) ----------
+create table public.addons (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  kind text not null default 'other',
+  cost numeric(12,2) not null default 0,
+  sale_price numeric(12,2),
+  offered boolean not null default true,
+  sort int not null default 100,
+  updated_by uuid,
+  updated_at timestamptz not null default now()
+);
+
 -- ---------- Agreement terms (versioned; a signed sale keeps the version it was signed under) ----------
 create table public.agreement_terms (
   version int primary key,
@@ -230,6 +243,7 @@ alter table public.sales enable row level security;
 alter table public.sale_events enable row level security;
 alter table public.sale_costs enable row level security;
 alter table public.product_costs enable row level security;
+alter table public.addons enable row level security;
 alter table public.agreement_terms enable row level security;
 alter table public.settings enable row level security;
 alter table public.qb_connection enable row level security;
@@ -267,6 +281,8 @@ create policy sale_events_read on public.sale_events for select to authenticated
 
 create policy sale_costs_admin on public.sale_costs for all to authenticated using (is_admin()) with check (is_admin());
 create policy product_costs_admin on public.product_costs for all to authenticated using (is_admin()) with check (is_admin());
+create policy addons_admin on public.addons for all to authenticated using (is_admin()) with check (is_admin());
+insert into public.addons (name, kind, offered, sort) values ('Cover lifter','cover_lifter',true,10),('Steps','steps',true,20),('Delivery','delivery',true,30) on conflict (name) do nothing;
 create policy terms_read on public.agreement_terms for select to authenticated using (true);
 -- settings, qb_connection, qb_oauth_states, admin_emails: no policies, server only.
 

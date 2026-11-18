@@ -71,13 +71,14 @@
     $$('.tabs a').forEach(function (a) { a.removeAttribute('aria-current'); });
     var tab = view === 'sale' ? (current && current.id ? 'sales' : 'new') : view === 'customer' ? 'customers' : view;
     var t = $('.tabs a[data-tab="' + tab + '"]'); if (t) t.setAttribute('aria-current', 'page');
-    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', money: 'Financials', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
+    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', money: 'Financials', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
     window.scrollTo(0, 0);
   }
 
   function route() {
     var h = location.hash.slice(1) || 'sales';
-    if (h === 'team' && me.profile.role === 'admin') { show('team'); loadTeam(); loadQb(); loadCosts(); }
+    if (h === 'team' && me.profile.role === 'admin') { show('team'); loadTeam(); loadQb(); }
+    else if (h === 'products' && me.profile.role === 'admin') { show('products'); loadCosts(); loadAddons(); }
     else if (h === 'money' && me.profile.role === 'admin') { show('money'); loadMoney(); }
     else if (h === 'new') { openSale(null); }
     else if (h.indexOf('new-c-') === 0) { openSale(null, h.slice(6)); }
@@ -918,6 +919,46 @@
         if (r.error) return AZ.toast(/duplicate|unique/i.test(r.error.message) ? 'That model is already on the list.' : r.error.message);
         AZ.toast(f.model.value.trim() + ' added'); f.hidden = true; loadCosts();
       });
+  });
+  // ---------- Add-ons (Products tab, admins) ----------
+  function loadAddons() {
+    sb.from('addons').select('*').order('sort').order('name').then(function (r) {
+      if (r.error) { $('#addonRows').innerHTML = '<tr><td colspan="6" class="empty">' + AZ.esc(r.error.message) + '</td></tr>'; return; }
+      var list = r.data || [];
+      $('#addonRows').innerHTML = list.length ? list.map(function (a) {
+        return '<tr data-addon="' + a.id + '"' + (a.offered ? '' : ' class="off"') + '><td class="model">' + AZ.esc(a.name) + '</td>' + moneyInput(a, 'cost', 'Cost') + moneyInput(a, 'sale_price', 'Sale price') +
+          '<td class="num margin">' + marginCell({ cost: a.cost, sale_price: a.sale_price, msrp: null }) + '</td>' +
+          '<td><label class="switch"><input type="checkbox" data-offer' + (a.offered ? ' checked' : '') + ' aria-label="We offer ' + AZ.esc(a.name) + '"><span>' + (a.offered ? 'Yes' : 'No') + '</span></label></td>' +
+          '<td><button class="linkbtn" type="button" data-adel="' + a.id + '">Remove</button></td></tr>';
+      }).join('') : '<tr><td colspan="6" class="empty">No add-ons yet. Add a cover lifter, steps or delivery.</td></tr>';
+    });
+  }
+  $('#addonRows').addEventListener('change', function (e) {
+    var tr = e.target.closest('tr[data-addon]'); if (!tr) return;
+    var d = { updated_at: new Date().toISOString(), updated_by: me.user.id }, what;
+    if (e.target.matches('[data-offer]')) { d.offered = e.target.checked; what = d.offered ? 'Offered' : 'No longer offered'; }
+    else if (e.target.matches('input[data-f]')) { var f = e.target.dataset.f, raw = e.target.value.trim(); d[f] = f === 'cost' ? num(raw) : (raw === '' ? null : num(raw)); what = f === 'cost' ? 'Cost saved' : 'Sale price saved'; }
+    else return;
+    sb.from('addons').update(d).eq('id', tr.dataset.addon).select('*').single().then(function (r) {
+      if (r.error) return AZ.toast(r.error.message);
+      AZ.toast(what);
+      tr.querySelector('.margin').innerHTML = marginCell({ cost: r.data.cost, sale_price: r.data.sale_price, msrp: null });
+      tr.classList.toggle('off', !r.data.offered); tr.querySelector('.switch span').textContent = r.data.offered ? 'Yes' : 'No';
+    });
+  });
+  $('#addonRows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-adel]'); if (!b) return;
+    if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again'; setTimeout(function () { b.dataset.confirm = ''; b.textContent = 'Remove'; }, 4000); return; }
+    sb.from('addons').delete().eq('id', b.dataset.adel).then(function (r) { if (r.error) return AZ.toast(r.error.message); loadAddons(); });
+  });
+  $('#addonAddOpen').addEventListener('click', function () { var f = $('#addonAdd'); f.hidden = false; f.reset(); f.name.focus(); });
+  $('#addonAddCancel').addEventListener('click', function () { $('#addonAdd').hidden = true; });
+  $('#addonAdd').addEventListener('submit', function (e) {
+    e.preventDefault(); var f = e.target, name = f.name.value.trim();
+    sb.from('addons').insert({ name: name, cost: num(f.cost.value), sale_price: f.sale_price.value.trim() === '' ? null : num(f.sale_price.value), updated_by: me.user.id }).then(function (r) {
+      if (r.error) return AZ.toast(/duplicate|unique/i.test(r.error.message) ? 'That add-on is already on the list.' : r.error.message);
+      AZ.toast(name + ' added'); f.hidden = true; loadAddons();
+    });
   });
   $('#costDownload').addEventListener('click', function () {
     getCostList().then(function (list) {

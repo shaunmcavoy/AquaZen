@@ -256,3 +256,8 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .costtable .margin b{display:block}
 .costtable .margin b.neg{color:#c0392b}
 .costtable .margin .pct{font-size:.8rem;color:var(--muted)}
+#view-products .card+.card{margin-top:20px}
+.costtable tr.off td{opacity:.5}
+.costtable tr.off td:nth-last-child(-n+2){opacity:1}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.9rem}
+.switch input{width:18px;height:18px;accent-color:var(--ink)}

@@ -9,6 +9,7 @@
       <a href="#customers" data-tab="customers">Customers</a>
       <a href="#new" data-tab="new">New sale</a>
       <a href="#money" data-tab="money" class="admin-only" hidden>Financials</a>
+      <a href="#products" data-tab="products" class="admin-only" hidden>Products</a>
       <a href="#team" data-tab="team" class="admin-only" hidden>Team</a>
     </nav>
   </div>
@@ -302,6 +303,51 @@
       <p class="muted small" id="moneyNote"></p>
     </div>
 
+    <!-- Products (admins) -->
+    <div id="view-products" class="view" hidden>
+      <div class="card" id="costCard">
+        <h3>Price list</h3>
+        <p class="muted small">Every model with what it costs us in Canadian dollars before freight, its MSRP and the price we're selling it for. Type an MSRP or sale price right in the table and it saves on its own. The margin is worked out from the sale price, or from the MSRP if there's no sale price yet. Only admins can see this page.</p>
+        <div class="formactions">
+          <label class="btn btn-ink filebtn">Upload a spreadsheet<input type="file" id="costFile" accept=".xlsx,.xls,.csv" hidden></label>
+          <label class="inline">US dollar rate<input id="costRate" type="number" step="0.00001" min="0" value="1.42554"></label>
+          <button class="btn btn-line" type="button" id="costDownload">Download the list</button>
+          <p class="formmsg" id="costMsg" role="status" aria-live="polite"></p>
+        </div>
+        <p class="muted small">Upload the AquaSolus price sheet, or any sheet with Model and Cost columns (and Category if it mixes hot tubs, swim spas and mini pools). If the sheet has MSRP or Sale price columns, those come in too. If a cost column is in US dollars, it's converted at the rate above. Models already on the list are updated and new ones are added. Tap "Save these costs" after the preview to keep them.</p>
+        <div id="costPreview"></div>
+        <div class="costbar">
+          <div class="seg" id="costCat" role="group" aria-label="Show"><button type="button" class="on" data-cat="">All</button><button type="button" data-cat="hot_tub">Hot tubs</button><button type="button" data-cat="swim_spa">Swim spas</button><button type="button" data-cat="mini_pool">Mini pools</button></div>
+          <button class="btn btn-line" type="button" id="costAddOpen">Add a model</button>
+        </div>
+        <form class="form costadd" id="costAdd" hidden>
+          <div class="grid3">
+            <label>Category<select name="product_type"><option value="hot_tub">Hot tub</option><option value="swim_spa">Swim spa</option><option value="mini_pool">Mini pool</option></select></label>
+            <label>Model<input name="model" required></label>
+            <label>Our cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+            <label>MSRP<input name="msrp" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            <label>Sale price<input name="sale_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
+          </div>
+          <div class="formactions"><button class="btn btn-gold" type="submit">Add model</button><button class="linkbtn" type="button" id="costAddCancel">Cancel</button></div>
+        </form>
+        <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Category</th><th>Model</th><th class="num">Our cost</th><th class="num">MSRP</th><th class="num">Sale price</th><th class="num">Margin</th><th>Where the cost came from</th><th></th></tr></thead><tbody id="costRows"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+      <div class="card" id="addonCard">
+        <h3>Add-ons</h3>
+        <p class="muted small">The extras we offer with a hot tub, like cover lifters, steps and delivery. Give each one our cost and the price we sell it for. Switch "We offer this" off to stop offering something without losing its numbers.</p>
+        <div class="costbar"><span></span><button class="btn btn-line" type="button" id="addonAddOpen">Add an add-on</button></div>
+        <form class="form costadd" id="addonAdd" hidden>
+          <div class="grid3">
+            <label>Name<input name="name" required placeholder="Cover lifter"></label>
+            <label>Our cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+            <label>Sale price<input name="sale_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
+          </div>
+          <div class="formactions"><button class="btn btn-gold" type="submit">Add it</button><button class="linkbtn" type="button" id="addonAddCancel">Cancel</button></div>
+        </form>
+        <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Add-on</th><th class="num">Our cost</th><th class="num">Sale price</th><th class="num">Margin</th><th>We offer this</th><th></th></tr></thead><tbody id="addonRows"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
     <!-- Team (admins) -->
     <div id="view-team" class="view" hidden>
       <div class="grid2 team">
@@ -318,33 +364,6 @@
           </form>
         </div>
         <div class="card"><h3>Team</h3><ul class="teamlist" id="teamList"><li>Loading...</li></ul></div>
-        <div class="card span2" id="costCard">
-          <h3>Price list</h3>
-          <p class="muted small">Every model with what it costs us in Canadian dollars before freight, its MSRP and the price we're selling it for. Type an MSRP or sale price right in the table and it saves on its own. The margin is worked out from the sale price, or from the MSRP if there's no sale price yet. Only admins can see this page.</p>
-          <div class="formactions">
-            <label class="btn btn-ink filebtn">Upload a spreadsheet<input type="file" id="costFile" accept=".xlsx,.xls,.csv" hidden></label>
-            <label class="inline">US dollar rate<input id="costRate" type="number" step="0.00001" min="0" value="1.42554"></label>
-            <button class="btn btn-line" type="button" id="costDownload">Download the list</button>
-            <p class="formmsg" id="costMsg" role="status" aria-live="polite"></p>
-          </div>
-          <p class="muted small">Upload the AquaSolus price sheet, or any sheet with Model and Cost columns (and Category if it mixes hot tubs, swim spas and mini pools). If the sheet has MSRP or Sale price columns, those come in too. If a cost column is in US dollars, it's converted at the rate above. Models already on the list are updated and new ones are added. Tap "Save these costs" after the preview to keep them.</p>
-          <div id="costPreview"></div>
-          <div class="costbar">
-            <div class="seg" id="costCat" role="group" aria-label="Show"><button type="button" class="on" data-cat="">All</button><button type="button" data-cat="hot_tub">Hot tubs</button><button type="button" data-cat="swim_spa">Swim spas</button><button type="button" data-cat="mini_pool">Mini pools</button></div>
-            <button class="btn btn-line" type="button" id="costAddOpen">Add a model</button>
-          </div>
-          <form class="form costadd" id="costAdd" hidden>
-            <div class="grid3">
-              <label>Category<select name="product_type"><option value="hot_tub">Hot tub</option><option value="swim_spa">Swim spa</option><option value="mini_pool">Mini pool</option></select></label>
-              <label>Model<input name="model" required></label>
-              <label>Our cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
-              <label>MSRP<input name="msrp" type="number" min="0" step="0.01" inputmode="decimal"></label>
-              <label>Sale price<input name="sale_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
-            </div>
-            <div class="formactions"><button class="btn btn-gold" type="submit">Add model</button><button class="linkbtn" type="button" id="costAddCancel">Cancel</button></div>
-          </form>
-          <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Category</th><th>Model</th><th class="num">Our cost</th><th class="num">MSRP</th><th class="num">Sale price</th><th class="num">Margin</th><th>Where the cost came from</th><th></th></tr></thead><tbody id="costRows"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody></table></div>
-        </div>
         <div class="card span2" id="qbCard">
           <h3>QuickBooks</h3>
           <p class="muted">When a customer signs, the website creates their invoice in QuickBooks, for the deposit or the full amount as agreed, and puts a Pay button right on the signing page and in their welcome email. For deposits, you send the balance invoice from the sale when delivery gets close. When they pay, the sale updates automatically and you get an email.</p>
