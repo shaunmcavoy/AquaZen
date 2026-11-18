@@ -87,6 +87,22 @@ Deno.serve(async (req) => {
     return json({ error: "Could not save" }, 500);
   }
 
+  // Also put them on the staff portal's Customers tab as an unassigned lead, so a sale can be written up from it.
+  try {
+    const stamp = new Date().toLocaleDateString("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "short", day: "numeric" });
+    const notes = [`Find your Zen (${stamp}), from the website:`,
+      ...Object.entries(readable).map(([q, a]) => `- ${q}: ${a}`),
+      `- Best time to call: ${bestTime || "not given"}`,
+      (answers as Record<string, unknown>).interested_in ? `- Looked at: ${clip((answers as Record<string, unknown>).interested_in, 80)}` : "",
+      rec ? `- Suggested (Shaun only): ${rec}` : ""].filter(Boolean).join("\n");
+    const { data: existing } = await db.from("customers").select("id, notes").ilike("email", email).limit(1).maybeSingle();
+    if (existing) {
+      await db.from("customers").update({ cell: phone, city_pc: city || undefined, notes: [notes, existing.notes].filter(Boolean).join("\n\n").slice(0, 8000) }).eq("id", existing.id);
+    } else {
+      await db.from("customers").insert({ name: [first, last].filter(Boolean).join(" "), email, cell: phone, city_pc: city || null, heard_about: "Website: Find your Zen", notes });
+    }
+  } catch (e) { console.error("customer from lead", e); }
+
   // The dashboard secret was saved as RESENC_API_KEY; accept either name.
   const key = Deno.env.get("RESEND_API_KEY") || Deno.env.get("RESENC_API_KEY");
   if (!key) {

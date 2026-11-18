@@ -1,0 +1,46 @@
+<section class="lhero apphero">
+  <div class="wrap narrow">
+    <p class="eyebrow">Your sales agreement</p>
+    <h1 id="signTitle">Review and sign</h1>
+    <p class="lead">Please read everything over. If anything doesn't look right, don't sign. Call or text Shaun at 236-304-4424 and we'll fix it.</p>
+  </div>
+</section>
+<section class="appmain">
+  <div class="wrap narrow">
+    <div id="signLoading" class="card"><p>Loading your agreement...</p></div>
+    <div id="signError" class="card" hidden></div>
+    <div id="agreement" hidden></div>
+    <form id="signForm" class="card form" hidden novalidate>
+      <h2>When would you like it?</h2>
+      <p class="muted">Pick the two weeks that suit you best, or as soon as possible if you'd like it in under two weeks. Shaun will call to set the exact day, so there's time to get your base and power ready.</p>
+      <fieldset class="delwin" id="delWin"><legend class="sr-only">Delivery window</legend></fieldset>
+      <h2 style="margin-top:28px">Sign</h2>
+      <label class="consent" for="agree"><input id="agree" type="checkbox"> I've read this agreement, including the delivery and purchase terms, and I agree to it.</label>
+      <label for="typedName">Type your full name</label>
+      <input id="typedName" autocomplete="name" required>
+      <label>Draw your signature</label>
+      <div class="sigwrap"><canvas id="custSig" aria-label="Signature pad"></canvas><button type="button" class="linkbtn" id="custSigClear">Clear</button></div>
+      <p class="muted small">Use your finger on a phone or tablet, or your mouse on a computer. Signing online is the same as signing on paper.</p>
+      <button class="btn btn-gold" type="submit">Sign agreement</button>
+      <p class="formmsg" role="status" aria-live="polite"></p>
+    </form>
+    <div id="signDone" class="card done" hidden>
+      <img src="/assets/img/icon-512.png" alt="" width="72" height="72" style="border-radius:16px">
+      <h2>Welcome to AquaZen. Your Zen Time starts here.</h2>
+      <div id="payNow" class="paynow" hidden>
+        <p class="eyebrow">One last step</p>
+        <p id="payWhy"></p>
+        <a class="btn btn-gold" id="payBtn" href="#" rel="noopener">Pay now</a>
+        <p class="muted small">You'll go to a secure QuickBooks page to pay. We never see or store your card or bank details.</p>
+      </div>
+      <p>Thank you. Your agreement is signed. Check your email in the next few minutes for:</p>
+      <p id="doneWin" class="muted"></p>
+      <ul>
+        <li><b>Your signed agreement</b>, for your records.</li>
+        <li><b>How to get your spot ready.</b> A solid, level base, the right power and a clear path make delivery day smooth and protect your warranty.</li>
+        <li><b>A link to your customer portal</b>, where you'll see your tub's details and where things stand.</li>
+      </ul>
+      <p>Questions any time? Call or text Shaun at 236-304-4424.</p>
+    </div>
+  </div>
+</section>

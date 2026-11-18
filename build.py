@@ -480,14 +480,56 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
     write(base.strip("/") + f"/{k}/index.html", page)
 
 
+def build_app():
+    """Back office pages: sign-in, staff portal, online signing and customer portal. Not indexed by search engines."""
+    def img_for(photos, fallback):
+        for ph in photos:
+            if os.path.exists(os.path.join(ROOT, "assets/img/models", ph + ".webp")):
+                return "models/" + ph
+        return fallback
+    tubs = [{"k": k, "n": m["name"], "line": series_by_slug(m["series"])["name"], "seats": m["people"],
+             "jets": m["jets"], "power": m["power"]} for k, m in MODELS.items()]
+    products = {
+        "hot_tub": {"label": "Hot tub", "make": "Aquasolus", "groups": [
+            {"name": se["name"], "items": [{"n": MODELS[k]["name"], "img": img_for(MODELS[k]["photos"], "aquazen-interior")} for k in se["models"]]} for se in SERIES]},
+        "swim_spa": {"label": "Swim spa", "make": "Aquasolus", "groups": [
+            {"name": "", "items": [{"n": SWIM[k]["name"], "img": img_for(SWIM[k]["photos"], "aquazen-swimspa-overhead")} for k in DATA["swimspas"]["models"]]}]},
+        "mini_pool": {"label": "Mini pool", "make": "Aquasolus", "groups": []},
+    }
+    data = f"<script>window.AZ_TUBS={json.dumps(tubs)};window.AZ_PRODUCTS={json.dumps(products)};</script>\n"
+    for slug, title, js in [("login", "Sign in", "login"), ("staff", "Staff portal", "staff"), ("sign", "Sign your agreement", "sign"), ("portal", "Your portal", "portal")]:
+        body = open(os.path.join(ROOT, "src", "app", slug + ".html")).read()
+        write(f"{slug}/index.html", f"""<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{e(title)} | AquaZen</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/assets/img/icon-512.png">
+<link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body class="app app-{slug}">
+<header class="apptop"><div class="wrap"><a href="/" aria-label="AquaZen home"><img src="/assets/img/logo-word.png" alt="AquaZen" width="104" height="30"></a><a href="tel:+12363044424">236-304-4424</a></div></header>
+{data}{body}
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
+<script src="/assets/js/app.js"></script>
+<script src="/assets/js/{js}.js"></script>
+</body>
+</html>
+""")
+
+
 def stamp_assets():
     """Add ?v=<content hash> to CSS and JS links in every page, so phones never use a stale copy."""
     import hashlib
     import re
     ver = {}
-    for rel in ["assets/css/site.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js"]:
+    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js"]:
         ver[os.path.basename(rel)] = hashlib.md5(open(os.path.join(ROOT, rel), "rb").read()).hexdigest()[:8]
-    pat = re.compile(r'((?:\.\./|/)?assets/(?:css|js)/)(site\.css|site\.js|menu\.js|tubs\.js|finder\.js)(\?v=[0-9a-f]+)?')
+    pat = re.compile(r'((?:\.\./|/)?assets/(?:css|js)/)(' + "|".join(re.escape(k) for k in ver) + r')(\?v=[0-9a-f]+)?')
     for dirpath, _, files in os.walk(ROOT):
         if "/.git" in dirpath or "/supabase" in dirpath:
             continue
@@ -514,5 +556,6 @@ if __name__ == "__main__":
     else:
         print("swim spa photos missing: swim spa pages and dropdown held back")
     inject_home_header()
+    build_app()
     stamp_assets()
     print("built", 1 + len(SERIES) + len(MODELS) + 1 + len(SWIM), "pages")

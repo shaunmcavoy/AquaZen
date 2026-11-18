@@ -1,0 +1,343 @@
+<section class="appbar">
+  <div class="wrap">
+    <div><p class="eyebrow">Staff portal</p><h1 id="staffTitle">Sales</h1></div>
+    <div class="appbar-right"><span id="whoami" class="who"></span><a class="btn btn-ghost btn-sm" href="/login/?setpw=1">Password</a><button class="btn btn-ghost btn-sm" type="button" id="signOut">Sign out</button></div>
+  </div>
+  <div class="wrap">
+    <nav class="tabs" aria-label="Staff sections">
+      <a href="#sales" data-tab="sales" aria-current="page">Sales</a>
+      <a href="#customers" data-tab="customers">Customers</a>
+      <a href="#new" data-tab="new">New sale</a>
+      <a href="#money" data-tab="money" class="admin-only" hidden>Financials</a>
+      <a href="#team" data-tab="team" class="admin-only" hidden>Team</a>
+    </nav>
+  </div>
+</section>
+
+<section class="appmain">
+  <div class="wrap">
+
+    <!-- Customers -->
+    <div id="view-customers" class="view" hidden>
+      <div class="listhead">
+        <div class="filters" role="group" aria-label="Filter customers" id="custFilters">
+          <button class="chip" type="button" data-stage="all" aria-pressed="true">All <span></span></button>
+          <button class="chip admin-only" type="button" data-stage="unassigned" aria-pressed="false" hidden>Needs assigning <span></span></button>
+          <button class="chip" type="button" data-stage="lead" aria-pressed="false">Leads <span></span></button>
+          <button class="chip" type="button" data-stage="payment_due" aria-pressed="false">Payment due <span></span></button>
+          <button class="chip" type="button" data-stage="balance" aria-pressed="false">Paid, balance owing <span></span></button>
+          <button class="chip" type="button" data-stage="waiting" aria-pressed="false">Waiting for delivery <span></span></button>
+          <button class="chip" type="button" data-stage="delivered" aria-pressed="false">Delivered <span></span></button>
+        </div>
+        <a class="btn btn-gold" href="#lead">Add a lead</a>
+      </div>
+      <input type="search" id="custSearch" class="searchbox" placeholder="Search by name, email, phone or town" aria-label="Search customers">
+      <div class="tablewrap"><table class="saletable">
+        <thead><tr><th>Customer</th><th>Contact</th><th>Where they are</th><th>Latest deal</th><th class="num">Balance</th><th class="admin-only" hidden>Salesperson</th><th>Added</th></tr></thead>
+        <tbody id="custRows"><tr><td colspan="7" class="empty">Loading customers...</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- One customer (or a new lead) -->
+    <div id="view-customer" class="view" hidden>
+      <a class="back dark" href="#customers">&larr; All customers</a>
+      <div class="salehead"><h2 id="custHeading">New lead</h2><span id="custStage"></span></div>
+      <form id="custForm" class="card form" novalidate>
+        <div class="grid2">
+          <label>Name<input name="name" required autocomplete="off"></label>
+          <label>Email<input name="email" type="email" autocomplete="off"></label>
+          <label>Cell<input name="cell" type="tel" autocomplete="off"></label>
+          <label>How did they hear about us?<input name="heard_about" autocomplete="off"></label>
+          <label class="span2">Address<input name="address" autocomplete="off"></label>
+          <label>City / postal code<input name="city_pc" autocomplete="off"></label>
+          <label class="span2">Notes<textarea name="notes" rows="3" placeholder="What they're looking for, follow-up dates, anything worth remembering"></textarea></label>
+        </div>
+        <div class="formactions">
+          <button class="btn btn-ink" type="submit">Save</button>
+          <a class="btn btn-gold" id="custNewSale" href="#" hidden>Start a sale for this customer</a>
+          <p class="formmsg" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+      <div id="custAssign" class="card assigncard" hidden>
+        <h3>Who's taking this lead <span class="opt">(admins only)</span></h3>
+        <p class="muted small" id="assignNote">Salespeople only see the customers assigned to them. Choose someone and they'll get an email with this customer's details and a link to open them here.</p>
+        <div class="formactions"><select id="assignSel" aria-label="Assign to"></select><button class="btn btn-ink" type="button" id="assignBtn">Save</button><p class="formmsg" id="assignMsg" role="status" aria-live="polite"></p></div>
+      </div>
+      <div id="custDeals" class="card" hidden><h3>Deals</h3><div id="custDealList"></div></div>
+      <div id="custDanger" class="card danger" hidden>
+        <h3>Delete this customer</h3>
+        <p class="muted">Removes the customer, all their deals, signed agreements and photos, and their portal login from the website. QuickBooks is not changed: any invoices and payments stay in the books.</p>
+        <div class="formactions"><button class="btn btn-line" type="button" id="custDelete">Delete customer</button><p class="formmsg" id="custDelMsg" role="status" aria-live="polite"></p></div>
+      </div>
+    </div>
+
+    <!-- Sales list -->
+    <div id="view-sales" class="view">
+      <div class="listhead">
+        <div class="filters" role="group" aria-label="Filter by status">
+          <button class="chip" type="button" data-st="open" aria-pressed="true">In progress</button>
+          <button class="chip" type="button" data-st="all" aria-pressed="false">All</button>
+          <button class="chip" type="button" data-st="draft" aria-pressed="false">Drafts</button>
+          <button class="chip" type="button" data-st="awaiting_customer" aria-pressed="false">Waiting to sign</button>
+          <button class="chip" type="button" data-st="signed" aria-pressed="false">Signed</button>
+        </div>
+        <a class="btn btn-gold" href="#new">New sale</a>
+      </div>
+      <div class="bulkbar" id="bulkBar" hidden>
+        <span id="bulkCount">0 selected</span>
+        <button class="btn btn-line btn-sm" type="button" id="bulkDelete">Delete selected</button>
+        <button class="linkbtn" type="button" id="bulkClear">Clear</button>
+        <p class="formmsg" id="bulkMsg" role="status" aria-live="polite"></p>
+      </div>
+      <div class="tablewrap"><table class="saletable">
+        <thead><tr><th class="admin-only selcol" hidden><input type="checkbox" id="selAll" aria-label="Select all sales shown"></th><th>#</th><th>Customer</th><th>What</th><th class="num">Total</th><th>Status</th><th class="admin-only" hidden>Salesperson</th><th class="admin-only num" hidden>Profit</th><th class="admin-only num" hidden>Margin</th><th>Updated</th></tr></thead>
+        <tbody id="saleRows"><tr><td colspan="10" class="empty">Loading sales...</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- Sale editor -->
+    <div id="view-sale" class="view" hidden>
+      <a class="back dark" href="#sales">&larr; All sales</a>
+      <div class="salehead"><h2 id="saleHeading">New sale</h2><span id="saleStatus"></span></div>
+      <p id="lockNote" class="note" hidden>This agreement has been sent for signature, so it's locked. If something needs to change before the customer signs, use Edit this agreement below.</p>
+
+      <form id="saleForm" class="saleform" novalidate>
+        <fieldset class="card"><legend>Customer</legend>
+          <div class="grid2">
+            <label>Name<input name="c_name" required autocomplete="off"></label>
+            <label>Email<input name="c_email" type="email" required autocomplete="off"></label>
+            <label>Cell<input name="c_cell" type="tel" autocomplete="off"></label>
+            <label>How did you hear about us?<input name="c_heard_about" autocomplete="off"></label>
+            <label class="span2">Address<input name="c_address" autocomplete="off"></label>
+            <label>City / postal code<input name="c_city_pc" autocomplete="off"></label>
+            <label>Sale date<input name="sale_date" type="date"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="card"><legend>Product</legend>
+          <div class="grid3">
+            <label>Category<select name="product_type" id="prodType">
+              <option value="hot_tub">Hot tub</option><option value="swim_spa">Swim spa</option><option value="mini_pool">Mini pool</option>
+            </select></label>
+            <label>Model<select id="prodModel"></select><input id="prodModelOther" placeholder="Model name" autocomplete="off" hidden></label>
+            <label>Make<input id="prodMake" autocomplete="off"></label>
+            <label>Delivery notes<input name="est_delivery" placeholder="The customer picks their two-week window when signing"></label>
+            <label class="water">Shell colour<input name="shell_colour"></label>
+            <label class="water">Siding<input name="siding"></label>
+            <label class="water">Water care<input name="water_care" placeholder="e.g. Ozone and UV"></label>
+            <label class="water">Stereo<input name="stereo"></label>
+            <label class="water">Starter kit<input name="starter_kit"></label>
+            <label class="water">Steps<input name="steps"></label>
+            <label class="water">Lifter<input name="lifter"></label>
+            <label class="water">Cover<input name="spa_cover"></label>
+            <label class="saunaonly" hidden>Electrical<input id="mainElectrical" placeholder="e.g. 240V, 40A circuit"></label>
+            <label>Other<input name="other"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="card" id="addonCard" hidden><legend>Add a sauna <span class="opt">(optional)</span></legend>
+          <div class="grid3">
+            <label>Sauna model<select id="addonModel"></select><input id="addonModelOther" placeholder="Model name" autocomplete="off" hidden></label>
+            <label>Make<input id="addonMake" autocomplete="off"></label>
+            <label>Electrical<input id="addonElectrical" placeholder="e.g. 240V, 40A circuit"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="card"><legend>Notes</legend>
+          <label>Notes (if it's an in-stock unit, note the SKU)<textarea name="notes" rows="3"></textarea></label>
+        </fieldset>
+
+        <fieldset class="card pricing"><legend>Pricing</legend>
+          <div class="grid2">
+            <div class="grid2 inner">
+              <label id="mainPriceLabel"><span class="lbl">Hot tub value</span><input name="hot_tub_value" type="number" min="0" step="0.01" inputmode="decimal"></label>
+              <label id="addonPriceLabel" hidden>Added sauna<input name="sauna_total" type="number" min="0" step="0.01" inputmode="decimal"></label>
+              <label>Delivery<input name="delivery_fee" type="number" min="0" step="0.01" inputmode="decimal"></label>
+              <label>Deposit<input name="deposit" type="number" min="0" step="0.01" inputmode="decimal"></label>
+              <label>Payment on signing<select name="payment_type"><option value="full">Paid in full online</option><option value="deposit">Part online now, the rest later</option></select></label>
+              <label id="balanceMethodLabel">Rest paid by<select name="balance_method"><option value="before_delivery">Before delivery (we'll arrange it)</option><option value="cash">Cash</option><option value="cheque">Cheque</option><option value="financing">Financing</option></select></label>
+              <label>Customer can pay by<select name="pay_methods"><option value="both">Card or bank transfer</option><option value="card">Credit card only</option><option value="bank">Bank transfer only</option></select></label>
+            </div>
+            <p class="muted small span2">The customer's QuickBooks invoice is for exactly this amount, and the pay page only offers the payment method chosen here.</p>
+            <dl class="sums" id="sums"></dl>
+          </div>
+        </fieldset>
+
+        <div class="formactions">
+          <button class="btn btn-ink" type="submit" id="saveBtn">Save draft</button>
+          <button class="btn btn-line" type="button" id="deleteBtn" hidden>Delete draft</button>
+          <p class="formmsg" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+
+      <!-- Sign and send -->
+      <div id="signPanel" class="card signpanel" hidden>
+        <h3>Sign and send to the customer</h3>
+        <p class="muted">Sign below as the company representative. This locks the agreement so the customer signs exactly what you agreed together.</p>
+        <div class="sigwrap"><canvas id="repSig" aria-label="Signature pad"></canvas><button type="button" class="linkbtn" id="repSigClear">Clear</button></div>
+        <p class="sigline">Signed by <b id="repName"></b></p>
+        <div class="formactions">
+          <button class="btn btn-gold" type="button" id="signEmail">Sign and email the customer</button>
+          <button class="btn btn-ink" type="button" id="signHere">Sign, then customer signs on this device</button>
+          <p class="formmsg" id="signMsg" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div id="paperPanel" class="card signpanel" hidden>
+        <h3>Or sign on paper</h3>
+        <p class="muted">Print two copies, and you and the customer sign both. They keep one, you keep the other. Then mark it signed here so they still get their welcome email, guides, portal and payment link. Save any changes first: it prints what's saved.</p>
+        <div class="formactions">
+          <button class="btn btn-ink" type="button" id="printPaper">Print for paper signing</button>
+          <p class="formmsg" id="printMsg" role="status" aria-live="polite"></p>
+        </div>
+        <details class="paperdone">
+          <summary>We've both signed the paper copies</summary>
+          <label class="photos">Photos of the signed pages <span class="opt">(optional, but recommended)</span>
+            <input type="file" id="paperPhotos" accept="image/*" multiple>
+          </label>
+          <p class="muted small" id="photoCount">A photo of each signed page keeps a backup with the sale, in case the paper copy goes missing.</p>
+          <label class="check"><input type="checkbox" id="paperConfirm"> The customer and I have both signed the printed agreement.</label>
+          <div class="formactions">
+            <button class="btn btn-gold" type="button" id="markPaper">Mark as signed on paper</button>
+            <p class="formmsg" id="paperMsg" role="status" aria-live="polite"></p>
+          </div>
+        </details>
+      </div>
+
+      <div id="waitPanel" class="card" hidden>
+        <h3>Waiting for the customer to sign</h3>
+        <p class="muted">The signing link works for 14 days. When they sign, they get their copy, the pre-delivery guide, the owner's manual and their portal by email, and you'll get a copy too.</p>
+        <div class="linkrow"><input id="signLink" readonly aria-label="Signing link"><button class="btn btn-line btn-sm" type="button" id="copyLink">Copy link</button></div>
+        <div class="formactions">
+          <a class="btn btn-ink" id="openSign" href="#" target="_blank" rel="noopener">Open signing page on this device</a>
+          <button class="btn btn-line" type="button" id="resendLink">Email a fresh link</button>
+          <p class="formmsg" id="waitMsg" role="status" aria-live="polite"></p>
+        </div>
+        <div class="reopen">
+          <p class="muted small"><b>Need to change something?</b> If the deal changed before they signed (a different tub, price or payment), unlock it here. The link already sent stops working, you make your changes, then sign and send it again.</p>
+          <div class="formactions"><button class="btn btn-line" type="button" id="reopenBtn">Edit this agreement</button><p class="formmsg" id="reopenMsg" role="status" aria-live="polite"></p></div>
+        </div>
+      </div>
+
+      <div id="donePanel" class="card" hidden>
+        <h3>Signed</h3>
+        <p class="muted" id="doneText"></p>
+        <div class="formactions"><button class="btn btn-gold" type="button" id="printPdf">Print agreement for the customer</button><button class="btn btn-line" type="button" id="downloadPdf">Download PDF</button><p class="formmsg" id="pdfMsg" role="status" aria-live="polite"></p></div>
+        <div id="depositBox"></div>
+        <div id="progressBox"></div>
+      </div>
+
+      <div id="profitCard" class="card profit" hidden>
+        <h3>Profit on this deal <span class="opt">(admins only)</span></h3>
+        <p class="muted small">Only admins see this. Salespeople and customers never do. Everything is in Canadian dollars, before GST and PST.</p>
+        <form id="profitForm" class="form grid3" novalidate>
+          <label><span class="lbl" id="pcLabel">Hot tub cost (CAD)</span><input name="product_cost" type="number" min="0" step="0.01" inputmode="decimal"><span class="hint" id="pcHint"></span></label>
+          <label id="scWrap">Sauna cost with heater (CAD)<input name="sauna_cost" type="number" min="0" step="0.01" inputmode="decimal"><span class="hint" id="scHint"></span></label>
+          <label>Freight to us (CAD)<input name="warehouse_shipping" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Freight to Burnaby"></label>
+          <label>Our delivery cost (usually $350)<input name="delivery_cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Crane, crew, fuel"></label>
+          <label>Other costs<input name="other_costs" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Steps, cover, chemicals"></label>
+          <label>Notes<input name="notes" autocomplete="off"></label>
+        </form>
+        <dl class="sums profitsums" id="profitSums"></dl>
+        <div class="formactions"><button class="btn btn-ink" type="button" id="profitSave">Save costs</button><p class="formmsg" id="profitMsg" role="status" aria-live="polite"></p></div>
+      </div>
+
+      <div id="saleDanger" class="card danger" hidden>
+        <h3>Delete this sale</h3>
+        <p class="muted">For test sales and deals that fell through. Removes the sale, its history, and any signed agreement and photos from the website. The customer stays on your list as a lead. QuickBooks is not changed: if an invoice was made, void or delete it there too.</p>
+        <div class="formactions"><button class="btn btn-line" type="button" id="saleDelete">Delete sale</button><p class="formmsg" id="saleDelMsg" role="status" aria-live="polite"></p></div>
+      </div>
+
+      <div id="eventsPanel" class="card" hidden><h3>History</h3><ol class="events" id="events"></ol></div>
+    </div>
+
+    <!-- Financials (admins) -->
+    <div id="view-money" class="view" hidden>
+      <div class="listhead">
+        <div>
+          <p class="muted small">Sold deals only (signed or further along), counted in the month the customer signed. Amounts are before GST and PST. Tap a month to see its deals. Admins only.</p>
+        </div>
+        <div class="formactions"><label class="inline">Year<select id="moneyYear"></select></label><button class="btn btn-gold" type="button" id="pastOpen">Record a past sale</button></div>
+      </div>
+      <div class="card" id="pastCard" hidden>
+        <h3>Record a past sale</h3>
+        <p class="muted small">For tubs sold before the website, or outside it. It counts in Financials and shows on the Sales and Customers tabs. No agreement, emails or QuickBooks invoice are made, and nothing is sent to the customer.</p>
+        <form id="pastForm" class="form" novalidate>
+          <div class="grid3">
+            <label>Customer name<input name="name" required autocomplete="off"></label>
+            <label><span>Email <span class="opt">(optional)</span></span><input name="email" type="email" autocomplete="off"></label>
+            <label><span>Cell <span class="opt">(optional)</span></span><input name="cell" type="tel" autocomplete="off"></label>
+            <label><span>City <span class="opt">(optional)</span></span><input name="city_pc" autocomplete="off"></label>
+            <label>Date sold<input name="sale_date" type="date" required></label>
+            <label>Where it's at<select name="status"><option value="delivered">Delivered</option><option value="sold">Sold, not delivered yet</option></select></label>
+            <label>Category<select name="product_type" id="pastType"><option value="hot_tub">Hot tub</option><option value="swim_spa">Swim spa</option><option value="mini_pool">Mini pool</option></select></label>
+            <label>Model<select id="pastModel"></select><input id="pastModelOther" placeholder="Model name" autocomplete="off" hidden></label>
+            <label><span class="lbl" id="pastPriceLbl">Hot tub price before GST and PST</span><input name="price" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+            <label class="pastaddon" hidden><span>Sauna sold with it <span class="opt">(optional)</span></span><select id="pastAddon"></select></label>
+            <label class="pastaddon" hidden>Sauna price before GST and PST<input name="addon_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            <label>Delivery fee charged<input name="delivery_fee" type="number" min="0" step="0.01" inputmode="decimal"></label>
+          </div>
+          <h3>Our costs (CAD)</h3>
+          <div class="grid3">
+            <label><span class="lbl" id="pastCostLbl">Hot tub cost</span><input name="product_cost" type="number" min="0" step="0.01" inputmode="decimal"><span class="hint" id="pastCostHint"></span></label>
+            <label class="pastaddon" hidden>Sauna cost with heater<input name="sauna_cost" type="number" min="0" step="0.01" inputmode="decimal"><span class="hint" id="pastAddonHint"></span></label>
+            <label>Freight to us<input name="warehouse_shipping" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Freight to Burnaby"></label>
+            <label>Our delivery cost<input name="delivery_cost" type="number" min="0" step="0.01" inputmode="decimal" value="350"></label>
+            <label>Other costs<input name="other_costs" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            <label>Notes<input name="notes" autocomplete="off"></label>
+          </div>
+          <dl class="sums profitsums" id="pastSums"></dl>
+          <div class="formactions"><button class="btn btn-gold" type="submit">Save past sale</button><button class="linkbtn" type="button" id="pastCancel">Cancel</button><p class="formmsg" role="status" aria-live="polite"></p></div>
+        </form>
+      </div>
+      <div class="moneycards" id="moneyCards"></div>
+      <div class="tablewrap"><table class="saletable moneytable">
+        <thead>
+          <tr><th rowspan="2">Month</th><th colspan="4" class="grp">This month</th><th colspan="4" class="grp ytd">Year to date</th></tr>
+          <tr><th class="num">Units</th><th class="num">Sold</th><th class="num">Profit</th><th class="num">Margin</th><th class="num ytd">Units</th><th class="num ytd">Sold</th><th class="num ytd">Profit</th><th class="num ytd">Margin</th></tr>
+        </thead>
+        <tbody id="moneyRows"><tr><td colspan="9" class="empty">Loading...</td></tr></tbody>
+        <tfoot id="moneyFoot"></tfoot>
+      </table></div>
+      <p class="muted small" id="moneyNote"></p>
+    </div>
+
+    <!-- Team (admins) -->
+    <div id="view-team" class="view" hidden>
+      <div class="grid2 team">
+        <div class="card">
+          <h3>Add a team member</h3>
+          <p class="muted">They'll get an email with a link to the staff portal. Salespeople see only their own customers and deals. Admins see everything.</p>
+          <form id="inviteForm" class="form" novalidate>
+            <label>Full name<input name="full_name" required></label>
+            <label>Email<input name="email" type="email" required></label>
+            <label>Phone<input name="phone" type="tel"></label>
+            <label>Access<select name="role"><option value="staff">Salesperson: sees only their own customers and deals</option><option value="admin">Admin: sees every customer and deal (Blaine, Sara)</option></select></label>
+            <button class="btn btn-gold" type="submit">Send invite</button>
+            <p class="formmsg" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+        <div class="card"><h3>Team</h3><ul class="teamlist" id="teamList"><li>Loading...</li></ul></div>
+        <div class="card span2" id="costCard">
+          <h3>Cost list</h3>
+          <p class="muted small">What each model costs us in Canadian dollars, before freight. Freight to Burnaby goes on each deal. It fills in the cost on each deal so the profit and margin show up. Only admins can see it.</p>
+          <div class="formactions">
+            <label class="btn btn-ink filebtn">Upload a spreadsheet<input type="file" id="costFile" accept=".xlsx,.xls,.csv" hidden></label>
+            <label class="inline">US dollar rate<input id="costRate" type="number" step="0.00001" min="0" value="1.42554"></label>
+            <button class="btn btn-line" type="button" id="costDownload">Download the list</button>
+            <p class="formmsg" id="costMsg" role="status" aria-live="polite"></p>
+          </div>
+          <p class="muted small">Upload the Aquasolus price sheet, or any sheet with Model and Cost columns (and Category if it mixes hot tubs, swim spas and mini pools). If a cost column is in US dollars, it's converted at the rate above. Models already on the list are updated and new ones are added.</p>
+          <div id="costPreview"></div>
+          <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Category</th><th>Model</th><th class="num">Our cost (CAD)</th><th>Where it came from</th><th></th></tr></thead><tbody id="costRows"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
+        </div>
+        <div class="card span2" id="qbCard">
+          <h3>QuickBooks</h3>
+          <p class="muted">When a customer signs, the website creates their invoice in QuickBooks, for the deposit or the full amount as agreed, and puts a Pay button right on the signing page and in their welcome email. For deposits, you send the balance invoice from the sale when delivery gets close. When they pay, the sale updates automatically and you get an email.</p>
+          <div id="qbBody"><p>Checking QuickBooks...</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>

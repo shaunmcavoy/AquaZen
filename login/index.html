@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in | AquaZen</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/assets/img/icon-512.png">
+<link rel="stylesheet" href="/assets/css/app.css?v=2a029c04">
+</head>
+<body class="app app-login">
+<header class="apptop"><div class="wrap"><a href="/" aria-label="AquaZen home"><img src="/assets/img/logo-word.png" alt="AquaZen" width="104" height="30"></a><a href="tel:+12363044424">236-304-4424</a></div></header>
+<script>window.AZ_TUBS=[{"k": "brook", "n": "Brook", "line": "Series One", "seats": 4, "jets": 23, "power": "15 A 120V, or 40 A 240V"}, {"k": "zephyr", "n": "Zephyr", "line": "Series One", "seats": 5, "jets": 25, "power": "15 A 120V, or 40 A 240V"}, {"k": "cypress", "n": "Cypress", "line": "Series One", "seats": 6, "jets": 26, "power": "15 A 120V, or 40 A 240V"}, {"k": "cove", "n": "Cove", "line": "Series One", "seats": 7, "jets": 27, "power": "15 A 120V, or 40 A 240V"}, {"k": "sierra", "n": "Sierra", "line": "Series Two", "seats": 3, "jets": 40, "power": "60 A 240V dedicated line"}, {"k": "harmony", "n": "Harmony", "line": "Series Two", "seats": 5, "jets": 42, "power": "60 A 240V dedicated line"}, {"k": "eden", "n": "Eden", "line": "Series Two", "seats": 6, "jets": 42, "power": "60 A 240V dedicated line"}, {"k": "aspen", "n": "Aspen", "line": "Series Two", "seats": 6, "jets": 48, "power": "60 A 240V dedicated line"}, {"k": "calma", "n": "Calma", "line": "Series Two", "seats": 7, "jets": 38, "power": "60 A 240V dedicated line"}, {"k": "cascade", "n": "Cascade", "line": "Series Three", "seats": 5, "jets": 45, "power": "60 A 240V dedicated line"}, {"k": "serenity", "n": "Serenity", "line": "Series Three", "seats": 6, "jets": 49, "power": "60 A 240V dedicated line"}, {"k": "zenith", "n": "Zenith", "line": "Series Three", "seats": 7, "jets": 61, "power": "60 A 240V dedicated line"}, {"k": "solstice", "n": "Solstice", "line": "Series Three", "seats": 7, "jets": 41, "power": "60 A 240V dedicated line"}];window.AZ_PRODUCTS={"hot_tub": {"label": "Hot tub", "make": "Aquasolus", "groups": [{"name": "Series One", "items": [{"n": "Brook", "img": "models/brook-quarter"}, {"n": "Zephyr", "img": "models/zephyr-quarter"}, {"n": "Cypress", "img": "models/cypress-quarter"}, {"n": "Cove", "img": "models/cove-quarter"}]}, {"name": "Series Two", "items": [{"n": "Sierra", "img": "models/sierra-quarter"}, {"n": "Harmony", "img": "models/harmony-quarter"}, {"n": "Eden", "img": "models/eden-quarter"}, {"n": "Aspen", "img": "models/aspen-quarter"}, {"n": "Calma", "img": "models/calma-quarter"}]}, {"name": "Series Three", "items": [{"n": "Cascade", "img": "models/cascade-quarter"}, {"n": "Serenity", "img": "models/serenity-quarter"}, {"n": "Zenith", "img": "models/zenith-quarter"}, {"n": "Solstice", "img": "models/solstice-quarter"}]}]}, "swim_spa": {"label": "Swim spa", "make": "Aquasolus", "groups": [{"name": "", "items": [{"n": "Solara", "img": "aquazen-swimspa-overhead"}, {"n": "Drift", "img": "aquazen-swimspa-overhead"}, {"n": "Fusion", "img": "aquazen-swimspa-overhead"}, {"n": "Fusion Professional", "img": "aquazen-swimspa-overhead"}, {"n": "Flow", "img": "aquazen-swimspa-overhead"}, {"n": "Flow Professional", "img": "aquazen-swimspa-overhead"}]}]}, "mini_pool": {"label": "Mini pool", "make": "Aquasolus", "groups": []}};</script>
+<section class="lhero apphero">
+  <div class="wrap narrow">
+    <p class="eyebrow">Customers and staff</p>
+    <h1 id="loginTitle">Sign in</h1>
+    <p class="lead" id="loginLead">Your portal keeps everything in one place: your agreement, your tub's details, your delivery window and where things stand.</p>
+  </div>
+</section>
+<section class="appmain">
+  <div class="wrap narrow">
+    <form id="loginForm" class="card form" novalidate>
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" type="email" autocomplete="username" required>
+      <label for="loginPass">Password</label>
+      <input id="loginPass" type="password" autocomplete="current-password">
+      <button class="btn btn-gold" type="submit">Sign in</button>
+      <p class="formmsg" role="status" aria-live="polite"></p>
+      <div class="altsign">
+        <p class="muted small"><b>First time, or forgot your password?</b> We'll email you a link. Tap it and you can choose a password.</p>
+        <div class="formactions">
+          <button class="btn btn-line btn-sm" type="button" id="setPassLink">Email me a link to set my password</button>
+          <button class="textbtn" type="button" id="magicLink">Just sign me in by email this time</button>
+        </div>
+      </div>
+    </form>
+
+    <form id="setPassForm" class="card form" novalidate hidden>
+      <p>Choose a password you'll remember. At least 8 characters.</p>
+      <input type="email" id="setPassUser" autocomplete="username" hidden>
+      <label for="newPass">New password</label>
+      <input id="newPass" type="password" autocomplete="new-password" minlength="8" required>
+      <label for="newPass2">Type it again</label>
+      <input id="newPass2" type="password" autocomplete="new-password" minlength="8" required>
+      <button class="btn btn-gold" type="submit">Save password</button>
+      <p class="formmsg" role="status" aria-live="polite"></p>
+    </form>
+
+    <div id="loginWorking" class="card" hidden><p>Signing you in...</p></div>
+    <p class="fineprint">Bought from AquaZen? Use the email on your sales agreement. Questions? Call or text Shaun at 236-304-4424.</p>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
+<script src="/assets/js/app.js?v=baf3debe"></script>
+<script src="/assets/js/login.js?v=d6ede2d3"></script>
+</body>
+</html>
