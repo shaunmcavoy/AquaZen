@@ -277,5 +277,6 @@ select cron.schedule('qb-sync', '*/15 * * * *', $$
   select net.http_post(
     url := 'https://zfqzajshbjfmflbttabq.supabase.co/functions/v1/portal/qb-sync',
     headers := jsonb_build_object('Content-Type', 'application/json', 'x-cron-secret', (select v from public.settings where k = 'cron_secret')),
-    body := '{}'::jsonb);
+    body := '{}'::jsonb,
+    timeout_milliseconds := 60000);
 $$);
