@@ -150,14 +150,14 @@ def inject_home_header():
 
 
 def built(kind):
-    """The three things that set Aquasolus apart, written for the Lower Mainland."""
+    """The three things that set AquaSolus apart, written for the Lower Mainland."""
     if kind == "tub":
-        water = ("Water this clean takes more than ozone.", "A typical hot tub takes about 45 minutes to move all its water through the filter and ozone. With four to five times more water flowing through the jets, an Aquasolus does it in under 10. Every series has a double ozonator: ozone held under water in a mixing chamber for at least 45 seconds, then a UV stage. Cleaner water, fewer chemicals.")
+        water = ("Water this clean takes more than ozone.", "A typical hot tub takes about 45 minutes to move all its water through the filter and ozone. With four to five times more water flowing through the jets, an AquaSolus does it in under 10. Every series has a double ozonator: ozone held under water in a mixing chamber for at least 45 seconds, then a UV stage. Cleaner water, fewer chemicals.")
         build = ("Build quality, second to none.", "A 304 stainless steel frame that won't rot or rust, on a structured ABS base pan that seals and protects the bottom of the tub. Built for the longest life you can get.")
     else:
         water = ("Clean water, simply.", "Ozone water care comes standard, and soft Lower Mainland water keeps the routine short. We show you exactly how before delivery.")
         build = ("Built to carry the weight.", "A 304 stainless steel frame that won't rot or rust, made to hold thousands of litres for years.")
-    massage = ("A massage that pulls the tension out.", "It's not the number of jets, it's how the water reaches you. Most hot tubs use skinny plumbing, like a thumb over a garden hose, and the sharp spray can feel itchy. Aquasolus uses wide plumbing that delivers four to five times more water to every jet, so a big, warm volume of water works over more of your back and draws the tension out.")
+    massage = ("A massage that pulls the tension out.", "It's not the number of jets, it's how the water reaches you. Most hot tubs use skinny plumbing, like a thumb over a garden hose, and the sharp spray can feel itchy. AquaSolus uses wide plumbing that delivers four to five times more water to every jet, so a big, warm volume of water works over more of your back and draws the tension out.")
     eff = ("Easy on the planet. And your hydro bill.", "Full AQ10 insulation keeps the heat the pumps make inside and puts it back into the water, instead of losing it to the air. Less wasted heat, less electricity.")
     items = (massage, water, eff, build) if kind == "tub" else (water, eff, build)
     tiles = "".join(f'<div class="tile"><h3>{e(t)}</h3><p>{e(d)}</p></div>' for t, d in items)
@@ -199,7 +199,7 @@ FOOT = """
     <p class="foot-tag">Your Zen is calling.</p>
     <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC.</p>
     <p><a class="plain" href="tel:+12363044424">236-304-4424</a> &nbsp; <a class="plain" href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
-    <p>Hot tub photos and specifications courtesy of Aquasolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
+    <p>Hot tub photos and specifications courtesy of AquaSolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
     <p><a class="plain" href="/privacy/">Privacy</a> &nbsp; <a class="plain" href="/terms/">Terms</a> &nbsp; <a class="plain" href="/login/">Customer &amp; staff sign-in</a></p>
   </div>
 </footer>
@@ -250,13 +250,13 @@ def build_hub():
         <span class="hub-go">Explore {e(s['name'])}</span>
       </span>
     </a>"""
-    page = head("Hot tubs | AquaZen", "Aquasolus hot tubs in Burnaby: Series One, Two and Three, for 3 to 7 people.")
+    page = head("Hot tubs | AquaZen", "AquaSolus hot tubs in Burnaby: Series One, Two and Three, for 3 to 7 people.")
     page += subnav([("Hot tubs", None)])
     page += f"""<main>
 <section class="tub-intro">
   <div class="wrap center">
     <h1 class="display">Which hot tub is your Zen?</h1>
-    <p class="lede">Thirteen Aquasolus hot tubs in three series. Start with how you want to live, then pick the one that fits.</p>
+    <p class="lede">Thirteen AquaSolus hot tubs in three series. Start with how you want to live, then pick the one that fits.</p>
   </div>
 </section>
 <section class="hub">
@@ -365,7 +365,7 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
     noun = "hot tub" if kind == "tub" else "swim spa"
     swimrow = f'<div><dt>Swim system</dt><dd>{e(m["system"])}</dd><dd class="spec-sub">{e(m["length"])} long</dd></div>' if m.get("system") else ""
     sibs = [(models[x]["name"], f"{base}{x}/", x == k) for x in s["models"]]
-    page = head(f"{m['name']} {noun} | AquaZen", f"The Aquasolus {m['name']} {noun}: {m['tag']} {m['people']} people, {m['jets']} jets. See it at AquaZen in Burnaby.")
+    page = head(f"{m['name']} {noun} | AquaZen", f"The AquaSolus {m['name']} {noun}: {m['tag']} {m['people']} people, {m['jets']} jets. See it at AquaZen in Burnaby.")
     page += subnav(crumbs + [(s["name"], base), (m["name"], None)], sibs)
 
     photos = m["photos"]
@@ -467,7 +467,7 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
 def build_how():
     """How we deliver Zen: the scroll presentation that sells the tub and leads to Find your Zen."""
     body = open(os.path.join(ROOT, "src", "how.html")).read()
-    page = head("How we deliver Zen | AquaZen", "You expect a luxury spa without the stress. Here's how an Aquasolus hot tub delivers it: the massage, the water flow, the double ozonator and the energy.")
+    page = head("How we deliver Zen | AquaZen", "You expect a luxury spa without the stress. Here's how an AquaSolus hot tub delivers it: the massage, the water flow, the double ozonator and the energy.")
     page = page.replace('<body class="tubs">', '<body class="tubs how">')
     foot = FOOT.split("</main>", 1)[1].replace('<script src="/assets/js/tubs.js"></script>', '<script src="/assets/js/how.js"></script>')
     write("how-we-deliver-zen/index.html", page + body + "\n</main>" + foot)
@@ -498,11 +498,11 @@ def build_app():
     tubs = [{"k": k, "n": m["name"], "line": series_by_slug(m["series"])["name"], "seats": m["people"],
              "jets": m["jets"], "power": m["power"]} for k, m in MODELS.items()]
     products = {
-        "hot_tub": {"label": "Hot tub", "make": "Aquasolus", "groups": [
+        "hot_tub": {"label": "Hot tub", "make": "AquaSolus", "groups": [
             {"name": se["name"], "items": [{"n": MODELS[k]["name"], "img": img_for(MODELS[k]["photos"], "aquazen-interior")} for k in se["models"]]} for se in SERIES]},
-        "swim_spa": {"label": "Swim spa", "make": "Aquasolus", "groups": [
+        "swim_spa": {"label": "Swim spa", "make": "AquaSolus", "groups": [
             {"name": "", "items": [{"n": SWIM[k]["name"], "img": img_for(SWIM[k]["photos"], "aquazen-swimspa-overhead")} for k in DATA["swimspas"]["models"]]}]},
-        "mini_pool": {"label": "Mini pool", "make": "Aquasolus", "groups": []},
+        "mini_pool": {"label": "Mini pool", "make": "AquaSolus", "groups": []},
     }
     data = f"<script>window.AZ_TUBS={json.dumps(tubs)};window.AZ_PRODUCTS={json.dumps(products)};</script>\n"
     for slug, title, js in [("login", "Sign in", "login"), ("staff", "Staff portal", "staff"), ("sign", "Sign your agreement", "sign"), ("portal", "Your portal", "portal")]:

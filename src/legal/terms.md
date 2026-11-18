@@ -4,7 +4,7 @@ These terms cover your use of the AquaZen website, including the customer portal
 
 ## The website
 
-The information on our website, including hot tub specifications and photos supplied by Aquasolus, is provided in good faith but may change. Shaun will confirm the details for your specific hot tub before you buy. Prices are confirmed in your sales agreement, not on the website.
+The information on our website, including hot tub specifications and photos supplied by AquaSolus, is provided in good faith but may change. Shaun will confirm the details for your specific hot tub before you buy. Prices are confirmed in your sales agreement, not on the website.
 
 ## Your sales agreement
 

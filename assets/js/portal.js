@@ -2,7 +2,7 @@
   var $ = function (s) { return document.querySelector(s); };
   var STEPS = [
     ['signed', 'Agreement signed', 'Your signed copy and how to get your spot ready were emailed to you.'],
-    ['deposit_paid', 'Deposit received', 'Thank you. Your order is in with Aquasolus.'],
+    ['deposit_paid', 'Deposit received', 'Thank you. Your order is in with AquaSolus.'],
     ['delivery_scheduled', 'Delivery booked', 'Make sure your base, power and access are ready for the day.'],
     ['delivered', 'Delivered', 'Enjoy your Zen Time. Your serial number is on file for warranty.']
   ];
@@ -37,7 +37,7 @@
         '<h3>Where things stand</h3><ol class="steps-v">' + steps + '</ol>' +
         (s.delivery_window || s.delivery_date ? '<h3>Delivery</h3><dl class="kv">' + dl('You asked for', AZ.windowLabel(s.delivery_window)) + dl('Booked for', AZ.dayLabel(s.delivery_date)) + '</dl>' : '') +
         (Number(s.balance) > 0 && !s.balance_paid_at && s.qb_balance_link ? '<h3>Your balance</h3><p class="muted">Your remaining balance of ' + AZ.money(s.balance) + ' is due before delivery, so delivery day is only about getting you soaking.</p><div class="formactions"><a class="btn btn-gold" href="' + AZ.esc(s.qb_balance_link) + '" rel="noopener">Pay my balance</a></div>' : '') +
-        (s.status === 'signed' && s.qb_invoice_link && !s.deposit_paid_at ? '<h3>Your ' + (s.payment_type === 'full' ? 'payment' : 'deposit') + '</h3><p class="muted">Paying it confirms your order with Aquasolus so your ' + noun + ' can be built and shipped to us.</p><div class="formactions"><a class="btn btn-gold" href="' + AZ.esc(s.qb_invoice_link) + '" rel="noopener">Pay now</a></div>' : '') +
+        (s.status === 'signed' && s.qb_invoice_link && !s.deposit_paid_at ? '<h3>Your ' + (s.payment_type === 'full' ? 'payment' : 'deposit') + '</h3><p class="muted">Paying it confirms your order with AquaSolus so your ' + noun + ' can be built and shipped to us.</p><div class="formactions"><a class="btn btn-gold" href="' + AZ.esc(s.qb_invoice_link) + '" rel="noopener">Pay now</a></div>' : '') +
         '<h3>Getting your spot ready</h3><p class="muted">A solid, level base, a dedicated circuit run by a licensed electrician and a clear path from the street. Getting these right is what makes delivery day smooth and protects your warranty. Not sure about something? Send Shaun a photo of the spot.</p>' +
         '<h3>Questions?</h3><p>Call or text Shaun directly at <b>236-304-4424</b>, or email <b>shaun@aquazen.ca</b>. He answers his own phone.</p>' +
       '</article>';

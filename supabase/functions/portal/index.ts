@@ -552,7 +552,7 @@ async function route_past_sale(req: Request): Promise<Response> {
     product_type: type, sale_date: date, customer_signed_at: noonVancouver(date),
     status: b.status === "sold" ? "deposit_paid" : "delivered", signing_method: "paper", recorded_past: true,
     payment_type: "full", pay_methods: "both", delivery_fee: n(b.delivery_fee), notes: str(b.notes),
-    tub_make: str(b.make) || "Aquasolus", tub_model: sauna ? null : model,
+    tub_make: str(b.make) || "AquaSolus", tub_model: sauna ? null : model,
     hot_tub_value: sauna ? 0 : n(b.price),
     sauna_make: null, sauna_model: addon, sauna_total: 0,
     tax_rate: b.tax_rate === 0 || b.tax_rate === "0" ? 0 : 0.12,
@@ -803,7 +803,7 @@ ${button(portal, "Open my portal")}
       const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
       const to = [...new Set([rep?.email, ...(admins ?? []).map((a) => a.email)].filter(Boolean))] as string[];
       if (to.length) await sendEmail({ from: FROM, to, subject: `${pt.full ? "Paid in full" : "Deposit paid"}: agreement #${sale.number}, ${c.name}`,
-        html: emailShell({ preheader: `${pt.received} in QuickBooks.`, body: `<p>${escapeHtml(c.name)} paid ${pt.full ? "in full" : "the deposit"} (${money(sale.deposit)}) on agreement #${sale.number}. Time to place the order with Aquasolus.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+        html: emailShell({ preheader: `${pt.received} in QuickBooks.`, body: `<p>${escapeHtml(c.name)} paid ${pt.full ? "in full" : "the deposit"} (${money(sale.deposit)}) on agreement #${sale.number}. Time to place the order with AquaSolus.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
     } catch (e) { console.error("sync", sale.number, e); }
   }
   // Balance invoices: mark the balance paid and say thank you.

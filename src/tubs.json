@@ -1,6 +1,6 @@
 {
  "note": "Specs from aquasolus.com/ca model pages (Technical Specification tables), November 2026. Taglines and fit notes are AquaZen's own words, written from the specs.",
- "warranty": "10 years on the shell structure and up to 2 years on parts, under the Aquasolus Solace Guarantee.",
+ "warranty": "10 years on the shell structure and up to 2 years on parts, under the AquaSolus Solace Guarantee.",
  "series": [
   {
    "slug": "series-one",
@@ -528,9 +528,9 @@
  "swimspas": {
   "slug": "swim-spas",
   "name": "Swim spas",
-  "range": "Aquasolus Swim Spa Series",
+  "range": "AquaSolus Swim Spa Series",
   "headline": "Swim, train and soak. At home.",
-  "lede": "Six Aquasolus swim spas, 14 to 19 ft long, for 2 to 12 people. Swim against river jets or a 9-speed turbine, then sit back under the hydrotherapy jets when you're done.",
+  "lede": "Six AquaSolus swim spas, 14 to 19 ft long, for 2 to 12 people. Swim against river jets or a 9-speed turbine, then sit back under the hydrotherapy jets when you're done.",
   "hero": "solara-quarter",
   "stats": [
    [

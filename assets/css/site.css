@@ -525,7 +525,7 @@ a.model:hover img{transform:translateY(-4px)}
 .mmenu-sub{display:block;font-size:13px;color:#86868b;font-weight:400;margin-top:2px}
 
 /* Insulation chapter */
-.i-svg .i-foam,.i-svg .i-leak,.i-svg .i-aq10,.i-svg .i-heat,.i-svg .i-air,.i-svg .i-frame,.i-svg .i-six{transition:opacity .4s}
+.i-svg .i-foam,.i-svg .i-leak,.i-svg .i-aq10,.i-svg .i-heat,.i-svg .i-bay,.i-svg .i-frame,.i-svg .i-six{transition:opacity .4s}
 .i-svg .i-cover{transition:fill .4s}
 .hz-compare{padding:120px 0 40px;border-top:1px solid #1c1c1e}
 .hz-table{width:100%;border-collapse:collapse;margin-top:40px;font-size:17px;line-height:1.45}

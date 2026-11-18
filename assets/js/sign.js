@@ -57,8 +57,8 @@
         if (d.window) $('#doneWin').textContent = 'Your delivery window: ' + d.window + '. Shaun will call to set the exact day.';
         if (d.pay_link) {
           $('#payWhy').textContent = (d.full
-            ? 'Your total of ' + AZ.money(d.amount) + ' is paid in full, as we agreed. Paying it now confirms your order with Aquasolus so your ' + kindNoun + ' can be built and shipped to us, and there\'s nothing left to pay on delivery day.'
-            : 'Your deposit of ' + AZ.money(d.amount) + ', as we agreed, confirms your order with Aquasolus so it can be built and shipped to us. Your remaining balance of ' + AZ.money(d.balance) + ' is due before delivery.') +
+            ? 'Your total of ' + AZ.money(d.amount) + ' is paid in full, as we agreed. Paying it now confirms your order with AquaSolus so your ' + kindNoun + ' can be built and shipped to us, and there\'s nothing left to pay on delivery day.'
+            : 'Your deposit of ' + AZ.money(d.amount) + ', as we agreed, confirms your order with AquaSolus so it can be built and shipped to us. Your remaining balance of ' + AZ.money(d.balance) + ' is due before delivery.') +
             ' You can pay ' + d.how + '.';
           $('#payBtn').href = d.pay_link; $('#payBtn').textContent = d.pay_label + ' now';
           $('#payNow').hidden = false;

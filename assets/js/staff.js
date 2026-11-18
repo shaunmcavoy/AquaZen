@@ -395,7 +395,7 @@
   function renderDeposit() {
     var box = $('#depositBox'), s = current;
     var full = s.payment_type === 'full', H = full ? '<h3>Payment</h3>' : '<h3>Deposit</h3>';
-    if (s.status === 'deposit_paid' || s.deposit_paid_at) { box.innerHTML = H + '<p>' + AZ.pill('deposit_paid').replace('Deposit received', full ? 'Paid in full' : 'Deposit received') + ' ' + AZ.money(s.deposit) + ' received ' + AZ.dateTime(s.deposit_paid_at) + '. Time to place the order with Aquasolus.</p>'; return; }
+    if (s.status === 'deposit_paid' || s.deposit_paid_at) { box.innerHTML = H + '<p>' + AZ.pill('deposit_paid').replace('Deposit received', full ? 'Paid in full' : 'Deposit received') + ' ' + AZ.money(s.deposit) + ' received ' + AZ.dateTime(s.deposit_paid_at) + '. Time to place the order with AquaSolus.</p>'; return; }
     if (!(Number(s.deposit) > 0)) { box.innerHTML = ''; return; }
     if (s.qb_deposit_invoice_id) {
       box.innerHTML = H + '<p>QuickBooks invoice created for ' + AZ.money(s.deposit) + (full ? ' (paid in full)' : ' (deposit)') + '. It updates on its own within 15 minutes of the customer paying.</p>' +
@@ -897,7 +897,7 @@
       document.head.appendChild(sc);
     });
   }
-  // Reads the Aquasolus price sheet, or any sheet with Model and Cost columns.
+  // Reads the AquaSolus price sheet, or any sheet with Model and Cost columns.
   function parseSheet(rows, sheetName, rate) {
     var out = [], hdr = -1, mCol = -1, cCol = -1, catCol = -1, usd = false, sect = null;
     var low = function (v) { return String(v == null ? '' : v).toLowerCase().replace(/\s+/g, ' ').trim(); };

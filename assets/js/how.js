@@ -62,15 +62,15 @@
     insulation: function (s, p) {
       var k = Math.min(5, Math.floor(p * 6 * 0.999));
       var show = function (sel, on) { $$(s, sel).forEach(function (g) { g.style.opacity = on ? 1 : 0; }); };
-      show('.i-foam', k < 2);
+      show('.i-foam', k < 3);
       show('.i-leak', k === 1);
-      show('.i-aq10', k >= 2);
-      show('.i-heat', k === 3 || k === 5);
-      show('.i-air', k === 4);
+      show('.i-bay', k === 2);
+      show('.i-aq10', k >= 3);
+      show('.i-heat', k === 4 || k === 5);
       show('.i-frame', k >= 4);
       show('.i-six', k === 5);
       $(s, '.i-cover').setAttribute('fill', k === 5 ? '#f0bf33' : '#3a3a3c');
-      $(s, '.i-cap').textContent = ['A typical full-foam cabinet', '', 'AQ10: insulated edges, open space inside', 'Pump heat stays in and warms the water', 'Room to breathe, on a stainless steel frame', ''][k];
+      $(s, '.i-cap').textContent = ['A typical full-foam cabinet', '', '', 'AQ10: every drop of water insulated, all the time', 'Pump heat stays in and warms the water', ''][k];
     }
   };
 

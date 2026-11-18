@@ -163,9 +163,9 @@ const NOUN: Record<string, string> = { hot_tub: "hot tub", swim_spa: "swim spa",
 export function productNoun(sale: any): string { return NOUN[sale?.product_type ?? "hot_tub"] ?? "hot tub"; }
 // deno-lint-ignore no-explicit-any
 export function productMaker(sale: any): string {
-  return sale?.tub_make || "Aquasolus";
+  return sale?.tub_make || "AquaSolus";
 }
-// "Aspen hot tub", "Aquasolus Solara swim spa"
+// "Aspen hot tub", "AquaSolus Solara swim spa"
 // deno-lint-ignore no-explicit-any
 export function productWhat(sale: any, withMake = false): string {
   const sauna = sale?.product_type === "sauna";
