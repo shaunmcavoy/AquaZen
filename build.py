@@ -7,7 +7,7 @@ Outputs (never hand-edit these, edit src/tubs.json or this file and rebuild):
   hot-tubs/<series>/<model>/index.html     model details
 """
 import html
-import json
+import json, re
 import os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -204,6 +204,7 @@ FOOT = """
   </div>
 </footer>
 <script src="/assets/js/menu.js"></script>
+<script src="/assets/js/prices.js"></script>
 <script src="/assets/js/tubs.js"></script>
 </body>
 </html>
@@ -222,6 +223,12 @@ def seats_line(m):
     if m["loungers"]:
         return f'{m["seats"]} seat{"s" if m["seats"] != 1 else ""} + {m["loungers"]} lounger{"s" if m["loungers"] != 1 else ""}'
     return f'{m["seats"]} seats'
+
+
+def pkey(kind, name):
+    """Key the website price script matches against public_prices(): product type and slugified model name."""
+    t = "hot_tub" if kind == "tub" else "swim_spa"
+    return t + ":" + re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
 def write(path, text):
@@ -292,6 +299,7 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
       <span class="pick-name">{e(m['name'])}</span>
       <span class="pick-tag">{e(m['tag'])}</span>
       <span class="pick-facts">{m['people']} people &middot; {m['jets']} jets &middot; {e(seats_line(m))}</span>
+      <span class="zen-price zp-card" data-price="{pkey(kind, m['name'])}" hidden></span>
       <span class="pick-go">See the {e(m['name'])}</span>
     </a>"""
         for k, m in ms
@@ -389,6 +397,7 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
     <p class="s-range">{e(s['name'])} &middot; {e(s['range'])}</p>
     <h1 class="m-name">{e(m['name'])}</h1>
     <p class="m-tag">{e(m['tag'])}</p>
+    <p class="zen-price zp-hero" data-price="{pkey(kind, m['name'])}" hidden></p>
     <div class="hero-ctas"><a class="pill" href="/find-your-zen/?model={k}">Find your Zen</a><a class="link" href="#specs">Tech specs</a></div>
   </div>
   <div class="tilt" data-tilt><img src="{IMG}{photos[0]}.webp" alt="The {e(m['name'])} {noun}" fetchpriority="high"></div>
@@ -535,7 +544,7 @@ def stamp_assets():
     import hashlib
     import re
     ver = {}
-    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/how.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js"]:
+    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/how.js", "assets/js/prices.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js"]:
         ver[os.path.basename(rel)] = hashlib.md5(open(os.path.join(ROOT, rel), "rb").read()).hexdigest()[:8]
     pat = re.compile(r'((?:\.\./|/)?assets/(?:css|js)/)(' + "|".join(re.escape(k) for k in ver) + r')(\?v=[0-9a-f]+)?')
     for dirpath, _, files in os.walk(ROOT):

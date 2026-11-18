@@ -261,3 +261,17 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .costtable tr.off td:nth-last-child(-n+2){opacity:1}
 .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.9rem}
 .switch input{width:18px;height:18px;accent-color:var(--ink)}
+.pricing-settings{margin-top:14px;align-items:end}
+.toggle-field{display:flex;flex-direction:column;gap:8px}
+.toggle-field .lbl{font-weight:600;font-size:.9rem}
+.switch.big input{width:22px;height:22px}
+.pricetable{font-size:.9rem}
+.pricetable input{width:96px}
+.pricetable select{font:inherit;font-size:.85rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);max-width:130px}
+.pricetable .grouphead th{font-size:.72rem;letter-spacing:.04em;text-transform:none;color:var(--muted);border-bottom:0;padding-bottom:0}
+.pricetable .g-admin{background:rgba(240,191,51,.08)}
+.pricetable .g-sales{background:rgba(10,132,255,.06)}
+.pricetable .pct{display:block;font-size:.78rem;color:var(--muted)}
+.pricetable .pct.warn{color:#c0392b;font-weight:600}
+.pricetable tr.low .model{color:#c0392b}
+.lowtag{display:block;font-size:.75rem;font-weight:500;color:#c0392b;white-space:normal;margin-top:2px;max-width:180px}

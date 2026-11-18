@@ -539,3 +539,15 @@ a.model:hover img{transform:translateY(-4px)}
 .hz-note b{color:#f0bf33}
 @media (max-width:640px){.hz-table{font-size:15px}.hz-table th,.hz-table td{padding:14px 10px}.hz-table tbody th{width:auto}}
 .hz-compare .table-wrap{background:transparent;border-radius:0}
+
+/* MSRP and Zen price (shown only when switched on in the back office) */
+.zen-price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:18px 0 0}
+.zen-price[hidden]{display:none}
+.zp-msrp{font-size:15px;color:#86868b}
+.zp-msrp s{text-decoration-thickness:1px}
+.zp-zen{font-size:24px;font-weight:700;letter-spacing:-.02em}
+.zp-save{font-size:15px;font-weight:600;color:var(--sage,#8fbf9f)}
+.zp-card{justify-content:center;margin:10px 0 0;gap:4px 10px}
+.zp-card .zp-zen{font-size:19px}
+.zp-card .zp-msrp,.zp-card .zp-save{font-size:14px}
+.picks-sec .zp-save{color:var(--deep)}

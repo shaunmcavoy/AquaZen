@@ -305,16 +305,32 @@
 
     <!-- Products (admins) -->
     <div id="view-products" class="view" hidden>
+      <div class="card">
+        <h3>How pricing works</h3>
+        <p class="muted small">Each line has a <b>pad</b> that covers exchange, freight, operations, marketing and the rest. A salesperson only ever sees the <b>sales cost</b>: our true cost plus the pad. Their <b>GP</b> is the selling price minus the sales cost, and they earn the commission below on that GP once the deal is paid in full. True costs and pads are only visible to admins.</p>
+        <div class="grid3 pricing-settings">
+          <label>Commission on GP (%)<input id="setCommission" type="number" min="0" max="100" step="0.5" inputmode="decimal"></label>
+          <label>Lowest margin allowed (%)<input id="setMargin" type="number" min="0" max="95" step="0.5" inputmode="decimal"><span class="hint">GP as a share of the selling price. Nothing sells below this.</span></label>
+          <div class="toggle-field"><span class="lbl">Prices on the website</span><label class="switch big"><input type="checkbox" id="setWebsite"><span id="setWebsiteLbl">Hidden</span></label><span class="hint">Shows MSRP and the Zen price on each model.</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Lines and pads</h3>
+        <p class="muted small">Set the pad for each line, per unit sold. Switch a line's website prices off to hide just that line.</p>
+        <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Line</th><th>Maker</th><th class="num">Pad per unit</th><th>Price on website</th></tr></thead><tbody id="lineRows"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody></table></div>
+      </div>
+
       <div class="card" id="costCard">
         <h3>Price list</h3>
-        <p class="muted small">Every model with what it costs us in Canadian dollars before freight, its MSRP and the price we're selling it for. Type an MSRP or sale price right in the table and it saves on its own. The margin is worked out from the sale price, or from the MSRP if there's no sale price yet. Only admins can see this page.</p>
+        <p class="muted small">Type a true cost, MSRP or Zen price right in the table and it saves on its own. <b>What the salesperson sees</b> is their GP and commission. <b>Your profit</b> is what's left after the pad and the commission.</p>
         <div class="formactions">
           <label class="btn btn-ink filebtn">Upload a spreadsheet<input type="file" id="costFile" accept=".xlsx,.xls,.csv" hidden></label>
           <label class="inline">US dollar rate<input id="costRate" type="number" step="0.00001" min="0" value="1.42554"></label>
           <button class="btn btn-line" type="button" id="costDownload">Download the list</button>
           <p class="formmsg" id="costMsg" role="status" aria-live="polite"></p>
         </div>
-        <p class="muted small">Upload the AquaSolus price sheet, or any sheet with Model and Cost columns (and Category if it mixes hot tubs, swim spas and mini pools). If the sheet has MSRP or Sale price columns, those come in too. If a cost column is in US dollars, it's converted at the rate above. Models already on the list are updated and new ones are added. Tap "Save these costs" after the preview to keep them.</p>
+        <p class="muted small">Upload the AquaSolus price sheet, or any sheet with Model and Cost columns (and Category if it mixes hot tubs, swim spas and mini pools). MSRP and Sale price columns come in too if the sheet has them. US dollar costs are converted at the rate above. Tap "Save these costs" after the preview to keep them.</p>
         <div id="costPreview"></div>
         <div class="costbar">
           <div class="seg" id="costCat" role="group" aria-label="Show"><button type="button" class="on" data-cat="">All</button><button type="button" data-cat="hot_tub">Hot tubs</button><button type="button" data-cat="swim_spa">Swim spas</button><button type="button" data-cat="mini_pool">Mini pools</button></div>
@@ -322,29 +338,34 @@
         </div>
         <form class="form costadd" id="costAdd" hidden>
           <div class="grid3">
-            <label>Category<select name="product_type"><option value="hot_tub">Hot tub</option><option value="swim_spa">Swim spa</option><option value="mini_pool">Mini pool</option></select></label>
+            <label>Line<select name="line_id" id="costAddLine"></select></label>
             <label>Model<input name="model" required></label>
-            <label>Our cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+            <label>True cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
             <label>MSRP<input name="msrp" type="number" min="0" step="0.01" inputmode="decimal"></label>
-            <label>Sale price<input name="sale_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            <label>Zen price<input name="sale_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
           </div>
           <div class="formactions"><button class="btn btn-gold" type="submit">Add model</button><button class="linkbtn" type="button" id="costAddCancel">Cancel</button></div>
         </form>
-        <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Category</th><th>Model</th><th class="num">Our cost</th><th class="num">MSRP</th><th class="num">Sale price</th><th class="num">Margin</th><th>Where the cost came from</th><th></th></tr></thead><tbody id="costRows"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody></table></div>
+        <div class="tablewrap"><table class="saletable costtable pricetable"><thead>
+          <tr class="grouphead"><th colspan="2"></th><th colspan="3" class="g-admin">Admins only</th><th colspan="3">Customer sees</th><th colspan="2" class="g-sales">Salesperson sees</th><th class="g-admin">You</th><th colspan="2"></th></tr>
+          <tr><th>Line</th><th>Model</th><th class="num g-admin">True cost</th><th class="num g-admin">Pad</th><th class="num">Sales cost</th><th class="num">MSRP</th><th class="num">Zen price</th><th class="num">They save</th><th class="num g-sales">GP</th><th class="num g-sales">Commission</th><th class="num g-admin">Your profit</th><th>Where the cost came from</th><th></th></tr>
+        </thead><tbody id="costRows"><tr><td colspan="13" class="empty">Loading...</td></tr></tbody></table></div>
       </div>
+
       <div class="card" id="addonCard">
         <h3>Add-ons</h3>
-        <p class="muted small">The extras we offer with a hot tub, like cover lifters, steps and delivery. Give each one our cost and the price we sell it for. Switch "We offer this" off to stop offering something without losing its numbers.</p>
+        <p class="muted small">Cover lifters, steps, delivery and anything else we sell with a tub. Each one has a true cost, a pad and a sale price, worked out the same way as the tubs. Switch "We offer this" off to stop offering something without losing its numbers.</p>
         <div class="costbar"><span></span><button class="btn btn-line" type="button" id="addonAddOpen">Add an add-on</button></div>
         <form class="form costadd" id="addonAdd" hidden>
           <div class="grid3">
             <label>Name<input name="name" required placeholder="Cover lifter"></label>
-            <label>Our cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+            <label>True cost (CAD)<input name="cost" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+            <label>Pad<input name="pad" type="number" min="0" step="0.01" inputmode="decimal"></label>
             <label>Sale price<input name="sale_price" type="number" min="0" step="0.01" inputmode="decimal"></label>
           </div>
           <div class="formactions"><button class="btn btn-gold" type="submit">Add it</button><button class="linkbtn" type="button" id="addonAddCancel">Cancel</button></div>
         </form>
-        <div class="tablewrap"><table class="saletable costtable"><thead><tr><th>Add-on</th><th class="num">Our cost</th><th class="num">Sale price</th><th class="num">Margin</th><th>We offer this</th><th></th></tr></thead><tbody id="addonRows"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table></div>
+        <div class="tablewrap"><table class="saletable costtable pricetable"><thead><tr><th>Add-on</th><th class="num g-admin">True cost</th><th class="num g-admin">Pad</th><th class="num">Sales cost</th><th class="num">Sale price</th><th class="num g-sales">GP</th><th class="num g-sales">Commission</th><th class="num g-admin">Your profit</th><th>We offer this</th><th></th></tr></thead><tbody id="addonRows"><tr><td colspan="10" class="empty">Loading...</td></tr></tbody></table></div>
       </div>
     </div>
 

@@ -78,7 +78,7 @@
   function route() {
     var h = location.hash.slice(1) || 'sales';
     if (h === 'team' && me.profile.role === 'admin') { show('team'); loadTeam(); loadQb(); }
-    else if (h === 'products' && me.profile.role === 'admin') { show('products'); loadCosts(); loadAddons(); }
+    else if (h === 'products' && me.profile.role === 'admin') { show('products'); loadProducts(); }
     else if (h === 'money' && me.profile.role === 'admin') { show('money'); loadMoney(); }
     else if (h === 'new') { openSale(null); }
     else if (h.indexOf('new-c-') === 0) { openSale(null, h.slice(6)); }
@@ -657,7 +657,7 @@
   var costList = null;
   function getCostList() {
     if (costList) return Promise.resolve(costList);
-    return sb.from('product_costs').select('id,product_type,model,cost,msrp,sale_price,note').order('product_type').order('model').then(function (r) { costList = r.data || []; return costList; });
+    return sb.from('product_costs').select('id,product_type,line_id,model,cost,msrp,sale_price,note').order('product_type').order('model').then(function (r) { costList = r.data || []; return costList; });
   }
   function revenueOf(s) { return num(s.hot_tub_value) + num(s.sauna_total) + num(s.delivery_fee); }
   function costOf(c) { return COSTF.reduce(function (t, k) { return t + num(c && c[k]); }, 0); }
@@ -864,28 +864,105 @@
     }).catch(function (err) { m.textContent = err.message; });
   });
 
-  // ---------- Cost list (Team tab, admins) ----------
+  // ---------- Products tab (admins): settings, line pads, price list, add-ons ----------
   var CAT = { hot_tub: 'Hot tub', swim_spa: 'Swim spa', mini_pool: 'Mini pool', sauna: 'Sauna' };
-  var costCat = '';
-  function marginCell(c) {
-    var price = c.sale_price != null ? +c.sale_price : c.msrp != null ? +c.msrp : null, cost = +c.cost || 0;
-    if (price == null || !price) return '<span class="muted">Add a price</span>';
-    var m = price - cost, pct = Math.round(m / price * 1000) / 10;
-    return '<b class="' + (m < 0 ? 'neg' : '') + '">' + AZ.money(m) + '</b><span class="pct">' + pct + '%' + (c.sale_price == null ? ' at MSRP' : '') + '</span>';
+  var costCat = '', lines = [], pset = { commission_pct: 25, min_margin_pct: 40, website_prices: 'off' };
+  var DEFAULT_LINE = { swim_spa: 'Swim spas', mini_pool: 'Mini pools' };
+  // Which line a model belongs to, from the website's own catalogue.
+  var lineOfModel = (function () {
+    var m = {}, P = window.AZ_PRODUCTS || {};
+    Object.keys(P).forEach(function (t) { (P[t].groups || []).forEach(function (g) { (g.items || []).forEach(function (it) { m[t + '|' + it.n.toLowerCase()] = g.name || DEFAULT_LINE[t] || ''; }); }); });
+    return function (type, model) { return m[type + '|' + String(model || '').toLowerCase()] || DEFAULT_LINE[type] || ''; };
+  })();
+  function lineId(type, name) { var l = lines.filter(function (x) { return x.product_type === type && x.name === name; })[0]; return l ? l.id : null; }
+  function lineById(id) { return lines.filter(function (x) { return x.id === id; })[0] || null; }
+  function calc(cost, pad, price) {
+    cost = +cost || 0; pad = +pad || 0;
+    var sales = cost + pad, o = { sales: sales, min: Math.round(sales / (1 - pset.min_margin_pct / 100) * 100) / 100 };
+    if (price == null || price === '' || !+price) return o;
+    price = +price; o.price = price; o.gp = price - sales; o.margin = o.gp / price * 100;
+    o.comm = o.gp > 0 ? o.gp * pset.commission_pct / 100 : 0; o.profit = o.gp - o.comm; o.low = o.margin < pset.min_margin_pct - 0.001;
+    return o;
+  }
+  var dash = '<span class="muted">-</span>';
+  // Re-draw a table without losing the box the person just tabbed into.
+  function redraw(tb, html) {
+    var ae = document.activeElement, keep = null;
+    if (ae && tb.contains(ae) && ae.dataset) { var tr = ae.closest('tr'); keep = { row: tr && (tr.dataset.cost || tr.dataset.addon || tr.dataset.line), f: ae.dataset.f || (ae.hasAttribute('data-offer') ? 'offer' : '') }; }
+    tb.innerHTML = html;
+    if (keep && keep.row) {
+      var row = tb.querySelector('tr[data-cost="' + keep.row + '"],tr[data-addon="' + keep.row + '"],tr[data-line="' + keep.row + '"]');
+      var el = row && row.querySelector(keep.f === 'offer' ? '[data-offer]' : '[data-f="' + keep.f + '"]'); if (el) el.focus();
+    }
+  }
+  function gpCells(o) {
+    if (o.gp == null) return '<td class="num g-sales">' + dash + '</td><td class="num g-sales">' + dash + '</td><td class="num g-admin">' + dash + '</td>';
+    return '<td class="num g-sales"><b class="' + (o.gp < 0 ? 'neg' : '') + '">' + AZ.money(o.gp) + '</b><span class="pct' + (o.low ? ' warn' : '') + '">' + (Math.round(o.margin * 10) / 10) + '%</span></td>' +
+      '<td class="num g-sales">' + AZ.money(o.comm) + '</td><td class="num g-admin"><b class="' + (o.profit < 0 ? 'neg' : '') + '">' + AZ.money(o.profit) + '</b></td>';
   }
   function moneyInput(c, f, label) {
     var v = c[f] == null ? '' : c[f];
-    return '<td class="num"><input type="number" step="0.01" min="0" inputmode="decimal" data-f="' + f + '" value="' + v + '" aria-label="' + label + ' of ' + AZ.esc(c.model) + '"></td>';
+    return '<input type="number" step="0.01" min="0" inputmode="decimal" data-f="' + f + '" value="' + v + '" aria-label="' + label + ' of ' + AZ.esc(c.model || c.name) + '">';
   }
+  function lineSelect(c) {
+    var opts = lines.filter(function (l) { return l.product_type === c.product_type; });
+    return '<select data-f="line_id" aria-label="Line for ' + AZ.esc(c.model) + '"><option value="">No line</option>' + opts.map(function (l) { return '<option value="' + l.id + '"' + (l.id === c.line_id ? ' selected' : '') + '>' + AZ.esc(l.name) + '</option>'; }).join('') + '</select>';
+  }
+
+  function loadPricing() {
+    return Promise.all([sb.rpc('pricing_settings'), sb.from('product_lines').select('*').order('sort').order('name')]).then(function (res) {
+      if (res[0].data) pset = res[0].data;
+      lines = res[1].data || [];
+      $('#setCommission').value = pset.commission_pct; $('#setMargin').value = pset.min_margin_pct;
+      $('#setWebsite').checked = pset.website_prices === 'on'; $('#setWebsiteLbl').textContent = pset.website_prices === 'on' ? 'Showing' : 'Hidden';
+      redraw($('#lineRows'), lines.map(function (l) {
+        return '<tr data-line="' + l.id + '"><td class="model">' + AZ.esc(l.name) + ' <span class="muted small">' + CAT[l.product_type] + '</span></td><td>' + AZ.esc(l.manufacturer) + '</td>' +
+          '<td class="num"><input type="number" step="0.01" min="0" inputmode="decimal" data-f="pad" value="' + l.pad + '" aria-label="Pad for ' + AZ.esc(l.name) + '"></td>' +
+          '<td><label class="switch"><input type="checkbox" data-f="show_price"' + (l.show_price ? ' checked' : '') + '><span>' + (l.show_price ? 'Yes' : 'No') + '</span></label></td></tr>';
+      }).join(''));
+      $('#costAddLine').innerHTML = lines.map(function (l) { return '<option value="' + l.id + '">' + AZ.esc(l.name) + ' (' + CAT[l.product_type] + ')</option>'; }).join('');
+    });
+  }
+  function loadProducts() { loadPricing().then(function () { loadCosts(); loadAddons(); }); }
+  function putSettings(d) {
+    return sb.rpc('pricing_settings_put', { commission_pct: d.c == null ? null : d.c, min_margin_pct: d.m == null ? null : d.m, website_prices: d.w || null })
+      .then(function (r) { if (r.error) { AZ.toast(r.error.message); return; } return sb.rpc('pricing_settings').then(function (s) { if (s.data) pset = s.data; loadCosts(); loadAddons(); }); });
+  }
+  $('#setCommission').addEventListener('change', function () { putSettings({ c: num(this.value) }).then(function () { AZ.toast('Commission saved'); }); });
+  $('#setMargin').addEventListener('change', function () { putSettings({ m: num(this.value) }).then(function () { AZ.toast('Lowest margin saved'); }); });
+  $('#setWebsite').addEventListener('change', function () {
+    var on = this.checked; $('#setWebsiteLbl').textContent = on ? 'Showing' : 'Hidden';
+    putSettings({ w: on ? 'on' : 'off' }).then(function () { AZ.toast(on ? 'Prices are showing on the website' : 'Prices are hidden on the website'); });
+  });
+  $('#lineRows').addEventListener('change', function (e) {
+    var tr = e.target.closest('tr[data-line]'); if (!tr || !e.target.dataset.f) return;
+    var f = e.target.dataset.f, d = { updated_at: new Date().toISOString() };
+    d[f] = f === 'pad' ? num(e.target.value) : e.target.checked;
+    sb.from('product_lines').update(d).eq('id', tr.dataset.line).then(function (r) {
+      if (r.error) return AZ.toast(r.error.message);
+      if (f === 'show_price') e.target.nextElementSibling.textContent = d.show_price ? 'Yes' : 'No';
+      AZ.toast(f === 'pad' ? 'Pad saved' : 'Saved'); loadPricing().then(loadCosts);
+    });
+  });
+
   function loadCosts() {
     costList = null;
     getCostList().then(function (list) {
+      // Give models without a line the one the website lists them under.
+      list.forEach(function (c) {
+        if (c.line_id) return; var id = lineId(c.product_type, lineOfModel(c.product_type, c.model));
+        if (id) { c.line_id = id; sb.from('product_costs').update({ line_id: id }).eq('id', c.id).then(function () {}); }
+      });
       var rows = list.filter(function (c) { return !costCat || c.product_type === costCat; });
-      $('#costRows').innerHTML = rows.length ? rows.map(function (c) {
-        return '<tr data-cost="' + c.id + '"><td>' + (CAT[c.product_type] || c.product_type) + '</td><td class="model">' + AZ.esc(c.model) + '</td>' +
-          moneyInput(c, 'cost', 'Cost') + moneyInput(c, 'msrp', 'MSRP') + moneyInput(c, 'sale_price', 'Sale price') +
-          '<td class="num margin">' + marginCell(c) + '</td><td class="src">' + AZ.esc(c.note || '') + '</td><td><button class="linkbtn" type="button" data-del="' + c.id + '">Remove</button></td></tr>';
-      }).join('') : '<tr><td colspan="8" class="empty">' + (list.length ? 'Nothing in this category yet.' : 'No models yet. Upload your price sheet, or add a model.') + '</td></tr>';
+      redraw($('#costRows'), rows.length ? rows.map(function (c) {
+        var l = lineById(c.line_id), pad = l ? +l.pad : 0, o = calc(c.cost, pad, c.sale_price);
+        var save = c.msrp != null && c.sale_price != null ? AZ.money(c.msrp - c.sale_price) : dash;
+        return '<tr data-cost="' + c.id + '"' + (o.low ? ' class="low"' : '') + '><td>' + lineSelect(c) + '</td><td class="model">' + AZ.esc(c.model) +
+          (o.low ? '<span class="lowtag">Under ' + pset.min_margin_pct + '%. Lowest price ' + AZ.money(o.min) + '</span>' : '') + '</td>' +
+          '<td class="num g-admin">' + moneyInput(c, 'cost', 'True cost') + '</td><td class="num g-admin">' + AZ.money(pad) + '</td><td class="num">' + AZ.money(o.sales) + '</td>' +
+          '<td class="num">' + moneyInput(c, 'msrp', 'MSRP') + '</td><td class="num">' + moneyInput(c, 'sale_price', 'Zen price') + '</td><td class="num">' + save + '</td>' +
+          gpCells(o) + '<td class="src">' + AZ.esc(c.note || '') + '</td><td><button class="linkbtn" type="button" data-del="' + c.id + '">Remove</button></td></tr>';
+      }).join('') : '<tr><td colspan="13" class="empty">' + (list.length ? 'Nothing in this category yet.' : 'No models yet. Upload your price sheet, or add a model.') + '</td></tr>');
     });
   }
   $('#costCat').addEventListener('click', function (e) {
@@ -893,16 +970,13 @@
     costCat = b.dataset.cat; $$('#costCat button').forEach(function (x) { x.classList.toggle('on', x === b); }); loadCosts();
   });
   $('#costRows').addEventListener('change', function (e) {
-    var tr = e.target.closest('tr[data-cost]'); if (!tr || !e.target.matches('input[data-f]')) return;
-    var f = e.target.dataset.f, raw = e.target.value.trim(), d = { updated_at: new Date().toISOString(), updated_by: me.user.id };
-    d[f] = f === 'cost' ? num(raw) : (raw === '' ? null : num(raw));
+    var tr = e.target.closest('tr[data-cost]'), f = e.target.dataset.f; if (!tr || !f) return;
+    var raw = e.target.value.trim(), d = { updated_at: new Date().toISOString(), updated_by: me.user.id };
+    d[f] = f === 'line_id' ? (raw || null) : f === 'cost' ? num(raw) : (raw === '' ? null : num(raw));
     if (f === 'cost') d.note = 'Edited in the portal';
-    sb.from('product_costs').update(d).eq('id', tr.dataset.cost).select('id,product_type,model,cost,msrp,sale_price,note').single().then(function (r) {
+    sb.from('product_costs').update(d).eq('id', tr.dataset.cost).then(function (r) {
       if (r.error) return AZ.toast(r.error.message);
-      AZ.toast({ cost: 'Cost', msrp: 'MSRP', sale_price: 'Sale price' }[f] + ' saved');
-      tr.querySelector('.margin').innerHTML = marginCell(r.data);
-      if (f === 'cost') tr.querySelector('.src').textContent = 'Edited in the portal';
-      costList = null;
+      AZ.toast({ cost: 'True cost', msrp: 'MSRP', sale_price: 'Zen price', line_id: 'Line' }[f] + ' saved'); loadCosts();
     });
   });
   $('#costRows').addEventListener('click', function (e) {
@@ -910,41 +984,38 @@
     if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again'; setTimeout(function () { b.dataset.confirm = ''; b.textContent = 'Remove'; }, 4000); return; }
     sb.from('product_costs').delete().eq('id', b.dataset.del).then(function (r) { if (r.error) return AZ.toast(r.error.message); loadCosts(); });
   });
-  $('#costAddOpen').addEventListener('click', function () { var f = $('#costAdd'); f.hidden = false; f.reset(); if (costCat) f.product_type.value = costCat; f.model.focus(); });
+  $('#costAddOpen').addEventListener('click', function () { var f = $('#costAdd'); f.hidden = false; f.reset(); f.model.focus(); });
   $('#costAddCancel').addEventListener('click', function () { $('#costAdd').hidden = true; });
   $('#costAdd').addEventListener('submit', function (e) {
-    e.preventDefault(); var f = e.target, opt = function (v) { return v.trim() === '' ? null : num(v); };
-    sb.from('product_costs').insert({ product_type: f.product_type.value, model: f.model.value.trim(), cost: num(f.cost.value), msrp: opt(f.msrp.value), sale_price: opt(f.sale_price.value), note: 'Added in the portal', updated_by: me.user.id })
+    e.preventDefault(); var f = e.target, opt = function (v) { return v.trim() === '' ? null : num(v); }, l = lineById(f.line_id.value);
+    sb.from('product_costs').insert({ product_type: l ? l.product_type : 'hot_tub', line_id: l ? l.id : null, model: f.model.value.trim(), cost: num(f.cost.value), msrp: opt(f.msrp.value), sale_price: opt(f.sale_price.value), note: 'Added in the portal', updated_by: me.user.id })
       .then(function (r) {
         if (r.error) return AZ.toast(/duplicate|unique/i.test(r.error.message) ? 'That model is already on the list.' : r.error.message);
         AZ.toast(f.model.value.trim() + ' added'); f.hidden = true; loadCosts();
       });
   });
-  // ---------- Add-ons (Products tab, admins) ----------
+
   function loadAddons() {
     sb.from('addons').select('*').order('sort').order('name').then(function (r) {
-      if (r.error) { $('#addonRows').innerHTML = '<tr><td colspan="6" class="empty">' + AZ.esc(r.error.message) + '</td></tr>'; return; }
+      if (r.error) { $('#addonRows').innerHTML = '<tr><td colspan="10" class="empty">' + AZ.esc(r.error.message) + '</td></tr>'; return; }
       var list = r.data || [];
-      $('#addonRows').innerHTML = list.length ? list.map(function (a) {
-        return '<tr data-addon="' + a.id + '"' + (a.offered ? '' : ' class="off"') + '><td class="model">' + AZ.esc(a.name) + '</td>' + moneyInput(a, 'cost', 'Cost') + moneyInput(a, 'sale_price', 'Sale price') +
-          '<td class="num margin">' + marginCell({ cost: a.cost, sale_price: a.sale_price, msrp: null }) + '</td>' +
+      redraw($('#addonRows'), list.length ? list.map(function (a) {
+        var o = calc(a.cost, a.pad, a.sale_price);
+        return '<tr data-addon="' + a.id + '"' + (a.offered ? '' : ' class="off"') + '><td class="model">' + AZ.esc(a.name) + (o.low && a.offered ? '<span class="lowtag">Under ' + pset.min_margin_pct + '%. Lowest price ' + AZ.money(o.min) + '</span>' : '') + '</td>' +
+          '<td class="num g-admin">' + moneyInput(a, 'cost', 'True cost') + '</td><td class="num g-admin">' + moneyInput(a, 'pad', 'Pad') + '</td><td class="num">' + AZ.money(o.sales) + '</td>' +
+          '<td class="num">' + moneyInput(a, 'sale_price', 'Sale price') + '</td>' + gpCells(o) +
           '<td><label class="switch"><input type="checkbox" data-offer' + (a.offered ? ' checked' : '') + ' aria-label="We offer ' + AZ.esc(a.name) + '"><span>' + (a.offered ? 'Yes' : 'No') + '</span></label></td>' +
           '<td><button class="linkbtn" type="button" data-adel="' + a.id + '">Remove</button></td></tr>';
-      }).join('') : '<tr><td colspan="6" class="empty">No add-ons yet. Add a cover lifter, steps or delivery.</td></tr>';
+      }).join('') : '<tr><td colspan="10" class="empty">No add-ons yet. Add a cover lifter, steps or delivery.</td></tr>');
     });
   }
   $('#addonRows').addEventListener('change', function (e) {
     var tr = e.target.closest('tr[data-addon]'); if (!tr) return;
     var d = { updated_at: new Date().toISOString(), updated_by: me.user.id }, what;
     if (e.target.matches('[data-offer]')) { d.offered = e.target.checked; what = d.offered ? 'Offered' : 'No longer offered'; }
-    else if (e.target.matches('input[data-f]')) { var f = e.target.dataset.f, raw = e.target.value.trim(); d[f] = f === 'cost' ? num(raw) : (raw === '' ? null : num(raw)); what = f === 'cost' ? 'Cost saved' : 'Sale price saved'; }
+    else if (e.target.dataset.f) { var f = e.target.dataset.f, raw = e.target.value.trim(); d[f] = f === 'sale_price' ? (raw === '' ? null : num(raw)) : num(raw); what = { cost: 'True cost', pad: 'Pad', sale_price: 'Sale price' }[f] + ' saved'; }
     else return;
-    sb.from('addons').update(d).eq('id', tr.dataset.addon).select('*').single().then(function (r) {
-      if (r.error) return AZ.toast(r.error.message);
-      AZ.toast(what);
-      tr.querySelector('.margin').innerHTML = marginCell({ cost: r.data.cost, sale_price: r.data.sale_price, msrp: null });
-      tr.classList.toggle('off', !r.data.offered); tr.querySelector('.switch span').textContent = r.data.offered ? 'Yes' : 'No';
-    });
+    sb.from('addons').update(d).eq('id', tr.dataset.addon).then(function (r) { if (r.error) return AZ.toast(r.error.message); AZ.toast(what); loadAddons(); });
   });
   $('#addonRows').addEventListener('click', function (e) {
     var b = e.target.closest('[data-adel]'); if (!b) return;
@@ -955,14 +1026,19 @@
   $('#addonAddCancel').addEventListener('click', function () { $('#addonAdd').hidden = true; });
   $('#addonAdd').addEventListener('submit', function (e) {
     e.preventDefault(); var f = e.target, name = f.name.value.trim();
-    sb.from('addons').insert({ name: name, cost: num(f.cost.value), sale_price: f.sale_price.value.trim() === '' ? null : num(f.sale_price.value), updated_by: me.user.id }).then(function (r) {
+    sb.from('addons').insert({ name: name, cost: num(f.cost.value), pad: num(f.pad.value), sale_price: f.sale_price.value.trim() === '' ? null : num(f.sale_price.value), updated_by: me.user.id }).then(function (r) {
       if (r.error) return AZ.toast(/duplicate|unique/i.test(r.error.message) ? 'That add-on is already on the list.' : r.error.message);
       AZ.toast(name + ' added'); f.hidden = true; loadAddons();
     });
   });
+
   $('#costDownload').addEventListener('click', function () {
     getCostList().then(function (list) {
-      var csv = 'Category,Model,Cost (CAD),MSRP,Sale price,Margin,Source\n' + list.map(function (c) { var pr = c.sale_price != null ? +c.sale_price : c.msrp != null ? +c.msrp : null; return [CAT[c.product_type], c.model, c.cost, c.msrp == null ? '' : c.msrp, c.sale_price == null ? '' : c.sale_price, pr ? (pr - c.cost).toFixed(2) : '', c.note || ''].map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+      var q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
+      var csv = 'Category,Line,Model,True cost (CAD),Pad,Sales cost,MSRP,Zen price,They save,Salesperson GP,Margin %,Commission,Your profit,Source\n' + list.map(function (c) {
+        var l = lineById(c.line_id), pad = l ? +l.pad : 0, o = calc(c.cost, pad, c.sale_price), r2 = function (x) { return x == null ? '' : (Math.round(x * 100) / 100).toFixed(2); };
+        return [CAT[c.product_type], l ? l.name : '', c.model, c.cost, pad, r2(o.sales), c.msrp, c.sale_price, c.msrp != null && c.sale_price != null ? r2(c.msrp - c.sale_price) : '', r2(o.gp), o.margin == null ? '' : o.margin.toFixed(1), r2(o.comm), r2(o.profit), c.note].map(q).join(',');
+      }).join('\n');
       var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'aquazen-price-list.csv'; a.click();
     });
   });
@@ -1039,6 +1115,7 @@
       var now = new Date().toISOString(), ins = [], ups = [];
       rows.forEach(function (r) {
         var d = { product_type: r.product_type, model: r.model, cost: r.cost, note: r.note, updated_at: now, updated_by: me.user.id };
+        var lid = lineId(r.product_type, lineOfModel(r.product_type, r.model)); if (lid && !have[key(r.product_type, r.model)]) d.line_id = lid;
         if (r.msrp != null) d.msrp = r.msrp;
         if (r.sale_price != null) d.sale_price = r.sale_price;
         var id = have[key(r.product_type, r.model)];
