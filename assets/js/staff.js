@@ -1099,9 +1099,9 @@
       $('#setCommission').value = pset.commission_pct; $('#setMargin').value = pset.min_margin_pct;
       $('#setWebsite').checked = pset.website_prices === 'on'; $('#setWebsiteLbl').textContent = pset.website_prices === 'on' ? 'Showing' : 'Hidden';
       redraw($('#lineRows'), lines.map(function (l) {
-        return '<tr data-line="' + l.id + '"><td class="model">' + AZ.esc(l.name) + ' <span class="muted small">' + CAT[l.product_type] + '</span></td><td>' + AZ.esc(l.manufacturer) + '</td>' +
-          '<td class="num"><input type="number" step="0.01" min="0" inputmode="decimal" data-f="pad" value="' + l.pad + '" aria-label="Pad for ' + AZ.esc(l.name) + '"></td>' +
-          '<td><label class="switch"><input type="checkbox" data-f="show_price"' + (l.show_price ? ' checked' : '') + '><span>' + (l.show_price ? 'Yes' : 'No') + '</span></label></td></tr>';
+        return '<tr data-line="' + l.id + '"><td class="model">' + AZ.esc(l.name) + ' <span class="muted small">' + CAT[l.product_type] + '</span></td>' +
+          '<td class="num"><span class="padbox">$<input type="number" step="0.01" min="0" inputmode="decimal" data-f="pad" value="' + l.pad + '" aria-label="Pad for ' + AZ.esc(l.name) + '"></span></td>' +
+          '<td><label class="switch"><input type="checkbox" data-f="show_price"' + (l.show_price ? ' checked' : '') + '><span>' + (l.show_price ? 'Yes' : 'No') + '</span></label></td><td class="muted">' + AZ.esc(l.manufacturer) + '</td></tr>';
       }).join(''));
       $('#costAddLine').innerHTML = lines.map(function (l) { return '<option value="' + l.id + '">' + AZ.esc(l.name) + ' (' + CAT[l.product_type] + ')</option>'; }).join('');
     });

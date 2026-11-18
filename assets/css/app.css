@@ -311,3 +311,7 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .commsum b{color:var(--ink);font-size:1rem;margin-bottom:4px}
 .commsum .owed{color:var(--ink);font-weight:700}
 .costtable b.pos{color:#2f6f6a}.costtable b.neg{color:#a3412b}
+.linetable{width:auto;min-width:0}
+.linetable td,.linetable th{padding-right:28px}
+.padbox{display:inline-flex;align-items:center;gap:4px}
+.linetable input{width:110px}
