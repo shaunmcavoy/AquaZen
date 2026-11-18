@@ -1000,8 +1000,8 @@
       if (r.error) { $('#addonRows').innerHTML = '<tr><td colspan="10" class="empty">' + AZ.esc(r.error.message) + '</td></tr>'; return; }
       var list = r.data || [];
       redraw($('#addonRows'), list.length ? list.map(function (a) {
-        var o = calc(a.cost, a.pad, a.sale_price);
-        return '<tr data-addon="' + a.id + '"' + (a.offered ? '' : ' class="off"') + '><td class="model">' + AZ.esc(a.name) + (o.low && a.offered ? '<span class="lowtag">Under ' + pset.min_margin_pct + '%. Lowest price ' + AZ.money(o.min) + '</span>' : '') + '</td>' +
+        var o = calc(a.cost, a.pad, a.sale_price); o.low = false; // The lowest-margin rule is for hot tubs, swim spas and mini pools, not add-ons.
+        return '<tr data-addon="' + a.id + '"' + (a.offered ? '' : ' class="off"') + '><td class="model">' + AZ.esc(a.name) + '</td>' +
           '<td class="num g-admin">' + moneyInput(a, 'cost', 'True cost') + '</td><td class="num g-admin">' + moneyInput(a, 'pad', 'Pad') + '</td><td class="num">' + AZ.money(o.sales) + '</td>' +
           '<td class="num">' + moneyInput(a, 'sale_price', 'Sale price') + '</td>' + gpCells(o) +
           '<td><label class="switch"><input type="checkbox" data-offer' + (a.offered ? ' checked' : '') + ' aria-label="We offer ' + AZ.esc(a.name) + '"><span>' + (a.offered ? 'Yes' : 'No') + '</span></label></td>' +
