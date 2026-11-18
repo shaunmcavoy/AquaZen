@@ -348,7 +348,7 @@ async function route_agreement_print(req: Request): Promise<Response> {
   const { data: terms } = await db.from("agreement_terms").select("*").eq("version", version).single();
   const repName = sale.rep_name ?? (me!.profile.full_name || me!.profile.email);
   const pdfBytes = await buildAgreementPdf({ sale: { ...sale, rep_name: repName, terms_version: version }, customer: sale.customers, terms, mode: "paper-blank" });
-  await logEvent(sale.id, "printed_for_paper", me!.user.id);
+  if (!b.preview) await logEvent(sale.id, "printed_for_paper", me!.user.id);
   return jsonAuth(req, { pdf: toBase64(pdfBytes), signed: false });
 }
 

@@ -558,6 +558,27 @@
       f.src = url; document.body.appendChild(f);
     }).catch(function (err) { if (win) win.close(); msg.textContent = err.message; });
   }
+  // See or download the quote as a PDF, without printing. Saves the latest changes first.
+  function quotePdf(download) {
+    var m = $('#presentMsg'), d = collect();
+    if (!current || !current.id) return;
+    var win = download ? null : window.open('', '_blank'); // opened now so the browser doesn't block it
+    m.textContent = 'Saving and making the PDF...';
+    sb.from('customers').update(d.c).eq('id', current.customer_id)
+      .then(function (r1) { if (r1.error) throw r1.error; return sb.from('sales').update(d.s).eq('id', current.id); })
+      .then(function (r2) { if (r2.error) throw r2.error; return AZ.api('agreement-print', { sale_id: current.id, preview: true }); })
+      .then(function (r) {
+        var bin = atob(r.pdf), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        var url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+        var name = 'AquaZen quote ' + current.number + (current.customers && current.customers.name ? ' - ' + current.customers.name : '') + '.pdf';
+        if (download) { var a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); m.textContent = 'Downloaded ' + name + '.'; }
+        else { win.location.href = url; m.textContent = 'Opened in a new tab.'; }
+      })
+      .catch(function (err) { if (win) win.close(); m.textContent = (err && err.message) || 'Could not make the PDF.'; });
+  }
+  $('#quoteView').addEventListener('click', function () { quotePdf(false); });
+  $('#quoteDownload').addEventListener('click', function () { quotePdf(true); });
   $('#printPdf').addEventListener('click', function () { printAgreement($('#pdfMsg')); });
   $('#printPaper').addEventListener('click', function () { printAgreement($('#printMsg')); });
 
