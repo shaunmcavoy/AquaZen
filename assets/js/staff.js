@@ -1465,8 +1465,8 @@
       '<h3>' + AZ.esc(c.name || '') + '</h3><p class="deliv-what">' + AZ.esc([s.tub_make, s.tub_model, AZ.noun(s)].filter(Boolean).join(' ')) + '</p>' + (specs.length ? '<p class="muted small">' + AZ.esc(specs.join(' · ')) + '</p>' : '') + '</div>' +
       (done ? AZ.pill('delivered') : (Number(s.balance) > 0 && !s.balance_paid_at ? '<span class="pill pill-gold">Balance owing</span>' : '')) + '</div>' +
       '<p class="deliv-contact">' + (addr ? '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">' + AZ.esc(addr) + '</a>' : '') + (c.cell ? ' &nbsp; <a href="tel:' + AZ.esc(c.cell.replace(/[^\d+]/g, '')) + '">' + AZ.esc(c.cell) + '</a>' : '') + '</p>' +
-      '<div class="grid2"><label>Serial number<input data-dserial value="' + AZ.esc(s.serial_number || '') + '" placeholder="On the label in the equipment bay" autocomplete="off"></label>' +
-      '<label>Delivery notes<input data-dnotes value="' + AZ.esc(s.delivery_notes || '') + '" placeholder="Anything worth remembering" autocomplete="off"></label></div>' +
+      '<div class="form"><div class="grid2"><label>Serial number<input data-dserial value="' + AZ.esc(s.serial_number || '') + '" placeholder="On the label in the equipment bay" autocomplete="off"></label>' +
+      '<label>Delivery notes<input data-dnotes value="' + AZ.esc(s.delivery_notes || '') + '" placeholder="Anything worth remembering" autocomplete="off"></label></div></div>' +
       '<div class="deliv-photos">' + (s.photos || []).map(function (u) { return '<a href="' + AZ.esc(u) + '" target="_blank" rel="noopener"><img src="' + AZ.esc(u) + '" alt="Delivery photo"></a>'; }).join('') +
       '<label class="addphoto"><input type="file" accept="image/*" capture="environment" multiple data-dphotos hidden><span>+ Add photos</span></label></div>' +
       '<p class="muted small" data-dpending></p>' +
@@ -1513,8 +1513,8 @@
         '<p class="svc-msg">' + AZ.esc(r.message) + '</p>' +
         (r.photos && r.photos.length ? '<div class="deliv-photos">' + r.photos.map(function (u) { return '<a href="' + AZ.esc(u) + '" target="_blank" rel="noopener"><img src="' + AZ.esc(u) + '" alt="Photo from the customer"></a>'; }).join('') + '</div>' : '') +
         '<p class="deliv-contact">' + (c.cell ? '<a href="tel:' + AZ.esc(c.cell.replace(/[^\d+]/g, '')) + '">' + AZ.esc(c.cell) + '</a> &nbsp; ' : '') + (c.email ? '<a href="mailto:' + AZ.esc(c.email) + '">' + AZ.esc(c.email) + '</a> &nbsp; ' : '') + AZ.esc([c.address, c.city_pc].filter(Boolean).join(', ')) + '</p>' +
-        '<div class="grid3"><label>Status<select data-sst><option value="new"' + (r.status === 'new' ? ' selected' : '') + '>New</option><option value="booked"' + (r.status === 'booked' ? ' selected' : '') + '>Booked</option><option value="done"' + (r.status === 'done' ? ' selected' : '') + '>Done</option></select></label>' +
-        '<label>Booked for<input type="date" data-sdate value="' + AZ.esc(r.booked_for || '') + '"></label><label>Notes<input data-snotes value="' + AZ.esc(r.staff_notes || '') + '" autocomplete="off"></label></div>' +
+        '<div class="form"><div class="grid3"><label>Status<select data-sst><option value="new"' + (r.status === 'new' ? ' selected' : '') + '>New</option><option value="booked"' + (r.status === 'booked' ? ' selected' : '') + '>Booked</option><option value="done"' + (r.status === 'done' ? ' selected' : '') + '>Done</option></select></label>' +
+        '<label>Booked for<input type="date" data-sdate value="' + AZ.esc(r.booked_for || '') + '"></label><label>Notes<input data-snotes value="' + AZ.esc(r.staff_notes || '') + '" autocomplete="off"></label></div></div>' +
         '<div class="formactions"><button class="btn btn-line btn-sm" type="button" data-ssave>Save</button><p class="formmsg" data-smsg role="status" aria-live="polite"></p></div></article>';
     }).join('') : '<div class="card"><p>' + (svcSt === 'open' ? 'No open service requests. ' : 'Nothing here. ') + 'Customers send requests from their portal, and you get an email when one comes in.</p></div>';
   }
