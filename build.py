@@ -480,6 +480,26 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
     write(base.strip("/") + f"/{k}/index.html", page)
 
 
+def stamp_assets():
+    """Add ?v=<content hash> to CSS and JS links in every page, so phones never use a stale copy."""
+    import hashlib
+    import re
+    ver = {}
+    for rel in ["assets/css/site.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js"]:
+        ver[os.path.basename(rel)] = hashlib.md5(open(os.path.join(ROOT, rel), "rb").read()).hexdigest()[:8]
+    pat = re.compile(r'((?:\.\./|/)?assets/(?:css|js)/)(site\.css|site\.js|menu\.js|tubs\.js|finder\.js)(\?v=[0-9a-f]+)?')
+    for dirpath, _, files in os.walk(ROOT):
+        if "/.git" in dirpath or "/supabase" in dirpath:
+            continue
+        for f in files:
+            if f.endswith(".html"):
+                full = os.path.join(dirpath, f)
+                txt = open(full).read()
+                new = pat.sub(lambda m: m.group(1) + m.group(2) + "?v=" + ver[m.group(2)], txt)
+                if new != txt:
+                    open(full, "w").write(new)
+
+
 if __name__ == "__main__":
     build_hub()
     for s in SERIES:
@@ -494,4 +514,5 @@ if __name__ == "__main__":
     else:
         print("swim spa photos missing: swim spa pages and dropdown held back")
     inject_home_header()
+    stamp_assets()
     print("built", 1 + len(SERIES) + len(MODELS) + 1 + len(SWIM), "pages")
