@@ -186,7 +186,7 @@ FOOT = """
   <div class="wrap center">
     <img class="find-mark" src="/assets/img/logo-mark.png" alt="" width="217" height="91">
     <h2 id="fz-title" class="display sunset">Find your Zen.</h2>
-    <p class="lede">Not sure which one is right? Answer a few quick questions and Shaun will call you to book a quiet visit. No pressure, no rush.</p>
+    <p class="lede">Not sure which one is right? Answer a few quick questions and we&rsquo;ll help you find the perfect model, then call to book a quiet visit. No pressure, no rush.</p>
     <div class="hero-ctas"><a class="pill" href="{fz}">Find your Zen</a><a class="link" href="tel:+12363044424">Or call 236-304-4424</a></div>
   </div>
 </section>
@@ -320,7 +320,7 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
 <section class="picks-sec" id="models">
   <div class="wrap center"><h2 class="h2">Choose your {e(s['name'])}.</h2><p class="picks-lede">Tap any {noun} for the full details, photos and specs.</p></div>
   <div class="wrap picks picks-{len(ms)}">{picks}</div>
-  <div class="wrap center picks-help"><p>Not sure which one fits? Answer a few quick questions and Shaun will help you choose.</p><a class="pill pill-dark" href="/find-your-zen/">Find your Zen</a></div>
+  <div class="wrap center picks-help"><p>Not sure which one fits? Answer a few quick questions and we&rsquo;ll help you find the perfect model.</p><a class="pill pill-dark" href="/find-your-zen/">Find your Zen</a></div>
 </section>
 
 <section class="highlights">

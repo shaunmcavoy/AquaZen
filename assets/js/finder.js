@@ -80,8 +80,8 @@
         { v: 'months', l: 'In the next few months' },
         { v: 'other', l: 'Other' }
       ] },
-    { id: 'contact', title: 'Last step. Where can Shaun reach you?',
-      sub: "Shaun will look at your answers and call you to book a quiet visit. No pressure, and no one else sees your details.",
+    { id: 'contact', title: 'Last step. Where can we reach you?',
+      sub: "We'll look at your answers, find the perfect model for you and call to book a quiet visit. No pressure, and no one else sees your details.",
       type: 'contact' }
   ];
 
@@ -110,7 +110,7 @@
     err.textContent = '';
     bar.style.width = Math.round((idx / steps.length) * 100) + '%';
     back.hidden = idx === 0;
-    next.textContent = s.type === 'contact' ? 'Send to Shaun' : 'Continue';
+    next.textContent = s.type === 'contact' ? 'Send my answers' : 'Continue';
 
     var h = '<p class="fz-count">' + (idx + 1) + ' of ' + steps.length + '</p>';
     h += '<h1 class="fz-title" tabindex="-1">' + esc(s.title) + '</h1>';
@@ -204,9 +204,9 @@
     }
     if (s.type === 'multi' && !(answers[s.id] || []).length) return 'Choose at least one.';
     if (s.type === 'contact') {
-      if (!contact.first.trim()) return 'Add your first name so Shaun knows who to ask for.';
+      if (!contact.first.trim()) return 'Add your first name so we know who to ask for.';
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) return 'Check your email address. It should look like name@example.com.';
-      if (contact.phone.replace(/\D/g, '').length < 10) return 'Add a phone number with area code so Shaun can call you.';
+      if (contact.phone.replace(/\D/g, '').length < 10) return 'Add a phone number with area code so we can call you.';
     }
     return '';
   }
@@ -277,8 +277,8 @@
       .catch(function () {
         sending = false;
         next.disabled = false;
-        next.textContent = 'Send to Shaun';
-        err.textContent = "Your answers didn't send. Check your connection and try again, or call or text Shaun at 236-304-4424.";
+        next.textContent = 'Send my answers';
+        err.textContent = "Your answers didn't send. Check your connection and try again, or call or text us at 236-304-4424.";
       });
   }
 
@@ -288,7 +288,7 @@
     form.innerHTML = '<div class="fz-done">' +
       '<img src="../assets/img/logo-mark.png" alt="" width="160" height="67">' +
       '<h1 class="fz-title sunset" tabindex="-1">Thank you, ' + esc(contact.first.trim()) + '.</h1>' +
-      '<p class="fz-sub">Shaun has your answers and will call you' + when + ' to book a quiet visit. He reads every one himself, because the right tub starts with how you want to live, not with what is on the floor.</p>' +
+      '<p class="fz-sub">We have your answers. We\'ll find the perfect model for you and call you' + when + ' to book a quiet visit, because the right tub starts with how you want to live, not with what is on the floor.</p>' +
       '<p class="fz-sub">Can\'t wait? Call or text <a href="tel:+12363044424">236-304-4424</a>.</p>' +
       '<p class="fz-sub">While you wait, have a look around. Every Aquasolus hot tub, with the details that matter.</p>' +
       '<div class="fz-done-ctas"><a class="pill" href="../hot-tubs/">Browse our hot tubs</a><a class="link-btn" href="../">Back to AquaZen</a></div></div>';

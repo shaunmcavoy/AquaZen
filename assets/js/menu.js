@@ -84,7 +84,7 @@
   var href = src ? src.getAttribute('href') : '/find-your-zen/';
   var bar = document.createElement('div');
   bar.className = 'zen-float';
-  bar.innerHTML = '<a href="' + href + '"><span class="zf-mark" aria-hidden="true"></span><span class="zf-text"><b>Find your Zen</b><small>Shaun helps you choose</small></span><span class="zf-go" aria-hidden="true">Start</span></a>';
+  bar.innerHTML = '<a href="' + href + '"><span class="zf-mark" aria-hidden="true"></span><span class="zf-text"><b>Find your Zen</b><small>We&rsquo;ll help you find the perfect model</small></span><span class="zf-go" aria-hidden="true">Start</span></a>';
   document.body.appendChild(bar);
   var finds = Array.prototype.slice.call(document.querySelectorAll('.find'));
   var inView = 0;
