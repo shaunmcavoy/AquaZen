@@ -430,3 +430,5 @@ a.model:hover img{transform:translateY(-4px)}
 .prose h2{font-size:1.5rem;letter-spacing:-.02em;margin:40px 0 12px}
 .prose p,.prose li{color:#1d1d1f;line-height:1.65;margin:0 0 12px}
 .prose ul{padding-left:20px;margin:0 0 16px}
+.tiles-3.tiles-4{grid-template-columns:repeat(2,1fr)}
+@media (max-width:900px){.tiles-3.tiles-4{grid-template-columns:1fr}}

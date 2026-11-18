@@ -155,12 +155,14 @@ def built(kind):
     else:
         water = ("Clean water, simply.", "Ozone water care comes standard, and soft Lower Mainland water keeps the routine short. We show you exactly how before delivery.")
         build = ("Built to carry the weight.", "A 304 stainless steel frame that won't rot or rust, made to hold thousands of litres for years.")
+    massage = ("A massage that pulls the tension out.", "It's not the number of jets, it's how the water reaches you. Most hot tubs use skinny plumbing, like a thumb over a garden hose, and the sharp spray can feel itchy. Aquasolus uses wide plumbing that delivers four to five times more water to every jet, so a big, warm volume of water works over more of your back and draws the tension out.")
     eff = ("Easy on the planet. And your hydro bill.", "Full AQ10 insulation keeps the heat the pumps make inside and puts it back into the water, instead of losing it to the air. Less wasted heat, less electricity.")
-    tiles = "".join(f'<div class="tile"><h3>{e(t)}</h3><p>{e(d)}</p></div>' for t, d in (water, eff, build))
+    items = (massage, water, eff, build) if kind == "tub" else (water, eff, build)
+    tiles = "".join(f'<div class="tile"><h3>{e(t)}</h3><p>{e(d)}</p></div>' for t, d in items)
     return f"""
 <section class="equip equip-sm">
   <div class="wrap center"><h2 class="h2">Why it's different.</h2></div>
-  <div class="wrap tiles tiles-3">{tiles}</div>
+  <div class="wrap tiles {'tiles-3 tiles-4' if kind == 'tub' else 'tiles-3'}">{tiles}</div>
 </section>
 """
 
