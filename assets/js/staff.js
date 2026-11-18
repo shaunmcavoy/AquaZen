@@ -162,7 +162,7 @@
       var trueCost = num(pc.cost) + ex.reduce(function (t, x) { return t + (ac[x.id] || 0); }, 0);
       var keep = rev - trueCost - pad - comm, box = $('#dealPanel');
       if (box.querySelector('.admin')) box.querySelector('.admin').remove();
-      box.insertAdjacentHTML('beforeend', '<div class="admin"><span>Your profit (admins only)</span><b class="' + (keep < 0 ? 'neg' : '') + '">' + AZ.money(keep) + '</b><small>After true cost ' + AZ.money(trueCost) + ', pad ' + AZ.money(pad) + ' and commission. The pad pays freight and running costs.</small></div>');
+      box.insertAdjacentHTML('beforeend', '<div class="admin"><span>Your profit (admins only)</span><b class="' + (keep < 0 ? 'neg' : '') + '">' + AZ.money(keep) + (rev ? ' <em>' + (Math.round(keep / rev * 1000) / 10) + '%</em>' : '') + '</b><small>Margin after commission. After true cost ' + AZ.money(trueCost) + ', pad ' + AZ.money(pad) + ' and commission. The pad pays freight and running costs.</small></div>');
     });
   }
   function drawSnap() {
@@ -1081,7 +1081,7 @@
   function gpCells(o) {
     if (o.gp == null) return '<td class="num g-sales">' + dash + '</td><td class="num g-sales">' + dash + '</td><td class="num g-admin">' + dash + '</td>';
     return '<td class="num g-sales"><b class="' + (o.gp < 0 ? 'neg' : '') + '">' + AZ.money(o.gp) + '</b><span class="pct">' + (Math.round(o.margin * 10) / 10) + '%</span></td>' +
-      '<td class="num g-sales">' + AZ.money(o.comm) + '</td><td class="num g-admin"><b class="' + (o.profit < 0 ? 'neg' : '') + '">' + AZ.money(o.profit) + '</b></td>';
+      '<td class="num g-sales">' + AZ.money(o.comm) + '</td><td class="num g-admin"><b class="' + (o.profit < 0 ? 'neg' : '') + '">' + AZ.money(o.profit) + '</b><span class="pct">' + (Math.round(o.profit / o.price * 1000) / 10) + '% margin</span></td>';
   }
   function moneyInput(c, f, label) {
     var v = c[f] == null ? '' : c[f];

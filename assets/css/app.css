@@ -317,3 +317,4 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .linetable input{width:110px}
 .pricetable tr.linehead td{background:var(--ink);color:#fff;font-weight:700;font-size:1rem;padding:10px 14px;letter-spacing:-.01em}
 .pricetable tr.linehead span{font-weight:400;font-size:.82rem;color:rgba(255,255,255,.7);margin-left:12px}
+.dealpanel b em{font-style:normal;font-size:.95rem;color:var(--muted);font-weight:600}
