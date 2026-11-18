@@ -615,12 +615,19 @@
         '<form id="qbForm" class="form grid2"><label>Product or service for website invoices<select name="item">' + opt(L.items, st.item_id) + '</select></label>' +
         '<label>Tax code<select name="tax">' + opt(L.taxCodes, st.tax_code_id) + '</select></label>' +
         '<div class="span2 formactions"><button class="btn btn-ink" type="submit">Save</button><button class="btn btn-line btn-sm" type="button" id="qbDisconnect">Disconnect</button><p class="formmsg"></p></div></form>' +
+        (L.items.some(function (x) { return x.name === 'Hot Tub Sale'; }) ? '' : '<p><button class="btn btn-line btn-sm" type="button" id="qbMakeItem">Create a "Hot Tub Sale" item for me</button> <span class="muted small" id="qbMakeMsg">Adds it in QuickBooks, booked to your sales income account, and selects it here.</span></p>') +
         '<p class="muted small">Used for both deposits and paid-in-full invoices. Ask your bookkeeper which item and tax code to use. The deposit already includes GST and PST, so the tax code is usually the exempt or out-of-scope one. If there isn\'t one yet, create a "Hot Tub Sale" service in QuickBooks, then refresh this page.</p>';
       $('#qbForm').onsubmit = function (e) {
         e.preventDefault(); var f = e.target, m = f.querySelector('.formmsg'); m.textContent = 'Saving...';
         AZ.api('qb-settings', { item_id: f.item.value, tax_code_id: f.tax.value }).then(function () { m.textContent = 'Saved.'; }).catch(function (er) { m.textContent = er.message; });
       };
       $('#qbDisconnect').onclick = function () { AZ.api('qb-settings', { disconnect: true }).then(loadQb); };
+      var mk = $('#qbMakeItem');
+      if (mk) mk.onclick = function () {
+        mk.disabled = true; $('#qbMakeMsg').textContent = 'Creating it in QuickBooks...';
+        AZ.api('qb-settings', { create_item: true }).then(function (r) { AZ.toast('Hot Tub Sale item ready' + (r.account ? ', booked to ' + r.account : '')); loadQb(); })
+          .catch(function (e) { $('#qbMakeMsg').textContent = e.message; mk.disabled = false; });
+      };
     }).catch(function (e) { body.innerHTML = '<p>' + AZ.esc(e.message) + '</p>'; });
   }
 

@@ -1,7 +1,7 @@
 // One edge function for the customer and staff portals. Route = last path segment, e.g. /functions/v1/portal/signing
 import { admin, button, FUNCTIONS_URL, payTerms, caller, cors, corsAuth, dataUrlToBytes, emailShell, ensureUser, escapeHtml, firstNameOf, FROM, json, jsonAuth, logEvent, loginLink, money, REPLY_TO, sendEmail, SITE_URL, productNoun, productMaker, productWhat, balanceHow, h, MUTED, windowLabel, windowChoices, validWindow, noonVancouver } from "../_shared/common.ts";
 import { buildAgreementPdf, sha256Hex, toBase64 } from "../_shared/pdf.ts";
-import { createDepositInvoice, createBalanceInvoice, invoiceBalance, qbAuthUrl, qbConfigured, qbDisconnect, qbExchange, qbLists, qbStatus } from "../_shared/qb.ts";
+import { createDepositInvoice, createBalanceInvoice, ensureSaleItem, invoiceBalance, qbAuthUrl, qbConfigured, qbDisconnect, qbExchange, qbLists, qbStatus } from "../_shared/qb.ts";
 
 // ---- login-link ----
 // POST {email, next?}  Emails a one-tap sign-in link. Always answers "ok" so it never reveals who has an account.
@@ -700,6 +700,11 @@ async function route_qb_settings(req: Request): Promise<Response> {
   const b = await req.json().catch(() => ({}));
   const db = admin();
   if (b.disconnect) { await qbDisconnect(); return jsonAuth(req, { ok: true }); }
+  if (b.create_item) {
+    const r = await ensureSaleItem();
+    await db.rpc("setting_put", { k: "qb_deposit_item_id", v: r.id });
+    return jsonAuth(req, { ok: true, item_id: r.id, account: r.account });
+  }
   if (b.item_id !== undefined) await db.rpc("setting_put", { k: "qb_deposit_item_id", v: String(b.item_id ?? "") });
   if (b.tax_code_id !== undefined) await db.rpc("setting_put", { k: "qb_deposit_tax_code_id", v: String(b.tax_code_id ?? "") });
   return jsonAuth(req, { ok: true });

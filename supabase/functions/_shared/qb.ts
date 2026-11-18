@@ -130,6 +130,19 @@ async function findOrCreateCustomer(c: any) {
 }
 
 // Creates the deposit invoice for a signed sale, lets the customer pay online, and returns its pay link.
+// Creates the "Hot Tub Sale" service item (or finds it), booked to the company's main sales income account.
+export async function ensureSaleItem() {
+  const found = (await qbQuery("select Id, Name from Item where Name = 'Hot Tub Sale'")).Item?.[0];
+  if (found) return { id: String(found.Id), account: null as string | null };
+  const accts = ((await qbQuery("select Id, Name, AccountSubType from Account where AccountType = 'Income' and Active = true")).Account ?? []) as any[];
+  if (!accts.length) throw new Error("QuickBooks has no income account to book sales to. Ask your bookkeeper to add one.");
+  const pick = accts.find((a) => /^sales$/i.test(a.Name)) || accts.find((a) => /sales/i.test(a.Name)) ||
+    accts.find((a) => a.AccountSubType === "SalesOfProductIncome") || accts[0];
+  const item = (await qb("POST", "/item", { Name: "Hot Tub Sale", Type: "Service", IncomeAccountRef: { value: pick.Id },
+    Description: "Hot tubs, swim spas and mini pools sold through aquazen.ca" })).Item;
+  return { id: String(item.Id), account: String(pick.Name) };
+}
+
 export async function createDepositInvoice(sale: any, customer: any) {
   if (Number(sale.deposit) <= 0) return null;
   const db = admin();
