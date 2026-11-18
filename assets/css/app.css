@@ -301,3 +301,5 @@ label.inline input[type=checkbox]{width:18px;height:18px;flex:none}
 .dealpanel small{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}
 .zenprice{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.035);color:var(--muted)}
 .zenprice b{color:var(--ink)}
+.saleform label.extra{display:flex;grid-template-columns:none;font-size:.95rem}
+.saleform .extra .xprice input{width:90px}
