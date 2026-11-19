@@ -61,7 +61,7 @@ export function emailShell(opts: { preheader: string; body: string; unsubscribeU
 </td></tr>
 <tr><td style="padding:30px 28px;font-size:16px;line-height:1.6">${opts.body}</td></tr>
 <tr><td style="padding:18px 28px;background:#f5f5f7;font-size:12px;line-height:1.5;color:#6e6e73">
-AquaZen, 7049 Russell Ave, Burnaby, BC<br>
+AquaZen, 7049 Russell Ave, Burnaby, BC V5J 4R8<br>
 Shaun McAvoy. Call or text 236-304-4424 &middot; shaun@aquazen.ca
 ${unsub}
 </td></tr></table></td></tr></table></body></html>`;

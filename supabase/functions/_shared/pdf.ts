@@ -38,7 +38,7 @@ export async function buildAgreementPdf(opts: {
   } catch { /* logo optional */ }
   page.drawRectangle({ x: 150, y: y - 44, width: 230, height: 30, color: dark });
   page.drawText("SALES AGREEMENT", { x: 170, y: y - 35, size: 16, font: bold, color: rgb(1, 1, 1) });
-  const addr = ["7049 Russell Ave", "Burnaby, BC", "Phone: 236-304-4424", "shaun@aquazen.ca"];
+  const addr = ["7049 Russell Ave", "Burnaby, BC V5J 4R8", "Phone: 236-304-4424", "shaun@aquazen.ca"];
   addr.forEach((t, i) => page.drawText(t, { x: W - M - bold.widthOfTextAtSize(t, 9), y: y - 18 - i * 12, size: 9, font: bold, color: ink }));
   page.drawText(`Agreement #${sale.number}`, { x: 150, y: y - 60, size: 10, font, color: muted });
   y -= 84;

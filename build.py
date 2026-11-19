@@ -102,7 +102,7 @@ def header():
       {'<button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-swim">Swim spas</button>' if SWIM_READY else '<a href="/#water">Swim spas</a>'}
       <a href="/#water">Mini pools</a>
       <a href="/how-we-deliver-zen/">How we deliver Zen</a>
-      <a href="/#visit">Visit</a>
+      <a href="/visit/">Visit</a>
       <a class="nav-signin" href="/login/">Sign in</a>
     </nav>
     <a class="pill pill-sm" href="/find-your-zen/">Find your Zen</a>
@@ -122,7 +122,7 @@ def header():
     {f'<details><summary>Swim spas</summary><ul>{m_swim}<li><a href="/swim-spas/">All swim spas</a></li></ul></details>' if SWIM_READY else '<a href="/#water">Swim spas</a>'}
     <a href="/#water">Mini pools</a>
     <a href="/how-we-deliver-zen/">How we deliver Zen</a>
-    <a href="/#visit">Visit</a>
+    <a href="/visit/">Visit</a>
     <a href="/login/">Sign in <span class="mmenu-sub">Customers and staff</span></a>
     <a class="pill" href="/find-your-zen/">Find your Zen</a>
     <a class="mmenu-call" href="tel:+12363044424">Call or text 236-304-4424</a>
@@ -197,7 +197,7 @@ FOOT = """
   <div class="wrap foot-in">
     <img src="/assets/img/logo-full.png" alt="AquaZen" width="167" height="101" loading="lazy">
     <p class="foot-tag">Your Zen is calling.</p>
-    <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC.</p>
+    <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC V5J 4R8.</p>
     <p><a class="plain" href="tel:+12363044424">236-304-4424</a> &nbsp; <a class="plain" href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
     <p>Hot tub photos and specifications courtesy of AquaSolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
     <p><a class="plain" href="/questions/">Hot tub questions</a> &nbsp; <a class="plain" href="/privacy/">Privacy</a> &nbsp; <a class="plain" href="/terms/">Terms</a> &nbsp; <a class="plain" href="/login/">Customer &amp; staff sign-in</a></p>
@@ -565,6 +565,10 @@ def stamp_assets():
 
 
 SITE = "https://aquazen.ca"
+ADDRESS = "7049 Russell Ave, Burnaby, BC V5J 4R8"
+MAPS_URL = "https://www.google.com/maps/search/?api=1&query=AquaZen+7049+Russell+Ave+Burnaby+BC+V5J+4R8"
+# Paste the content value of Google Search Console's HTML tag here (google-site-verification) and rebuild.
+GOOGLE_SITE_VERIFICATION = ""
 # Our delivery crew goes anywhere from Whistler to Hope.
 DELIVERY_AREA = ["Whistler", "Squamish", "West Vancouver", "North Vancouver", "Vancouver", "Burnaby", "New Westminster", "Richmond", "Delta", "Surrey", "White Rock", "Langley", "Coquitlam", "Port Coquitlam", "Port Moody", "Pitt Meadows", "Maple Ridge", "Mission", "Abbotsford", "Chilliwack", "Agassiz", "Harrison Hot Springs", "Hope"]
 STORE = {
@@ -574,7 +578,11 @@ STORE = {
     "url": SITE + "/", "telephone": "+1-236-304-4424", "email": "shaun@aquazen.ca",
     "image": SITE + "/assets/img/og-aquazen.jpg", "logo": SITE + "/assets/img/icon-512.png",
     "address": {"@type": "PostalAddress", "streetAddress": "7049 Russell Ave", "addressLocality": "Burnaby",
-                "addressRegion": "BC", "addressCountry": "CA"},
+                "addressRegion": "BC", "postalCode": "V5J 4R8", "addressCountry": "CA"},
+    "hasMap": MAPS_URL,
+    "contactPoint": {"@type": "ContactPoint", "telephone": "+1-236-304-4424", "email": "shaun@aquazen.ca",
+                     "contactType": "sales", "areaServed": "CA-BC", "availableLanguage": "English"},
+    "potentialAction": {"@type": "ReserveAction", "name": "Book a visit", "target": SITE + "/find-your-zen/"},
     "founder": {"@type": "Person", "name": "Shaun McAvoy"},
     "brand": {"@type": "Brand", "name": "AquaSolus"},
     "slogan": "Your Zen is calling.",
@@ -676,13 +684,14 @@ def seo():
                     f'<meta property="og:description" content="{desc}">',
                     f'<meta property="og:image" content="{img}">',
                     '<meta name="twitter:card" content="summary_large_image">',
+                    *([f'<meta name="google-site-verification" content="{GOOGLE_SITE_VERIFICATION}">'] if GOOGLE_SITE_VERIFICATION and path == "/" else []),
                     '<meta name="geo.region" content="CA-BC"><meta name="geo.placename" content="Burnaby">']
             tags += [f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in lds]
             tags = "\n".join(tags) + "<!-- /seo -->"
         txt = txt.replace("</head>", tags + "\n</head>", 1)
         open(full, "w").write(txt)
     today = datetime.date.today().isoformat()
-    pri = lambda u: "1.0" if u == "/" else "0.9" if u in ("/find-your-zen/", "/hot-tubs/", "/questions/") else "0.3" if u in ("/privacy/", "/terms/") else "0.8"
+    pri = lambda u: "1.0" if u == "/" else "0.9" if u in ("/find-your-zen/", "/hot-tubs/", "/questions/", "/visit/") else "0.3" if u in ("/privacy/", "/terms/") else "0.8"
     sm = "".join(f"<url><loc>{SITE}{u}</loc><lastmod>{today}</lastmod><priority>{pri(u)}</priority></url>\n" for u in sorted(urls))
     open(os.path.join(ROOT, "sitemap.xml"), "w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + sm + "</urlset>\n")
     open(os.path.join(ROOT, "robots.txt"), "w").write("User-agent: *\nAllow: /\n" + "".join(f"Disallow: /{d}/\n" for d in APP_DIRS) + f"\nSitemap: {SITE}/sitemap.xml\n")
@@ -692,7 +701,7 @@ def seo():
 def llms():
     """llms.txt: a plain summary of AquaZen for AI assistants (ChatGPT, Claude, Gemini, Perplexity) that read the site."""
     lines = ["# AquaZen", "",
-             "> AquaZen is a hot tub and swim spa store at 7049 Russell Ave, Burnaby, BC, Canada. It delivers anywhere from Whistler to Hope: " + ", ".join(DELIVERY_AREA) + ". "
+             "> AquaZen is a hot tub and swim spa store at 7049 Russell Ave, Burnaby, BC V5J 4R8, Canada. Visits are by appointment. It delivers anywhere from Whistler to Hope: " + ", ".join(DELIVERY_AREA) + ". "
              "It sells AquaSolus hot tubs and swim spas, set up with the right equipment from day one, with honest advice "
              "and care for the life of the tub. Founder: Shaun McAvoy, over twenty years in the hot tub industry. "
              "Phone or text 236-304-4424, email shaun@aquazen.ca.", "",
@@ -714,6 +723,7 @@ def llms():
     lines += ["", "## Key pages",
               f"- [Find your Zen]({SITE}/find-your-zen/): answer a few questions and AquaZen recommends a model and books a quiet visit.",
               f"- [How we deliver Zen]({SITE}/how-we-deliver-zen/): the massage, water flow, double ozonator, energy and insulation.",
+              f"- [Visit]({SITE}/visit/): address, phone, by-appointment visits and the delivery area.",
               f"- [Hot tub questions]({SITE}/questions/): buying, installing in BC (electrical, permits, base, delivery) and owning a hot tub.",
               "", "## Questions people ask"]
     faq = json.load(open(os.path.join(ROOT, "src", "faq.json")))
@@ -721,6 +731,33 @@ def llms():
         for q, a in g["items"]:
             lines.append(f"- **{q}** {a}")
     open(os.path.join(ROOT, "llms.txt"), "w").write("\n".join(lines) + "\n")
+
+
+def build_visit():
+    """Visit: the address, phone, appointment-only note, map and delivery area. The page Google Business Profile links to."""
+    page = head("Visit AquaZen | Hot tub store in Burnaby, BC", "Visit AquaZen at 7049 Russell Ave, Burnaby, BC V5J 4R8 by appointment. Call or text 236-304-4424. AquaSolus hot tubs and swim spas, delivered anywhere from Whistler to Hope.")
+    towns = "".join(f"<li>{e(t)}</li>" for t in DELIVERY_AREA)
+    page += f"""<main>
+<section class="tub-intro"><div class="wrap center"><h1 class="display">Come sit in one.</h1><p class="lede">Take your time, try the seats and bring the people you&rsquo;ll be soaking with. A good decision beats a fast one, so visits are by appointment: it&rsquo;s just you, us and the tubs, with no rush.</p></div></section>
+<section class="legal visitpage"><div class="wrap prose">
+  <div class="vgrid">
+    <div>
+      <h2>AquaZen</h2>
+      <p class="vaddr">7049 Russell Ave<br>Burnaby, BC V5J 4R8</p>
+      <p><a href="tel:+12363044424">236-304-4424</a> (call or text)<br><a href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
+      <p><b>Hours:</b> by appointment. Call or text to book a quiet visit, often the same week.</p>
+      <p class="vbtns"><a class="pill" href="/find-your-zen/">Book a visit</a> <a class="link" href="{e(MAPS_URL)}">Open in Google Maps</a> &nbsp; <a class="link" href="https://maps.apple.com/?q=7049+Russell+Ave,+Burnaby,+BC+V5J+4R8">Apple Maps</a></p>
+    </div>
+    <div>
+      <h2>We deliver from Whistler to Hope</h2>
+      <p>Our own crew delivers and sets up your hot tub or swim spa anywhere in between, and we look after you just the same wherever home is.</p>
+      <ul class="towns">{towns}</ul>
+    </div>
+  </div>
+</div></section>
+"""
+    page += FOOT.format(fz="/find-your-zen/")
+    write("visit/index.html", page)
 
 if __name__ == "__main__":
     build_hub()
@@ -739,6 +776,7 @@ if __name__ == "__main__":
     build_legal()
     build_how()
     build_faq()
+    build_visit()
     build_app()
     stamp_assets()
     seo()
