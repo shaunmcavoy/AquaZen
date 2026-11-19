@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en-CA"><head><meta charset="utf-8"><title>AquaSolus by AquaZen</title>
+<style>{{css}}</style>
+<style>
+/* Landscape book: US Letter on its side */
+@page{size:11in 8.5in;margin:0}
+body{counter-reset:pg}
+.page{width:11in;height:8.5in;padding:.55in .65in .75in;counter-increment:pg}
+.foot{left:.65in;right:.65in;bottom:.36in}
+.foot .pg::after{content:counter(pg,decimal-leading-zero)}
+h2{font-size:32pt}
+.lede{max-width:7.4in}
+
+/* Cover */
+.bcover{background:#000;color:#fff;padding:0}
+.bcover .photo{position:absolute;inset:0;background-size:cover;background-position:center 60%}
+.bcover .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.72) 34%,rgba(0,0,0,0) 62%)}
+.bcover .body{position:absolute;left:.8in;top:0;bottom:0;width:4.6in;display:flex;flex-direction:column;justify-content:center}
+.bcover .logo{width:1.8in;margin-bottom:.5in}
+.bcover .kicker{font-size:11pt;font-weight:600;color:var(--sage);margin-bottom:10px}
+.bcover h1{font-size:58pt;line-height:.95;letter-spacing:-.04em;font-weight:700;margin-bottom:6px}
+.bcover h1 span{display:block;font-size:26pt;font-weight:600;letter-spacing:-.02em;color:#a1a1a6;margin-top:10px}
+.bcover .sub{font-size:14pt;line-height:1.4;color:#d2d2d7;margin-top:22px;max-width:4.2in}
+
+/* Split pages: photo on one side */
+.split{display:grid;grid-template-columns:1fr 1fr;padding:0}
+.split .side{background-size:cover;background-position:center;height:100%}
+.split .text{padding:.6in .65in .9in;display:flex;flex-direction:column;justify-content:center}
+.split .foot{left:.65in;right:calc(50% + .65in)}
+.split.rev .foot,.split .foot.r{left:calc(50% + .65in);right:.65in}
+.big{font-family:"Inter Display","Inter",sans-serif;font-size:34pt;line-height:1.05;letter-spacing:-.03em;font-weight:700;margin-bottom:18px;text-wrap:balance}
+.quote{font-family:"Inter Display","Inter",sans-serif;font-size:17pt;line-height:1.32;letter-spacing:-.015em;font-weight:500;color:var(--ink);margin:6px 0 14px}
+.sig{font-size:10pt;color:var(--ink-2)}
+.sig b{color:var(--ink)}
+
+/* Dark story page */
+.dark{background:#000;color:#f5f5f7}
+.dark .chap{color:var(--sage)}
+.dark .lede,.dark p{color:#c7c7cc}
+.dark .quote{color:#fff}
+.dark .foot{border-top-color:#2c2c2e;color:#86868b}
+.dark .foot img{filter:none}
+.portrait{height:100%;background-size:cover;background-position:center 30%}
+.portrait.empty{background:#1d1d1f;display:flex;align-items:center;justify-content:center;color:#86868b;font-size:10pt}
+.timeline{list-style:none;margin:6px 0 16px;border-left:2px solid #2c2c2e;padding-left:16px}
+.timeline li{margin-bottom:9px;position:relative;color:#c7c7cc;font-size:10.2pt}
+.timeline li::before{content:"";position:absolute;left:-22px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--teal)}
+.timeline b{color:#fff}
+
+/* Three columns */
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.four{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{background:var(--mist);border-radius:18px;padding:22px 22px 20px}
+.tile .n{font-family:"Inter Display","Inter",sans-serif;font-size:30pt;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:8px}
+.tile h3{margin-bottom:5px}
+.tile p{font-size:10.6pt;line-height:1.45;color:var(--ink-2);margin:0}
+.tile h3{font-size:13.5pt}
+.three .tile{min-height:2.6in}
+.four .tile{min-height:2.6in}
+.wwh{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
+.wwh .tile{background:#000;color:#f5f5f7}
+.wwh .tile .k{color:var(--sage)}
+.wwh .tile p{color:#c7c7cc;font-size:11pt}
+.wwh .tile{min-height:2.3in}
+.wwh{margin-bottom:24px}
+.wwh .tile h3{color:#fff;font-size:16pt}
+
+/* Series pages */
+.shead{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end;margin-bottom:14px}
+.shead h2{margin-bottom:6px}
+.shead .lede{margin-bottom:0;font-size:11.5pt;max-width:6.4in}
+.sstats{display:grid;grid-template-columns:repeat(2,auto);gap:10px 26px}
+.sstats b{display:block;font-family:"Inter Display","Inter",sans-serif;font-size:20pt;letter-spacing:-.03em;line-height:1}
+.sstats span{font-size:8.4pt;color:var(--ink-2)}
+.models{display:grid;gap:12px}
+.models.n4{grid-template-columns:repeat(4,1fr)}
+.models.n5{grid-template-columns:repeat(5,1fr)}
+.model{background:var(--mist);border-radius:16px;padding:10px 12px 12px;display:flex;flex-direction:column}
+.mphoto{height:2.45in;border-radius:10px;background-size:cover;background-position:center;margin-bottom:9px;background-color:#e8e8ed}
+.model h3{font-size:14pt;margin-bottom:2px}
+.mtag{font-size:9.2pt;line-height:1.3;color:var(--ink);font-weight:500;margin-bottom:7px;min-height:2.6em}
+.model dl{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;font-size:8.4pt;line-height:1.3;margin-bottom:7px}
+.model dt{color:var(--ink-2)}
+.model dd{margin:0;color:var(--ink)}
+.mfit{font-size:8.5pt;line-height:1.3;color:var(--ink-2);margin:auto 0 0;border-top:1px solid #e0e0e5;padding-top:6px}
+.mfit b{color:var(--deep);font-weight:600}
+.models.n5 .mphoto{height:1.8in}
+.honest{margin-top:14px;font-size:10.2pt}
+
+/* Swim spa page */
+.swimgrid{display:grid;grid-template-columns:2.1in 1fr;gap:16px}
+.swimphoto{border-radius:14px;background-size:cover;background-position:center;min-height:4.6in}
+.swimtab{font-size:8.8pt}
+.swimtab td{padding:6px 8px 6px 0}
+
+/* Series overview */
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ov{background:var(--mist);border-radius:18px;padding:22px;min-height:4.3in}
+.ov h3{font-size:16pt;margin-bottom:2px}
+.ov .ovh{font-family:"Inter Display","Inter",sans-serif;font-size:12pt;font-weight:600;letter-spacing:-.01em;margin-bottom:10px;color:var(--ink)}
+.ov ul{list-style:none;margin-bottom:10px}
+.ov li{font-size:10.4pt;padding:8px 0;border-bottom:1px solid #e0e0e5}
+.ov li b{font-family:"Inter Display","Inter",sans-serif;font-size:14pt}
+.ov h3{font-size:19pt}
+.ov .small{font-size:9.4pt}
+
+/* Back */
+.bback{background:#000;color:#f5f5f7;display:grid;grid-template-columns:1.1fr 1fr;padding:0}
+.bback .text{padding:.8in .8in;display:flex;flex-direction:column;justify-content:center}
+.bback .photo{background-size:cover;background-position:center}
+.sunset{background:linear-gradient(90deg,var(--orange) 0%,var(--yellow) 30%,var(--sage) 55%,var(--teal) 78%,var(--deep) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bback h2{font-size:50pt;margin-bottom:14px}
+.bback .lede{color:#a1a1a6;font-size:13pt}
+.bback .who{display:grid;grid-template-columns:repeat(2,auto);gap:16px 34px;margin:18px 0 26px;justify-content:start}
+.bback .who span{display:block;font-size:8.5pt;color:#86868b;font-weight:600;margin-bottom:3px}
+.bback .who b{font-size:13pt;font-weight:600;color:#fff}
+</style></head>
+<body>
+
+<!-- Cover -->
+<section class="page bcover">
+  <div class="photo" style="background-image:url(../../assets/img/aquazen-solstice-low.webp)"></div>
+  <div class="body">
+    <img class="logo" src="../../assets/img/logo-full.png" alt="AquaZen">
+    <p class="kicker">Hot tubs and swim spas</p>
+    <h1>AquaSolus<span>by AquaZen</span></h1>
+    <p class="sub">Who we are, why we chose AquaSolus, and every series and model. Take your time. Your Zen is calling.</p>
+  </div>
+  <div class="bands"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</section>
+
+<!-- Our why -->
+<section class="page split">
+  <div class="text">
+    <p class="chap">Why we exist</p>
+    <p class="big">People don&rsquo;t really want a hot tub. They want a place of peace.</p>
+    <p class="lede" style="font-size:12pt">Twenty minutes at the end of the day where nobody&rsquo;s on their phone. Where you can breathe, let your shoulders drop and actually talk to the people you love. We call it <b>Zen Time</b>.</p>
+    <p>Choosing a hot tub is really choosing a better evening, again and again. It&rsquo;s deciding to disconnect on purpose. Everything we do at AquaZen is about making that choice easy, and making sure the tub you bring home gives you that peace every single night.</p>
+    <div class="why" style="margin-top:8px"><b>AquaZen exists</b> to exceed what people expect owning a hot tub to be.</div>
+  </div>
+  <div class="side" style="background-image:url(../../assets/img/aquazen-aspen-lifestyle.webp)"></div>
+  <div class="foot"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>
+</section>
+
+<!-- Shaun's story -->
+<section class="page split rev dark">
+  {{shaun_photo}}
+  <div class="text">
+    <p class="chap">My story</p>
+    <h2 style="color:#fff">Twenty years, one simple idea.</h2>
+    <ul class="timeline">
+      <li><b>On the floor.</b> I started out selling hot tubs, in showrooms and at home shows, talking with families about what they really wanted.</li>
+      <li><b>Behind the scenes.</b> Over twenty years I ran stores, represented manufacturers and worked alongside dealers. I&rsquo;ve seen this industry from every side.</li>
+      <li><b>Consulting.</b> For the last three years I&rsquo;ve helped hot tub stores sell better and treat people better.</li>
+    </ul>
+    <p>Along the way I kept seeing the same thing. Some stores hold back on equipment so they can sell you more chemicals and service calls later. I think that&rsquo;s backwards. When you get the right equipment from day one, the water stays clean and easy, and you&rsquo;re too busy enjoying your tub to think about it.</p>
+    <p class="quote">&ldquo;If a smaller tub is the better fit, I&rsquo;ll tell you. I&rsquo;d rather you love it than overspend.&rdquo;</p>
+    <p class="sig"><b>Shaun McAvoy</b>, founder, AquaZen</p>
+  </div>
+  <div class="foot"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>
+</section>
+
+<!-- Philosophy -->
+<section class="page">
+  <p class="chap">Our philosophy</p>
+  <h2>Why, how, what.</h2>
+  <p class="lede">We start with why, because that&rsquo;s what you&rsquo;re really buying. <b>The tub is how we deliver it.</b></p>
+  <div class="wwh">
+    <div class="tile"><span class="k">Why</span><h3>A place of peace at home.</h3><p>We believe everyone deserves somewhere to slow down, recover and reconnect, every single day, without leaving the house.</p></div>
+    <div class="tile"><span class="k">How</span><h3>The right equipment, from day one.</h3><p>No holding back on pumps, plumbing, insulation or water care to sell you more later. Honest advice on the tub that fits you, not the biggest one on the floor.</p></div>
+    <div class="tile"><span class="k">What</span><h3>AquaSolus, delivered and looked after.</h3><p>Hot tubs and swim spas from our Burnaby store, a delivery team that sets you up properly, and the owner&rsquo;s number in your phone for the life of your tub.</p></div>
+  </div>
+  <h3 style="margin:4px 0 10px">What you should expect from owning a hot tub. And what we deliver.</h3>
+  <div class="four">
+    <div class="tile"><p class="k">Luxury</p><h3>It feels special, every night.</h3><p>Sculpted seats and headrests, soft light and the sound of water. A place you look forward to.</p></div>
+    <div class="tile"><p class="k">Healthy, easy water</p><h3>Clear water, a few minutes a week.</h3><p>Water cleaned in under 10 minutes by a double ozonator and UV, so a teaspoon of chlorine after each soak is all it needs.</p></div>
+    <div class="tile"><p class="k">Eco and efficient</p><h3>Warm water, lean bills.</h3><p>AQ10 keeps 100% of the water insulated, 100% of the time, and puts the pumps&rsquo; own heat back to work.</p></div>
+    <div class="tile"><p class="k">A real massage</p><h3>Tension, released.</h3><p>Volume, not pressure. 56-frame pumps push four to five times more water to every jet.</p></div>
+  </div>
+  <div class="foot"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>
+</section>
+
+<!-- Why AquaSolus -->
+<section class="page split">
+  <div class="side" style="background-image:url(../../assets/img/aquazen-inside-corner.webp)"></div>
+  <div class="text">
+    <p class="chap">Why AquaSolus</p>
+    <p class="big">Health through water.</p>
+    <p class="lede" style="font-size:12pt">That&rsquo;s the AquaSolus promise, and it&rsquo;s why we chose them. <b>Wellness sits at the heart of every tub they make</b>: relaxation, stress relief and the simple good of warm, moving water.</p>
+    <p>AquaSolus builds around water&rsquo;s natural qualities, simplicity and balance. Their tubs are built to do the important things exceptionally well: clean water, a deep massage, and heat that stays where it belongs.</p>
+    <p>And they&rsquo;re made by hand. Hand-welded stainless steel frames, hand-assembled plumbing and hand-finished shells. Each one is crafted, not just assembled.</p>
+    <div class="why" style="margin-top:8px"><b>Their why matches ours.</b> A tub that looks after you, instead of you looking after it.</div>
+  </div>
+  <div class="foot r"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>
+</section>
+
+<!-- How AquaSolus delivers -->
+<section class="page">
+  <p class="chap">How AquaSolus delivers it</p>
+  <h2>Built for the things that matter.</h2>
+  <p class="lede">Every drop that comes out of a jet goes back through the filter, the double ozonator and the heater before it comes back to you. <b>Here&rsquo;s what&rsquo;s underneath.</b></p>
+  <div class="three">
+    <div class="tile"><p class="n">10 min</p><h3>Water turned over, fast</h3><p>High-flow circulation moves all of the water through the filter and ozone in under 10 minutes. A typical hot tub takes about 45.</p></div>
+    <div class="tile"><p class="n">45 s</p><h3>A double ozonator, then UV</h3><p>Ozone is held under water in a mixing chamber for at least 45 seconds, breaking down bacteria, yeast, mould, algae and biofilm, then the water passes a UV stage.</p></div>
+    <div class="tile"><p class="n">56</p><h3>56-frame pumps, not 48-frame</h3><p>Bigger pumps and wide plumbing keep the pressure in the lines, for a deep, soft massage instead of a sharp, itchy spray.</p></div>
+    <div class="tile"><p class="n">100%</p><h3>AQ10 insulation</h3><p>The pumps, heater and every line sit inside the insulated envelope. Full foam leaves them bare. AQ10 keeps 100% of the water insulated, 100% of the time.</p></div>
+    <div class="tile"><p class="n">304</p><h3>Stainless steel frame</h3><p>A hand-welded 304 stainless steel frame that won&rsquo;t rot or rust, on a sealed ABS base that keeps out cold, damp ground and critters.</p></div>
+    <div class="tile"><p class="n">You</p><h3>Shaped around you</h3><p>Sculpted seats and headrests, jets placed for specific muscle groups, and a diverter that sends the flow to the seats that need it most.</p></div>
+  </div>
+  <div class="foot"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>
+</section>
+
+<!-- Choose a series -->
+<section class="page">
+  <p class="chap">The collection</p>
+  <h2>Three series. One for every way to soak.</h2>
+  <p class="lede">Every series gets the double ozonator, AQ10 insulation and a stainless steel frame. <b>What changes is the power, the jets and how much the tub does for you.</b></p>
+  {{series_overview}}
+  <div class="why" style="margin-top:16px"><b>Not sure where you fit?</b> That&rsquo;s what Find your Zen is for. Tell us who&rsquo;s soaking, how often and where, and we&rsquo;ll help you find the one.</div>
+  <div class="foot"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>
+</section>
+
+{{series:series-one}}
+{{series:series-two}}
+{{series:series-three}}
+{{swim_book}}
+
+<!-- Back -->
+<section class="page bback">
+  <div class="text">
+    <p class="chap" style="color:var(--sage)">Your next step</p>
+    <h2 class="sunset">Find your Zen.</h2>
+    <p class="lede">Come and see us in Burnaby, or start online. We&rsquo;ll talk about who&rsquo;s soaking, how often and where, and help you find the tub that gives you that peace every night. No pressure, no rush.</p>
+    <div class="who">
+      <div><span>Call or text Shaun</span><b>236-304-4424</b></div>
+      <div><span>Email</span><b>shaun@aquazen.ca</b></div>
+      <div><span>Visit</span><b>7049 Russell Ave, Burnaby</b></div>
+      <div><span>Online</span><b>aquazen.ca/find-your-zen</b></div>
+    </div>
+    <div class="qr"><img src="{{qr:https://aquazen.ca/find-your-zen/}}" alt="" style="background:#fff"><span class="t" style="color:#c7c7cc"><b style="color:#fff">Find your Zen</b>Scan to start</span></div>
+    <p class="tag" style="margin-top:26px;font-family:'Inter Display','Inter',sans-serif;font-size:20pt;font-weight:700;color:#fff">Your Zen is calling.</p>
+  </div>
+  <div class="photo" style="background-image:url(../../assets/img/aquazen-zenith-quarter.webp)"></div>
+  <div class="bands"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</section>
+
+</body></html>

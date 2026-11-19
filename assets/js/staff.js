@@ -205,14 +205,15 @@
     $$('.tabs a').forEach(function (a) { a.removeAttribute('aria-current'); });
     var tab = view === 'sale' ? (current && current.id ? 'sales' : 'new') : view === 'customer' ? 'customers' : view;
     var t = $('.tabs a[data-tab="' + tab + '"]'); if (t) t.setAttribute('aria-current', 'page');
-    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', money: 'Financials', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
+    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', resources: 'Resources', money: 'Financials', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
     window.scrollTo(0, 0);
   }
 
   function route() {
     var h = location.hash.slice(1) || (me.profile.role === 'delivery' ? 'deliveries' : 'sales');
-    if (me.profile.role === 'delivery' && h !== 'deliveries') { location.hash = 'deliveries'; return; }
+    if (me.profile.role === 'delivery' && h !== 'deliveries' && h !== 'resources') { location.hash = 'deliveries'; return; }
     if (h === 'deliveries') { show('deliveries'); loadDeliveries(); }
+    else if (h === 'resources') { show('resources'); }
     else if (h === 'service' && me.profile.role !== 'delivery') { show('service'); loadService(); }
     else if (h === 'team' && me.profile.role === 'admin') { show('team'); loadTeam(); loadQb(); }
     else if (h === 'products' && me.profile.role === 'admin') { show('products'); loadProducts(); }
@@ -1536,7 +1537,7 @@
     $('#whoami').textContent = me.profile.full_name || me.profile.email;
     if (me.profile.role === 'admin') $$('.admin-only').forEach(function (el) { el.hidden = false; });
     // The delivery team only sees Deliveries.
-    if (me.profile.role === 'delivery') $$('.tabs a').forEach(function (a) { a.hidden = a.dataset.tab !== 'deliveries'; });
+    if (me.profile.role === 'delivery') $$('.tabs a').forEach(function (a) { a.hidden = a.dataset.tab !== 'deliveries' && a.dataset.tab !== 'resources'; });
     $('#signOut').addEventListener('click', AZ.signOut);
     window.addEventListener('hashchange', route); route();
     // First time in: ask for a display name for agreements.

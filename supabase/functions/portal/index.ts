@@ -250,36 +250,40 @@ async function afterSigned(sale: any, c: any, pdfBytes: Uint8Array, method: "onl
     await logEvent(sale.id, "qb_invoice_failed", null, { error: String(e) });
   }
 
-  // Welcome to the family
-  const portal = await loginLink(c.email, "/portal/");
+  // Congratulations, from the salesperson who sold it: both guides attached, and how to set up their account.
+  const setup = await loginLink(c.email, "/login/?setpw=1");
   const what = productWhat(sale);
   const pt = payTerms(sale);
+  const { data: seller } = await db.from("profiles").select("full_name, email").eq("id", sale.salesperson_id ?? "").maybeSingle();
+  const repName = (seller?.full_name || sale.rep_name || "Shaun McAvoy").trim();
+  const repFirst = firstNameOf(repName) || "Shaun";
+  const repEmail = seller?.email || REPLY_TO;
+  const local = (repEmail.split("@")[0] || "shaun").toLowerCase().replace(/[^a-z0-9._-]/g, "") || "shaun";
   try {
     await sendEmail({
-      from: FROM, to: c.email, reply_to: REPLY_TO, subject: "Welcome to AquaZen. Your Zen Time starts here.",
+      from: `${repFirst} at AquaZen <${local}@mail.aquazen.ca>`, to: c.email, reply_to: repEmail,
+      subject: `Congratulations, ${firstNameOf(c.name)}. Your Zen Time starts here.`,
       html: emailShell({
-        preheader: "Your signed agreement, pre-delivery guide and owner's manual are attached.",
+        preheader: "Your signed agreement, pre-delivery guide and owner's manual are attached, plus how to set up your account.",
         body: `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p>
 <p style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:0 0 10px">Congratulations.</p>
 <p>You've just made room in your life for a place of peace at home. A place to slow down, recover and reconnect with yourself and the people you love, every single day. I'm really glad I got to help you find it, and you picked a great ${productNoun(sale)}.</p>
 <p>Thank you for trusting me with your ${escapeHtml(what)}. ${method === "paper" ? `You have your signed paper copy, and a digital copy of agreement #${sale.number} is attached so it's always easy to find.` : `Your signed agreement (#${sale.number}) is attached for your records.`}</p>
-${sale.delivery_window ? `${h("Your delivery window")}<p><b>${escapeHtml(windowLabel(sale.delivery_window))}</b>. ${sale.delivery_window === "asap" ? "I'll get your order moving right away and call you to set the day." : "I'll call you as that window gets close to set the exact day."} Need to change it? Just call or text me.</p>` : ""}
-${h("Getting your spot ready")}
-<p>A smooth delivery day comes down to three things, and it's worth sorting them out now:</p>
-<p><b>A solid, level base.</b> A concrete pad, pavers on compacted gravel or a deck built for the weight. Level matters: it protects the shell and frame for the life of the tub.<br>
-<b>The right power.</b> Your ${productNoun(sale)} needs its own dedicated circuit and disconnect, put in by a licensed electrician. Our electrical partner, Gerry Jansen, knows our tubs better than anybody: call or text him at 778-229-2560. It can be wired before or after delivery, and I recommend after, so he only has to come once.<br>
-<b>A clear path.</b> Measure gates, corners and steps from the street to the spot, and let me know about anything tight. We'll plan around it.</p>
-<p><b>Your pre-delivery guide (attached)</b> walks through each of these, with the power your model needs, the path size for your tub and a checklist. Please read it before we book your delivery. Twenty minutes now saves a rescheduled delivery later.</p>
-<p><b>Your owner's manual (attached)</b> is for after delivery: water care, filters and your control panel, so looking after your tub takes minutes a week.</p>
-<p style="color:${MUTED}">Not sure about any of it? Send me a photo of the spot and I'll tell you what I see. That's what I'm here for.</p>
-${h("Your customer portal")}
-<p>Your own portal has your ${productNoun(sale)}'s details, your agreement and where things stand, from order to delivery day.</p>
-${button(portal, "Open my portal")}
-<p style="color:${MUTED};font-size:14px">That button signs you in once. Next time, go to aquazen.ca/login and enter this email.</p>
+${sale.delivery_window ? `${h("Your delivery window")}<p><b>${escapeHtml(windowLabel(sale.delivery_window))}</b>. ${sale.delivery_window === "asap" ? "We'll get your order moving right away and call you to set the day." : "We'll call you as that window gets close to set the exact day."} Need to change it? Just call or text me.</p>` : ""}
+${h("Set up your account")}
+<p>Your AquaZen account is where everything lives: your agreement, your ${productNoun(sale)}'s details, where your order stands, your delivery photos and serial number, our water care guides, and the button to request service if you ever need it. It's the fastest way to reach us, and nothing gets lost in an inbox.</p>
+<p><b>1.</b> Tap <b>Set up my account</b> below.<br>
+<b>2.</b> Choose a password.<br>
+<b>3.</b> That's it. From now on, sign in any time at <b>aquazen.ca/login</b> with this email address and your password.</p>
+${button(setup, "Set up my account")}
+<p style="color:${MUTED};font-size:14px">For your security the button works once and expires in an hour. If it has expired, go to aquazen.ca/login, enter this email and tap "Email me a link to set my password".</p>
+${h("Your two guides (attached)")}
+<p><b>Your pre-delivery guide.</b> Please read it before we book your delivery. A solid, level base, a clear path from the street and a plan for the power are what make delivery day smooth, and they protect your warranty. It also introduces Gerry Jansen, our electrical partner. We recommend having him wire your ${productNoun(sale)} after delivery, so he only has to come once. Twenty minutes with the guide now saves a rescheduled delivery later.</p>
+<p><b>Your owner's manual.</b> This one's for after delivery: water care, filters and your control panel. Your ${productNoun(sale)} does most of the work, so looking after it takes a few minutes a week and your time goes into enjoying it.</p>
 ${h(pt.full ? "Your payment" : "Your deposit")}
 ${payWhy(sale, payLink)}
-<p style="color:${MUTED}">I don't think of this as a one-time sale. I set you up with the right equipment from day one so your water stays clean and easy, and you spend your time enjoying it, not fixing it. Call or text me any time at 236-304-4424.</p>
-<p>Shaun</p>`,
+<p style="color:${MUTED}">I don't think of this as a one-time sale. We set you up with the right equipment from day one so your water stays clean and easy, and you spend your time enjoying it, not fixing it. Call or text us any time at 236-304-4424, or just reply to this email.</p>
+<p>${escapeHtml(repFirst)}</p>`,
       }),
       attachments: [
         { filename: `AquaZen Sales Agreement #${sale.number}.pdf`, content: toBase64(pdfBytes) },
@@ -798,7 +802,7 @@ async function route_qb_sync(req: Request): Promise<Response> {
         html: emailShell({ preheader: "Thank you. Here's what happens next.", body:
           `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Thank you, we've received your ${money(sale.deposit)} ${pt.full ? "payment. You're paid in full, and your" : "deposit. Your"} ${escapeHtml(what)} is now on order with ${escapeHtml(productMaker(sale))}.</p>
 ${h("What to do while you wait")}
-<p>This is the perfect time to get your spot ready: a solid, level base, power run by a licensed electrician, and a clear path to the backyard. Having these done before your ${productNoun(sale)} arrives is what makes delivery day quick and easy, and it protects your warranty.</p>
+<p>This is the perfect time to get your spot ready: a solid, level base, a clear path to the backyard, and a plan for the power. Gerry Jansen, our electrical partner, can wire it before or after delivery (we recommend after, so he only comes once). Call or text him at 778-229-2560. Having these done before your ${productNoun(sale)} arrives is what makes delivery day quick and easy, and it protects your warranty.</p>
 ${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>.</p>` : ""}
 ${button(portal, "Open my portal")}
 <p style="color:${MUTED}">I'll be in touch to set the exact delivery day.${pt.full ? "" : ` Your remaining balance of ${money(sale.balance)} is due before delivery.`} Questions any time? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),

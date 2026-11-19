@@ -377,3 +377,10 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .faq details{border-bottom:1px solid var(--line);padding:12px 0}
 .faq summary{font-weight:600;cursor:pointer}
 .faq details p{margin:8px 0 0;color:var(--muted);line-height:1.55}
+
+/* Resources tab: the printed guides */
+.resgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.res{display:flex;flex-direction:column;gap:10px}
+.res img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:12px;margin-bottom:4px}
+.res h2{margin:0}
+.res p{margin:0;flex:1}
