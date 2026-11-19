@@ -573,3 +573,13 @@ a.model:hover img{transform:translateY(-4px)}
   .zl-copy strong{font-size:17px}
   .zl-copy span{font-size:14.5px}
 }
+
+/* Hot tub questions page */
+.faq h2{margin:40px 0 10px;color:#1d1d1f}
+.faq .qa{border-bottom:1px solid #d2d2d7;padding:16px 0}
+.faq .qa summary{color:#1d1d1f;cursor:pointer;font-weight:600;font-size:19px;letter-spacing:-.01em;list-style:none;position:relative;padding-right:28px}
+.faq .qa summary::-webkit-details-marker{display:none}
+.faq .qa summary::after{content:"+";position:absolute;right:4px;top:-2px;font-size:24px;font-weight:400;color:#86868b}
+.faq .qa[open] summary::after{content:"\2212"}
+.faq .qa p{margin:10px 0 0;color:#424245}
+.faq .faq-more{margin-top:32px}

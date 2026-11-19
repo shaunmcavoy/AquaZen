@@ -200,7 +200,7 @@ FOOT = """
     <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC.</p>
     <p><a class="plain" href="tel:+12363044424">236-304-4424</a> &nbsp; <a class="plain" href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
     <p>Hot tub photos and specifications courtesy of AquaSolus. Confirm details with us before ordering. &copy; 2026 AquaZen.</p>
-    <p><a class="plain" href="/privacy/">Privacy</a> &nbsp; <a class="plain" href="/terms/">Terms</a> &nbsp; <a class="plain" href="/login/">Customer &amp; staff sign-in</a></p>
+    <p><a class="plain" href="/questions/">Hot tub questions</a> &nbsp; <a class="plain" href="/privacy/">Privacy</a> &nbsp; <a class="plain" href="/terms/">Terms</a> &nbsp; <a class="plain" href="/login/">Customer &amp; staff sign-in</a></p>
   </div>
 </footer>
 <script src="/assets/js/menu.js"></script>
@@ -564,6 +564,161 @@ def stamp_assets():
                     open(full, "w").write(new)
 
 
+SITE = "https://aquazen.ca"
+STORE = {
+    "@type": ["Store", "LocalBusiness"], "@id": SITE + "/#store",
+    "name": "AquaZen", "legalName": "Aqua Zen Wellness Consulting",
+    "description": "AquaSolus hot tubs and swim spas in Burnaby, BC. The right equipment from day one, honest advice, and care for the life of your tub.",
+    "url": SITE + "/", "telephone": "+1-236-304-4424", "email": "shaun@aquazen.ca",
+    "image": SITE + "/assets/img/og-aquazen.jpg", "logo": SITE + "/assets/img/icon-512.png",
+    "address": {"@type": "PostalAddress", "streetAddress": "7049 Russell Ave", "addressLocality": "Burnaby",
+                "addressRegion": "BC", "addressCountry": "CA"},
+    "founder": {"@type": "Person", "name": "Shaun McAvoy"},
+    "brand": {"@type": "Brand", "name": "AquaSolus"},
+    "slogan": "Your Zen is calling.",
+    "knowsAbout": ["hot tubs", "swim spas", "hot tub water care", "hot tub installation in BC"],
+}
+APP_DIRS = ("login", "staff", "sign", "portal")
+
+
+def build_faq():
+    """Hot tub questions: a plain-answer page with FAQPage schema, for Google and AI assistants."""
+    d = json.load(open(os.path.join(ROOT, "src", "faq.json")))
+    page = head(f"{d['title']} | AquaZen", d["lead"])
+    groups = ""
+    for g in d["groups"]:
+        items = "".join(f'<details class="qa"><summary>{e(q)}</summary><p>{e(a)}</p></details>' for q, a in g["items"])
+        groups += f'<h2>{e(g["name"])}</h2>{items}'
+    page += f"""<main>
+<section class="tub-intro"><div class="wrap center"><h1 class="display">{e(d['title'])}</h1><p class="lede">{e(d['lead'])}</p></div></section>
+<section class="legal faq"><div class="wrap prose">{groups}<p class="faq-more">Still wondering about something? Call or text <a href="tel:+12363044424">236-304-4424</a>. No question is too small.</p></div></section>
+"""
+    page += FOOT.format(fz="/find-your-zen/")
+    ld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for g in d["groups"] for q, a in g["items"]]}
+    page = page.replace("</head>", f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n</head>', 1)
+    write("questions/index.html", page)
+
+
+def seo():
+    """Canonical links, social cards, structured data, sitemap.xml, robots.txt. App pages are kept out of search."""
+    import datetime
+    by_url = {}
+    for s in SERIES:
+        by_url[f"/hot-tubs/{s['slug']}/"] = ("series", s)
+        for k in s["models"]:
+            by_url[f"/hot-tubs/{s['slug']}/{k}/"] = ("model", (s, k, MODELS[k]))
+    urls = []
+    for dirpath, _, files in os.walk(ROOT):
+        rel = os.path.relpath(dirpath, ROOT)
+        if rel.startswith((".git", "supabase", "src", "assets", "__pycache__")):
+            continue
+        if "index.html" not in files:
+            continue
+        path = "/" if rel == "." else "/" + rel.replace(os.sep, "/") + "/"
+        full = os.path.join(dirpath, "index.html")
+        txt = open(full).read()
+        txt = re.sub(r"\n?<!-- seo -->.*?<!-- /seo -->", "", txt, flags=re.S)
+        if path.strip("/").split("/")[0] in APP_DIRS:
+            tags = '<!-- seo --><meta name="robots" content="noindex, nofollow"><!-- /seo -->'
+        else:
+            urls.append(path)
+            title = re.search(r"<title>(.*?)</title>", txt, re.S).group(1)
+            dm = re.search(r'<meta name="description" content="([^"]*)"', txt)
+            desc = dm.group(1) if dm else ""
+            img = SITE + "/assets/img/og-aquazen.jpg"
+            lds = []
+            kind = by_url.get(path)
+            if path == "/":
+                lds.append({"@context": "https://schema.org", **STORE})
+                lds.append({"@context": "https://schema.org", "@type": "WebSite", "@id": SITE + "/#site", "url": SITE + "/",
+                            "name": "AquaZen", "publisher": {"@id": SITE + "/#store"}})
+            if kind and kind[0] == "model":
+                s, k, m = kind[1]
+                img = f"{SITE}/assets/img/models/{k}-quarter.webp" if os.path.exists(os.path.join(ROOT, "assets/img/models", k + "-quarter.webp")) else img
+                lds.append({"@context": "https://schema.org", "@type": "Product", "name": f"AquaSolus {m['name']} hot tub",
+                            "brand": {"@type": "Brand", "name": "AquaSolus"}, "category": "Hot tub",
+                            "description": f"{m['tag']} {m['fit']}", "image": img, "url": SITE + path,
+                            "additionalProperty": [
+                                {"@type": "PropertyValue", "name": "Seats", "value": m["people"]},
+                                {"@type": "PropertyValue", "name": "Jets", "value": m["jets"]},
+                                {"@type": "PropertyValue", "name": "Size", "value": m["in"]},
+                                {"@type": "PropertyValue", "name": "Power", "value": m["power"]},
+                                {"@type": "PropertyValue", "name": "Series", "value": f"{s['name']} ({s['range']})"}],
+                            "seller": {"@id": SITE + "/#store"}})
+            if kind and kind[0] == "series":
+                s = kind[1]
+                lds.append({"@context": "https://schema.org", "@type": "ItemList", "name": f"AquaSolus {s['name']} hot tubs",
+                            "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": MODELS[k]["name"],
+                                                 "url": f"{SITE}/hot-tubs/{s['slug']}/{k}/"} for i, k in enumerate(s["models"])]})
+            parts = [p for p in path.strip("/").split("/") if p]
+            if parts:
+                crumbs, acc = [{"@type": "ListItem", "position": 1, "name": "AquaZen", "item": SITE + "/"}], ""
+                for i, p in enumerate(parts):
+                    acc += "/" + p
+                    name = {"hot-tubs": "Hot tubs"}.get(p) or (by_url.get(acc + "/", (None, None))[1] or {})
+                    if isinstance(name, dict):
+                        name = name.get("name", p.replace("-", " ").title())
+                    elif isinstance(name, tuple):
+                        name = name[2]["name"]
+                    crumbs.append({"@type": "ListItem", "position": i + 2, "name": name, "item": SITE + acc + "/"})
+                lds.append({"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": crumbs})
+            tags = ["<!-- seo -->",
+                    f'<link rel="canonical" href="{SITE}{path}">',
+                    '<meta property="og:type" content="website">',
+                    '<meta property="og:site_name" content="AquaZen">',
+                    '<meta property="og:locale" content="en_CA">',
+                    f'<meta property="og:url" content="{SITE}{path}">',
+                    f'<meta property="og:title" content="{title}">',
+                    f'<meta property="og:description" content="{desc}">',
+                    f'<meta property="og:image" content="{img}">',
+                    '<meta name="twitter:card" content="summary_large_image">',
+                    '<meta name="geo.region" content="CA-BC"><meta name="geo.placename" content="Burnaby">']
+            tags += [f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in lds]
+            tags = "\n".join(tags) + "<!-- /seo -->"
+        txt = txt.replace("</head>", tags + "\n</head>", 1)
+        open(full, "w").write(txt)
+    today = datetime.date.today().isoformat()
+    pri = lambda u: "1.0" if u == "/" else "0.9" if u in ("/find-your-zen/", "/hot-tubs/", "/questions/") else "0.3" if u in ("/privacy/", "/terms/") else "0.8"
+    sm = "".join(f"<url><loc>{SITE}{u}</loc><lastmod>{today}</lastmod><priority>{pri(u)}</priority></url>\n" for u in sorted(urls))
+    open(os.path.join(ROOT, "sitemap.xml"), "w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + sm + "</urlset>\n")
+    open(os.path.join(ROOT, "robots.txt"), "w").write("User-agent: *\nAllow: /\n" + "".join(f"Disallow: /{d}/\n" for d in APP_DIRS) + f"\nSitemap: {SITE}/sitemap.xml\n")
+
+
+
+def llms():
+    """llms.txt: a plain summary of AquaZen for AI assistants (ChatGPT, Claude, Gemini, Perplexity) that read the site."""
+    lines = ["# AquaZen", "",
+             "> AquaZen is a hot tub and swim spa store at 7049 Russell Ave, Burnaby, BC, Canada, serving the Lower Mainland. "
+             "It sells AquaSolus hot tubs and swim spas, set up with the right equipment from day one, with honest advice "
+             "and care for the life of the tub. Founder: Shaun McAvoy, over twenty years in the hot tub industry. "
+             "Phone or text 236-304-4424, email shaun@aquazen.ca.", "",
+             "## Why people choose AquaZen",
+             "- A hot tub is a place of peace at home. AquaZen helps people choose the tub that gives them that every night, and will recommend a smaller tub when it is the better fit.",
+             "- Some stores hold back on equipment to sell more chemicals and service later. AquaZen sells the right equipment from day one: 56-frame pumps (not 48-frame) on 240V tubs, water turned over in under 10 minutes, a double ozonator with a 45-second mixing chamber then UV, and AQ10 insulation that keeps 100% of the water insulated 100% of the time.",
+             "- Simple water care: 1 teaspoon of chlorine granules after each soak. AquaZen recommends chlorine, not bromine.",
+             "- Local help: an exclusive electrical partner (Gerry Jansen), a pre-delivery guide with exact path sizes for every model, a delivery team that records each tub's serial number and photos, and a customer account with care guides and service requests.",
+             "- AquaSolus tubs are handmade on a hand-welded 304 stainless steel frame with a sealed ABS base.", "",
+             "## Hot tubs"]
+    for se in SERIES:
+        lines.append(f"- [{se['name']} ({se['range']})]({SITE}/hot-tubs/{se['slug']}/): {se['headline']} {se['lede']}")
+        for k in se["models"]:
+            m = MODELS[k]
+            lines.append(f"  - [{m['name']}]({SITE}/hot-tubs/{se['slug']}/{k}/): {m['tag']} {m['people']} people, {m['jets']} jets, {m['in']}, {m['power']}. Made for {m['fit'][0].lower() + m['fit'][1:]}")
+    sw = DATA["swimspas"]
+    lines += ["", "## Swim spas", f"- {sw['name']} ({sw['range']}): {sw['lede']}"]
+    lines += [f"  - {m['name']}: {m['tag']} {m['length']}, {m['people']} people, {m['system']}." for m in SWIM.values()]
+    lines += ["", "## Key pages",
+              f"- [Find your Zen]({SITE}/find-your-zen/): answer a few questions and AquaZen recommends a model and books a quiet visit.",
+              f"- [How we deliver Zen]({SITE}/how-we-deliver-zen/): the massage, water flow, double ozonator, energy and insulation.",
+              f"- [Hot tub questions]({SITE}/questions/): buying, installing in BC (electrical, permits, base, delivery) and owning a hot tub.",
+              "", "## Questions people ask"]
+    faq = json.load(open(os.path.join(ROOT, "src", "faq.json")))
+    for g in faq["groups"]:
+        for q, a in g["items"]:
+            lines.append(f"- **{q}** {a}")
+    open(os.path.join(ROOT, "llms.txt"), "w").write("\n".join(lines) + "\n")
+
 if __name__ == "__main__":
     build_hub()
     for s in SERIES:
@@ -580,6 +735,9 @@ if __name__ == "__main__":
     inject_home_header()
     build_legal()
     build_how()
+    build_faq()
     build_app()
     stamp_assets()
+    seo()
+    llms()
     print("built", 1 + len(SERIES) + len(MODELS) + 1 + len(SWIM), "pages")
