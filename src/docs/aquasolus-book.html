@@ -87,6 +87,56 @@ h2{font-size:32pt}
 .models.n5 .mphoto{height:1.8in}
 .honest{margin-top:14px;font-size:10.2pt}
 
+
+/* Logo stripes on series and model pages */
+.tbands{position:absolute;top:0;left:0;right:0;display:flex;flex-direction:column;gap:3px}
+.tbands i{display:block;height:7px}
+.tbands i:nth-child(1){background:var(--red)}.tbands i:nth-child(2){background:var(--orange)}.tbands i:nth-child(3){background:var(--yellow)}
+.tbands i:nth-child(4){background:var(--sage)}.tbands i:nth-child(5){background:var(--teal)}.tbands i:nth-child(6){background:var(--deep)}
+.page:has(> .tbands){padding-top:.85in}
+
+/* Series outline page */
+.sbody{display:grid;grid-template-columns:1.45fr 1fr;gap:22px;margin-top:6px}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-content:start}
+.feat{background:var(--mist);border-radius:14px;padding:10px 12px 12px}
+.fpic{height:1.05in;border-radius:9px;background-size:cover;background-position:center;margin-bottom:8px}
+.feat h3{font-size:11pt;margin-bottom:3px}
+.feat p{font-size:8.8pt;line-height:1.38;color:var(--ink-2);margin:0}
+.roster{list-style:none;border-top:1px solid var(--line);margin:6px 0 4px}
+.roster li{padding:9px 0;border-bottom:1px solid #e8e8ed;display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
+.roster b{font-family:"Inter Display","Inter",sans-serif;font-size:14pt;letter-spacing:-.02em;grid-row:span 2}
+.roster span{font-size:9.6pt;color:var(--ink)}
+.roster em{font-style:normal;font-size:8.6pt;color:var(--ink-2)}
+
+/* One page per model */
+.mgrid{display:grid;grid-template-columns:6.15in 1fr;gap:.4in;height:100%}
+.mleft{display:flex;flex-direction:column;gap:14px}
+.mhero{height:4.1in;border-radius:18px;background-size:cover;background-position:center 60%;background-color:#e8e8ed}
+.mbelow{display:grid;grid-template-columns:1.75in 1fr;gap:16px;align-items:start}
+.mtop{background:var(--mist);border-radius:14px;padding:8px}
+.mtop div{width:100%;aspect-ratio:1;border-radius:9px;background-size:cover;background-position:center}
+.mtop span{display:block;font-size:7.6pt;color:var(--ink-2);text-align:center;margin-top:5px}
+.mtext{padding-top:.05in}
+.mname{font-size:38pt;margin-bottom:6px}
+.mlede{font-family:"Inter Display","Inter",sans-serif;font-size:14pt;line-height:1.3;letter-spacing:-.01em;font-weight:500;color:var(--ink);margin-bottom:16px}
+.mspec{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.mspec div{padding:7px 10px 7px 0;border-bottom:1px solid #e8e8ed}
+.mspec span{display:block;font-size:8pt;color:var(--ink-2)}
+.mspec b{font-size:10.5pt;font-weight:600}
+.perfect{background:var(--mist);border-radius:18px;padding:16px 18px}
+.perfect .k{margin-bottom:8px;font-size:9pt}
+.perfect ul{list-style:none}
+.perfect li{position:relative;padding-left:24px;margin-bottom:7px;font-size:10.6pt;line-height:1.4}
+.perfect li:last-child{margin-bottom:0}
+.perfect li::before{content:"";position:absolute;left:0;top:2px;width:15px;height:15px;border-radius:50%;background:var(--deep)}
+.perfect li::after{content:"";position:absolute;left:5px;top:5px;width:4px;height:7px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg)}
+
+
+.incl{margin-top:14px}
+.incl p{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}
+.incl span{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:8.4pt;color:var(--ink)}
+.mcta{margin-top:14px;font-size:9.6pt}
+.perfect li{font-size:11pt}
 /* Swim spa page */
 .swimgrid{display:grid;grid-template-columns:2.1in 1fr;gap:16px}
 .swimphoto{border-radius:14px;background-size:cover;background-position:center;min-height:4.6in}
@@ -163,12 +213,12 @@ h2{font-size:32pt}
 <!-- Philosophy -->
 <section class="page">
   <p class="chap">Our philosophy</p>
-  <h2>Why, how, what.</h2>
-  <p class="lede">We start with why, because that&rsquo;s what you&rsquo;re really buying. <b>The tub is how we deliver it.</b></p>
+  <h2>Twenty years taught me what was missing.</h2>
+  <p class="lede">So we built AquaZen around it. <b>Your peace comes first. Everything else is how we deliver it.</b></p>
   <div class="wwh">
-    <div class="tile"><span class="k">Why</span><h3>A place of peace at home.</h3><p>We believe everyone deserves somewhere to slow down, recover and reconnect, every single day, without leaving the house.</p></div>
-    <div class="tile"><span class="k">How</span><h3>The right equipment, from day one.</h3><p>No holding back on pumps, plumbing, insulation or water care to sell you more later. Honest advice on the tub that fits you, not the biggest one on the floor.</p></div>
-    <div class="tile"><span class="k">What</span><h3>AquaSolus, delivered and looked after.</h3><p>Hot tubs and swim spas from our Burnaby store, a delivery team that sets you up properly, and the owner&rsquo;s number in your phone for the life of your tub.</p></div>
+    <div class="tile"><span class="k">Different by design</span><h3>We put your evenings first.</h3><p>Too many stores hold back on equipment so they can sell you chemicals and service calls later. We think that&rsquo;s backwards. A place of peace at home should give you peace, not chores.</p></div>
+    <div class="tile"><span class="k">Right from day one</span><h3>We get the equipment right.</h3><p>Big pumps, water cleaned in under 10 minutes, a double ozonator and full insulation, in every tub we sell. And honest advice on the tub that fits you, even when that&rsquo;s the smaller one.</p></div>
+    <div class="tile"><span class="k">For the life of your tub</span><h3>We look after you.</h3><p>AquaSolus hot tubs and swim spas from our Burnaby store, a delivery team that sets you up properly, simple care guides, and the owner&rsquo;s number in your phone.</p></div>
   </div>
   <h3 style="margin:4px 0 10px">What you should expect from owning a hot tub. And what we deliver.</h3>
   <div class="four">

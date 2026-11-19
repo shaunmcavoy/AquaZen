@@ -1,0 +1,71 @@
+{
+ "_note": "AquaSolus book: 'This hot tub is perfect for you if...' for each model. AquaZen's own words, written from the specs and each series' positioning.",
+ "brook": [
+  "You're new to hot tubs and want the easiest possible start.",
+  "It's mostly the two of you, or a small family.",
+  "Your patio or yard is on the smaller side.",
+  "You'd like to plug into a standard outlet, with no big electrical job."
+ ],
+ "zephyr": [
+  "You and your partner both want to lie back and stretch out.",
+  "You still want room for the kids, or a couple of friends on a Friday night.",
+  "You want a simple, plug-and-play start to Zen Time."
+ ],
+ "cypress": [
+  "Somebody in your house always claims the lounger, and everyone else still needs a seat.",
+  "You're a family of up to six getting your first hot tub.",
+  "You want room to stretch out without a big electrical job."
+ ],
+ "cove": [
+  "You're a bigger family, or the house everyone ends up at.",
+  "You like upright seats, so everyone faces each other and actually talks.",
+  "You want the most room in Series One, on a standard outlet."
+ ],
+ "sierra": [
+  "You're empty nesters, ready for Zen together.",
+  "You want to lie back side by side at the end of every day.",
+  "You don't need room for a crowd, just the two of you and the occasional guest.",
+  "You'll use it every night, all year, and want full power for the heater and jets together."
+ ],
+ "harmony": [
+  "You and your partner both want a lounger, every night.",
+  "The kids or grandkids still pile in on weekends.",
+  "You want 42 jets and two pumps running at full power, year round."
+ ],
+ "eden": [
+  "You're a family of four to six who'll use it most nights.",
+  "One lounger is plenty, and everyone takes their turn.",
+  "You want full power and a deep massage, without going bigger than you need."
+ ],
+ "aspen": [
+  "You finish most days with tight shoulders and a sore back.",
+  "You want the deepest massage in Series Two, with 48 jets.",
+  "There's room for six, and a lounger for whoever needs it most."
+ ],
+ "calma": [
+  "You have a big family, or you love to entertain.",
+  "You'd rather have seven upright seats than a lounger, so everyone fits and faces each other.",
+  "You want full power for every seat, every night."
+ ],
+ "cascade": [
+  "You've owned a hot tub before and you know you love it.",
+  "You and your partner both want a full-length lounger.",
+  "You want a programmable massage that runs the sequence you choose, from slow and soft to deep.",
+  "You want water care that watches the water for you."
+ ],
+ "serenity": [
+  "You've had a spa before, and this time you want the best water care there is.",
+  "You want a full-length lounger waiting for you at the end of the day.",
+  "There are up to six of you, and you'll use it every night."
+ ],
+ "zenith": [
+  "You've owned hot tubs before and you're ready for the biggest one.",
+  "Your family is big, or your backyard is where everyone gathers.",
+  "You want the most room and the most jets: seven people and 61 jets."
+ ],
+ "solstice": [
+  "You know you love hot tubs, and you want the best one to share.",
+  "You gather: seven upright seats, everyone face to face.",
+  "You want the best water care and a programmable massage, with room for the whole family."
+ ]
+}

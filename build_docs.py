@@ -71,34 +71,67 @@ def seats(m):
     return f"{m['seats']} seat{'s' if m['seats'] != 1 else ''}" + (f", {m['loungers']} lounger{'s' if m['loungers'] > 1 else ''}" if m.get("loungers") else "")
 
 
+PERFECT = json.load(open(os.path.join(SRC, "perfect_for.json")))
+FOOT = '<div class="foot"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>'
+BANDS = '<div class="tbands"><i></i><i></i><i></i><i></i><i></i><i></i></div>'
+
+
 def series_page(slug):
+    """One page that outlines the series, then one page per model."""
     se = next(x for x in TUBS["series"] if x["slug"] == slug)
     stats = "".join(f"<div><b>{esc(a)}</b><span>{esc(b)}</span></div>" for a, b in se["stats"])
-    cards = []
-    for k in se["models"]:
-        m = TUBS["models"][k]
-        cards.append(f"""<article class="model">
-  <div class="mphoto" style="background-image:url(../../assets/img/models/{k}-quarter.webp)"></div>
-  <h3>{esc(m['name'])}</h3>
-  <p class="mtag">{esc(m['tag'])}</p>
-  <dl>
-    <dt>People</dt><dd>{m['people']} ({seats(m)})</dd>
-    <dt>Jets</dt><dd>{m['jets']}</dd>
-    <dt>Size</dt><dd>{esc(m['in'])}</dd>
-    <dt>Water</dt><dd>{esc(m['l'])} L ({esc(m['gal'])} US gal)</dd>
-    <dt>Power</dt><dd>{esc(m['power'])}</dd>
-  </dl>
-  <p class="mfit"><b>Made for</b> {esc(m['fit'])}</p>
-</article>""")
-    n = len(cards)
-    return f"""<section class="page">
+    feats = []
+    for img, title, text in se["features"]:
+        has = os.path.exists(os.path.join(ROOT, "assets", "img", "models", img + ".webp"))
+        pic = f'<div class="fpic" style="background-image:url(../../assets/img/models/{img}.webp)"></div>' if has else ""
+        feats.append(f'<div class="feat">{pic}<h3>{esc(title)}</h3><p>{esc(text)}</p></div>')
+    roster = "".join(
+        f"<li><b>{esc(TUBS['models'][k]['name'])}</b><span>{esc(TUBS['models'][k]['tag'])}</span><em>{TUBS['models'][k]['people']} people, {TUBS['models'][k]['jets']} jets</em></li>"
+        for k in se["models"])
+    out = [f"""<section class="page">
+  {BANDS}
   <div class="shead">
     <div><p class="chap">{esc(se['name'])} &nbsp;&middot;&nbsp; {esc(se['range'])}</p><h2>{esc(se['headline'])}</h2><p class="lede">{esc(se['lede'])}</p></div>
     <div class="sstats">{stats}</div>
   </div>
-  <div class="models n{n}">{''.join(cards)}</div>
-  <div class="why honest"><b>Our honest take.</b> {esc(se['honest'])}</div>
-  <div class="foot"><img src="../../assets/img/logo-word.png" alt="AquaZen"><span>AquaSolus by AquaZen</span><span class="pg"></span></div>
+  <div class="sbody">
+    <div class="feats">{''.join(feats)}</div>
+    <div><p class="k">The models</p><ul class="roster">{roster}</ul>
+    <div class="why honest"><b>Our honest take.</b> {esc(se['honest'])}</div></div>
+  </div>
+  {FOOT}
+</section>"""]
+    for k in se["models"]:
+        out.append(model_page(se, k))
+    return "\n".join(out)
+
+
+def model_page(se, k):
+    m = TUBS["models"][k]
+    specs = [("People", m["people"]), ("Seats", seats(m)), ("Jets", m["jets"]), ("Size", m["in"]),
+             ("Water", f"{m['l']} L ({m['gal']} US gal)"), ("Power", m["power"])]
+    spec = "".join(f"<div><span>{a}</span><b>{esc(b)}</b></div>" for a, b in specs)
+    perfect = "".join(f"<li>{esc(x)}</li>" for x in PERFECT.get(k, []))
+    incl = "".join(f"<span>{esc(f[1])}</span>" for f in se["features"]) + "<span>Double ozonator and UV</span><span>AQ10 insulation</span><span>304 stainless frame</span>"
+    over = os.path.exists(os.path.join(ROOT, "assets", "img", "models", f"{k}-overhead.webp"))
+    top = f'<div class="mtop"><div style="background-image:url(../../assets/img/models/{k}-overhead.webp)"></div><span>The seats, from above</span></div>' if over else ""
+    return f"""<section class="page mpage">
+  {BANDS}
+  <div class="mgrid">
+    <div class="mleft">
+      <div class="mhero" style="background-image:url(../../assets/img/models/{k}-quarter.webp)"></div>
+      <div class="mbelow">{top}<div class="mspec">{spec}</div></div>
+    </div>
+    <div class="mtext">
+      <p class="chap">{esc(se['name'])} &nbsp;&middot;&nbsp; {esc(se['range'])}</p>
+      <h2 class="mname">The {esc(m['name'])}</h2>
+      <p class="mlede">{esc(m['tag'])}</p>
+      <div class="perfect"><p class="k">This hot tub is perfect for you if</p><ul>{perfect}</ul></div>
+      <div class="incl"><p class="k">Every {esc(se['name'])} tub has</p><p>{incl}</p></div>
+      <div class="note mcta"><b>Feel it before you choose.</b> Book a quiet visit in Burnaby and sit in the {esc(m['name'])}. Call or text 236-304-4424.</div>
+    </div>
+  </div>
+  {FOOT}
 </section>"""
 
 
@@ -108,6 +141,7 @@ def swim_book():
     rows = "".join(f"<tr><td><b>{esc(m['name'])}</b><br><span class='small'>{esc(m['tag'])}</span></td><td>{esc(m['system'])}</td><td>{esc(m['length'])}</td><td>{m['people']}</td><td>{m['jets']}</td><td>{esc(m['power'])}</td><td>{esc(m['fit'])}</td></tr>"
                    for m in TUBS["swimspa_models"].values())
     return f"""<section class="page">
+  {BANDS}
   <div class="shead">
     <div><p class="chap">{esc(se['name'])} &nbsp;&middot;&nbsp; {esc(se['range'])}</p><h2>{esc(se['headline'])}</h2><p class="lede">{esc(se['lede'])}</p></div>
     <div class="sstats">{stats}</div>
@@ -147,7 +181,7 @@ def jpeg(name):
     src = os.path.join(ROOT, "assets", "img", name)
     src = next((src + e for e in (".webp", ".jpg", ".jpeg", ".png") if os.path.exists(src + e)), src + ".webp")
     im = Image.open(src).convert("RGB")
-    im.thumbnail((900, 900) if name.startswith("models/") else (1600, 1600))
+    im.thumbnail((700, 700) if name.startswith("models/") and not name.endswith("-quarter") else (1400, 1400))
     im.save(out, quality=80, optimize=True, progressive=True)
     return os.path.basename(out)
 
