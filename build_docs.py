@@ -106,8 +106,18 @@ def series_page(slug):
     return "\n".join(out)
 
 
+# Where to look in a few wide or busy photos, so the tub fills the frame: (background-size, background-position).
+FOCUS = {
+    "sierra": ("auto 165%", "52% 82%"),
+    "harmony": ("auto 160%", "76% 78%"),
+    "calma": ("auto 150%", "48% 72%"),
+}
+
+
 def model_page(se, k):
     m = TUBS["models"][k]
+    fz = FOCUS.get(k)
+    focus = f"background-size:{fz[0]};background-position:{fz[1]}" if fz else ""
     specs = [("People", m["people"]), ("Seats", seats(m)), ("Jets", m["jets"]), ("Size", m["in"]),
              ("Water", f"{m['l']} L ({m['gal']} US gal)"), ("Power", m["power"])]
     spec = "".join(f"<div><span>{a}</span><b>{esc(b)}</b></div>" for a, b in specs)
@@ -119,7 +129,7 @@ def model_page(se, k):
   {BANDS}
   <div class="mgrid">
     <div class="mleft">
-      <div class="mhero" style="background-image:url(../../assets/img/models/{k}-quarter.webp)"></div>
+      <div class="mhero" style="background-image:url(../../assets/img/models/{k}-quarter.webp);{focus}"></div>
       <div class="mbelow">{top}<div class="mspec">{spec}</div></div>
     </div>
     <div class="mtext">
