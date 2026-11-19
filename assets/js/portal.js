@@ -55,10 +55,11 @@
     '<p class="muted">Your AquaSolus cleans the water for you all day: every drop runs through the filter and the double ozonator, ozone then UV, again and again. Your part is a quick check each week, so the water stays clear, soft and comfortable on your skin, and your time in the tub is just for relaxing.</p>' +
     '<div class="guide-cols">' +
       '<div><h3>Every time you soak</h3><ul><li>Rinse off first. Lotions, makeup and deodorant are what cloud water fastest.</li><li>Put the cover back on and lock it. It keeps heat in, leaves and rain out, and little ones safe.</li></ul></div>' +
-      '<div><h3>Once a week</h3><ul><li>Test the water with a strip and adjust sanitizer and pH so they sit in the ranges on your test kit. Balanced water is gentle on skin and protects the equipment.</li><li>Wipe the waterline so nothing builds up.</li></ul></div>' +
-      '<div><h3>Every few weeks</h3><ul><li>Take out the filter and hose it off. A clean filter lets the water move freely, which is what keeps it clear.</li><li>Check the water level. Keep it above the highest jets.</li></ul></div>' +
+      '<div><h3>Once a week</h3><ul><li>Test the water with a strip and adjust sanitizer and pH so they sit in the ranges on your test kit. Balanced water is gentle on skin and protects the equipment.</li><li>Rinse the filter. A clean filter lets the water move freely, which is what keeps it clear.</li><li>Wipe the waterline so nothing builds up.</li></ul></div>' +
+      '<div><h3>Every month</h3><ul><li>Check calcium hardness. Our soft water needs a little help to stay gentle on the heater and jets.</li><li>Check the water level. Keep it above the highest jets.</li></ul></div>' +
       '<div><h3>Every few months</h3><ul><li>Drain and refill with fresh water, and give the filter a deep clean.</li><li>Clean and condition the cover so it stays light and keeps sealing well.</li></ul></div>' +
-    '</div><p class="muted small">Not sure what a test result means? Snap a photo of the strip next to the bottle and send it with a service request. We’re happy to help.</p></article>';
+    '</div><div class="formactions"><a class="btn btn-gold" href="/assets/docs/aquazen-owners-manual.pdf" target="_blank" rel="noopener">Owner\u2019s manual</a><a class="btn btn-line" href="/assets/docs/aquazen-pre-delivery-guide.pdf" target="_blank" rel="noopener">Pre-delivery guide</a></div>' +
+    '<p class="muted small">Not sure what a test result means? Snap a photo of the strip next to the bottle and send it with a service request. We’re happy to help.</p></article>';
 
   var FAQS = [
     ['How hot should I keep it?', 'Most people love it somewhere between 100 and 104°F. Start around 100 and nudge it up until it feels right. Keeping it at the same temperature all the time is more efficient than heating it up for each soak.'],

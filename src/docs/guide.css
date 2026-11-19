@@ -1,0 +1,92 @@
+/* AquaZen printed guides: US Letter pages, Apple-style black and mist, logo sunset bands on covers only. */
+@page{size:8.5in 11in;margin:0}
+:root{
+  --ink:#1d1d1f;--ink-2:#6e6e73;--mist:#f5f5f7;--line:#d2d2d7;--deep:#347c6e;--teal:#6eaa8f;
+  --red:#c93533;--orange:#f78800;--yellow:#f0bf33;--sage:#c5cf99;--cream:#f4f4de;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#fff}
+body{font-family:"Inter",-apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--ink);font-size:10.4pt;line-height:1.48;letter-spacing:-.006em;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-feature-settings:"ss01" 0}
+.page{width:8.5in;height:11in;position:relative;overflow:hidden;page-break-after:always;padding:.62in .7in .8in}
+.page:last-child{page-break-after:auto}
+h1,h2,h3,.disp{font-family:"Inter Display","Inter",sans-serif}
+.chap{font-size:9pt;font-weight:600;color:var(--deep);letter-spacing:.01em;margin-bottom:6px}
+h2{font-size:30pt;line-height:1.05;letter-spacing:-.03em;font-weight:700;margin-bottom:12px;text-wrap:balance}
+h3{font-size:12.5pt;line-height:1.25;letter-spacing:-.015em;font-weight:650;margin:0 0 6px}
+p{margin:0 0 8px}
+.lede{font-size:12.5pt;line-height:1.42;color:var(--ink-2);max-width:6.2in;margin-bottom:20px}
+.lede b{color:var(--ink);font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.cols-37{grid-template-columns:1.15fr 1fr}
+.stack>*+*{margin-top:14px}
+ol.steps{list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;position:relative;padding-left:30px;margin-bottom:9px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;font-size:8.5pt;font-weight:600;display:flex;align-items:center;justify-content:center}
+ol.steps.from li::before{content:counter(s)}
+ul.dots{list-style:none}
+ul.dots li{position:relative;padding-left:16px;margin-bottom:6px}
+ul.dots li::before{content:"";position:absolute;left:2px;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--teal)}
+.panel{background:var(--mist);border-radius:18px;padding:18px 20px}
+.panel h3{margin-bottom:6px}
+.panel p:last-child,.panel ul:last-child li:last-child{margin-bottom:0}
+.why{border-left:3px solid var(--deep);padding:2px 0 2px 14px;color:var(--ink);font-size:10.8pt;margin:4px 0 16px}
+.why b{color:var(--deep)}
+.note{background:var(--ink);color:#f5f5f7;border-radius:18px;padding:16px 20px;font-size:10pt}
+.note b{color:#fff}
+.note .k{display:block;font-size:8.5pt;font-weight:600;color:var(--sage);margin-bottom:4px;letter-spacing:.01em}
+.k{display:block;font-size:8.5pt;font-weight:600;color:var(--deep);margin-bottom:4px;letter-spacing:.01em}
+.small{font-size:8.4pt;color:var(--ink-2);line-height:1.4}
+table{border-collapse:collapse;width:100%;font-size:9.4pt}
+th{text-align:left;font-weight:600;color:var(--ink-2);font-size:8.4pt;padding:0 8px 6px 0;border-bottom:1px solid var(--line)}
+td{padding:7px 8px 7px 0;border-bottom:1px solid #e8e8ed;vertical-align:top}
+td b{font-weight:600}
+.num{font-family:"Inter Display","Inter",sans-serif;font-weight:700;letter-spacing:-.02em}
+.foot{position:absolute;left:.7in;right:.7in;bottom:.42in;display:flex;justify-content:space-between;align-items:center;font-size:8pt;color:var(--ink-2);border-top:1px solid #e8e8ed;padding-top:9px}
+.foot img{height:12px;filter:invert(1) brightness(.12)}
+.qr{display:flex;gap:12px;align-items:center}
+.qr img{width:74px;height:74px;border-radius:8px;background:#fff;padding:5px;flex:none}
+.qr .t{font-size:9pt;line-height:1.35}
+.qr .t b{display:block;font-size:10pt}
+.qr a{color:inherit;text-decoration:none}
+.check{list-style:none}
+.check li{position:relative;padding-left:24px;margin-bottom:7px;font-size:9.8pt}
+.check li::before{content:"";position:absolute;left:0;top:1px;width:13px;height:13px;border:1.5px solid var(--ink);border-radius:4px}
+
+/* Cover */
+.cover{background:#000;color:#fff;padding:0}
+.cover .photo{position:absolute;inset:0 0 auto;height:6.3in;background-size:cover;background-position:center}
+.cover .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 40%,#000 100%)}
+.cover .body{position:absolute;left:.75in;right:.75in;bottom:.75in}
+.cover .logo{width:1.7in;margin-bottom:.42in}
+.cover .kicker{font-size:10.5pt;font-weight:600;color:var(--sage);margin-bottom:8px}
+.cover h1{font-size:54pt;line-height:.98;letter-spacing:-.04em;font-weight:700;margin-bottom:14px}
+.cover .sub{font-size:15pt;line-height:1.35;color:#a1a1a6;max-width:5.4in}
+.cover .flag{display:inline-block;margin-top:24px;border:1px solid #48484a;border-radius:999px;padding:8px 16px;font-size:9.5pt;font-weight:600;color:#f5f5f7}
+.bands{display:flex;flex-direction:column;gap:3px;position:absolute;left:0;right:0;bottom:0}
+.bands i{display:block;height:5px}
+.bands i:nth-child(1){background:var(--red)}.bands i:nth-child(2){background:var(--orange)}.bands i:nth-child(3){background:var(--yellow)}
+.bands i:nth-child(4){background:var(--sage)}.bands i:nth-child(5){background:var(--teal)}.bands i:nth-child(6){background:var(--deep)}
+
+/* Back page */
+.back{background:#000;color:#f5f5f7;display:flex;flex-direction:column;justify-content:center;padding:1in .9in}
+.back h2{font-size:40pt;color:#fff;margin-bottom:14px}
+.back .lede{color:#a1a1a6;font-size:14pt;max-width:5.6in}
+.back .who{display:grid;grid-template-columns:repeat(3,auto);gap:34px;margin:22px 0 40px;justify-content:start}
+.back .who span{display:block;font-size:8.5pt;color:#86868b;font-weight:600;margin-bottom:3px}
+.back .who b{font-size:14pt;font-weight:600;color:#fff}
+.back .tag{font-family:"Inter Display","Inter",sans-serif;font-size:20pt;font-weight:700;letter-spacing:-.02em;color:#fff}
+.back .logo{width:1.5in;margin-top:.6in}
+
+/* Contents */
+.toc{list-style:none;border-top:1px solid var(--line)}
+.toc li{display:grid;grid-template-columns:44px 1fr auto;gap:10px;padding:11px 0;border-bottom:1px solid #e8e8ed;align-items:baseline}
+.toc .n{font-family:"Inter Display","Inter",sans-serif;font-weight:700;font-size:14pt;color:var(--ink)}
+.toc .t{font-weight:600;font-size:11pt}
+.toc .s{color:var(--ink-2);font-size:9pt}
+
+/* Keypad sketch */
+.pad{background:#1d1d1f;border-radius:16px;padding:14px;color:#f5f5f7;display:flex;flex-direction:column;gap:10px;align-items:center}
+.pad .scr{background:#000;border-radius:8px;padding:8px 14px;font-family:"Inter Display","Inter",sans-serif;font-weight:700;font-size:20pt;letter-spacing:-.02em;min-width:110px;text-align:center}
+.pad .scr small{display:block;font-size:7pt;font-weight:500;color:#86868b;letter-spacing:0}
+.pad .keys{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pad .keys span{border:1px solid #48484a;border-radius:999px;padding:3px 9px;font-size:7.5pt;font-weight:600}

@@ -258,7 +258,7 @@ async function afterSigned(sale: any, c: any, pdfBytes: Uint8Array, method: "onl
     await sendEmail({
       from: FROM, to: c.email, reply_to: REPLY_TO, subject: "Welcome to AquaZen. Your Zen Time starts here.",
       html: emailShell({
-        preheader: "Your signed agreement is attached, with what to do before delivery.",
+        preheader: "Your signed agreement, pre-delivery guide and owner's manual are attached.",
         body: `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p>
 <p style="font-size:24px;font-weight:600;letter-spacing:-0.01em;margin:0 0 10px">Congratulations.</p>
 <p>You've just made room in your life for a place of peace at home. A place to slow down, recover and reconnect with yourself and the people you love, every single day. I'm really glad I got to help you find it, and you picked a great ${productNoun(sale)}.</p>
@@ -269,6 +269,8 @@ ${h("Getting your spot ready")}
 <p><b>A solid, level base.</b> A concrete pad, pavers on compacted gravel or a deck built for the weight. Level matters: it protects the shell and frame for the life of the tub.<br>
 <b>The right power.</b> A licensed electrician runs the dedicated circuit and disconnect your ${productNoun(sale)} needs. This keeps you safe and keeps your warranty intact.<br>
 <b>A clear path.</b> Measure gates, corners and steps from the street to the spot, and let me know about anything tight. We'll plan around it.</p>
+<p><b>Your pre-delivery guide (attached)</b> walks through each of these, with the power your model needs, the path size for your tub and a checklist. Please read it before we book your delivery. Twenty minutes now saves a rescheduled delivery later.</p>
+<p><b>Your owner's manual (attached)</b> is for after delivery: water care, filters and your control panel, so looking after your tub takes minutes a week.</p>
 <p style="color:${MUTED}">Not sure about any of it? Send me a photo of the spot and I'll tell you what I see. That's what I'm here for.</p>
 ${h("Your customer portal")}
 <p>Your own portal has your ${productNoun(sale)}'s details, your agreement and where things stand, from order to delivery day.</p>
@@ -281,6 +283,8 @@ ${payWhy(sale, payLink)}
       }),
       attachments: [
         { filename: `AquaZen Sales Agreement #${sale.number}.pdf`, content: toBase64(pdfBytes) },
+        { filename: "AquaZen Pre-Delivery Guide.pdf", path: `${SITE_URL}/assets/docs/aquazen-pre-delivery-guide.pdf` },
+        { filename: "AquaZen Owner's Manual.pdf", path: `${SITE_URL}/assets/docs/aquazen-owners-manual.pdf` },
       ],
     });
     await logEvent(sale.id, "welcome_sent", null, { to: c.email });
@@ -455,7 +459,7 @@ async function route_sale_progress(req: Request): Promise<Response> {
         html: emailShell({ preheader: "Your delivery day is booked. Here's how to get ready.", body:
           `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Your ${escapeHtml(productWhat(sale))} is booked for delivery on <b>${escapeHtml(day)}</b>. I'll confirm the time with you the day before.</p>
 ${h("Before we arrive")}
-<p>Please make sure the base is finished and level, the electrician has run the power and disconnect, and the path from the street is clear. That's what lets us set your ${productNoun(sale)} in place, fill it and get it heating the same day.</p>
+<p>Please make sure the base is finished and level, the electrician has run the power and disconnect, and the path from the street is clear. That's what lets us set your ${productNoun(sale)} in place, fill it and get it heating the same day. The checklist on page 7 of your <a href="${SITE_URL}/assets/docs/aquazen-pre-delivery-guide.pdf">pre-delivery guide</a> covers everything.</p>
 ${Number(sale.balance) > 0 && !sale.balance_paid_at ? `<p>Your balance of ${money(sale.balance)} is due before delivery, so delivery day is only about getting you soaking.</p>` : ""}
 <p style="color:${MUTED}">Need to change the day? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
       });
@@ -925,7 +929,7 @@ async function route_delivery_record(req: Request): Promise<Response> {
 ${h("Your warranty details are on file")}
 <p>Our delivery team recorded your serial number${("serial_number" in patch ? patch.serial_number : sale.serial_number) ? ` (<b>${escapeHtml(String("serial_number" in patch ? patch.serial_number : sale.serial_number))}</b>)` : ""} and took photos of your ${productNoun(sale)} in place. They're saved in your portal, so if you ever need warranty work you won't have to go looking for anything.</p>
 ${h("Everything in one place")}
-<p>Your portal has water care guides, answers to the questions new owners ask most, and a button to request service. A few minutes of care each week keeps your water clear and soft, so your time in the tub is just for relaxing.</p>
+<p>Your portal has water care guides, answers to the questions new owners ask most, and a button to request service. Your <a href="${SITE_URL}/assets/docs/aquazen-owners-manual.pdf">owner's manual</a> has the full routine and your control panel. A few minutes of care each week keeps your water clear and soft, so your time in the tub is just for relaxing.</p>
 ${button(link, "Open my portal")}
 <p style="color:${MUTED}">Anything at all, call or text me at 236-304-4424.</p><p>Shaun</p>` }),
       });
