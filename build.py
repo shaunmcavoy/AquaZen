@@ -565,10 +565,12 @@ def stamp_assets():
 
 
 SITE = "https://aquazen.ca"
+# Our delivery crew goes anywhere from Whistler to Hope.
+DELIVERY_AREA = ["Whistler", "Squamish", "West Vancouver", "North Vancouver", "Vancouver", "Burnaby", "New Westminster", "Richmond", "Delta", "Surrey", "White Rock", "Langley", "Coquitlam", "Port Coquitlam", "Port Moody", "Pitt Meadows", "Maple Ridge", "Mission", "Abbotsford", "Chilliwack", "Agassiz", "Harrison Hot Springs", "Hope"]
 STORE = {
     "@type": ["Store", "LocalBusiness"], "@id": SITE + "/#store",
     "name": "AquaZen", "legalName": "Aqua Zen Wellness Consulting",
-    "description": "AquaSolus hot tubs and swim spas in Burnaby, BC. The right equipment from day one, honest advice, and care for the life of your tub.",
+    "description": "AquaSolus hot tubs and swim spas in Burnaby, BC, delivered anywhere from Whistler to Hope. The right equipment from day one, honest advice, and care for the life of your tub.",
     "url": SITE + "/", "telephone": "+1-236-304-4424", "email": "shaun@aquazen.ca",
     "image": SITE + "/assets/img/og-aquazen.jpg", "logo": SITE + "/assets/img/icon-512.png",
     "address": {"@type": "PostalAddress", "streetAddress": "7049 Russell Ave", "addressLocality": "Burnaby",
@@ -576,6 +578,7 @@ STORE = {
     "founder": {"@type": "Person", "name": "Shaun McAvoy"},
     "brand": {"@type": "Brand", "name": "AquaSolus"},
     "slogan": "Your Zen is calling.",
+    "areaServed": [{"@type": "City", "name": c} for c in DELIVERY_AREA],
     "knowsAbout": ["hot tubs", "swim spas", "hot tub water care", "hot tub installation in BC"],
 }
 APP_DIRS = ("login", "staff", "sign", "portal")
@@ -689,7 +692,7 @@ def seo():
 def llms():
     """llms.txt: a plain summary of AquaZen for AI assistants (ChatGPT, Claude, Gemini, Perplexity) that read the site."""
     lines = ["# AquaZen", "",
-             "> AquaZen is a hot tub and swim spa store at 7049 Russell Ave, Burnaby, BC, Canada, serving the Lower Mainland. "
+             "> AquaZen is a hot tub and swim spa store at 7049 Russell Ave, Burnaby, BC, Canada. It delivers anywhere from Whistler to Hope: " + ", ".join(DELIVERY_AREA) + ". "
              "It sells AquaSolus hot tubs and swim spas, set up with the right equipment from day one, with honest advice "
              "and care for the life of the tub. Founder: Shaun McAvoy, over twenty years in the hot tub industry. "
              "Phone or text 236-304-4424, email shaun@aquazen.ca.", "",
