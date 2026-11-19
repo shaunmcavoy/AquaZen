@@ -54,7 +54,7 @@
   var GUIDE = '<article class="card guide" id="water-care"><p class="eyebrow teal">Water care</p><h2>Clear, soft water in a few minutes a week</h2>' +
     '<p class="muted">Your AquaSolus cleans the water for you all day: every drop runs through the filter and the double ozonator, ozone then UV, again and again. Your part is a quick check each week, so the water stays clear, soft and comfortable on your skin, and your time in the tub is just for relaxing.</p>' +
     '<div class="guide-cols">' +
-      '<div><h3>Every time you soak</h3><ul><li>Rinse off first. Lotions, makeup and deodorant are what cloud water fastest.</li><li>Put the cover back on and lock it. It keeps heat in, leaves and rain out, and little ones safe.</li></ul></div>' +
+      '<div><h3>Every time you soak</h3><ul><li>Rinse off first. Lotions, makeup and deodorant are what cloud water fastest.</li><li>Afterwards, add 1 teaspoon of chlorine granules with the jets running. Your double ozonator does the rest, so that\u2019s all the sanitizer you need.</li><li>Put the cover back on and lock it. It keeps heat in, leaves and rain out, and little ones safe.</li></ul></div>' +
       '<div><h3>Once a week</h3><ul><li>Test the water with a strip and adjust sanitizer and pH so they sit in the ranges on your test kit. Balanced water is gentle on skin and protects the equipment.</li><li>Rinse the filter. A clean filter lets the water move freely, which is what keeps it clear.</li><li>Wipe the waterline so nothing builds up.</li></ul></div>' +
       '<div><h3>Every month</h3><ul><li>Check calcium hardness. Our soft water needs a little help to stay gentle on the heater and jets.</li><li>Check the water level. Keep it above the highest jets.</li></ul></div>' +
       '<div><h3>Every few months</h3><ul><li>Drain and refill with fresh water, and give the filter a deep clean.</li><li>Clean and condition the cover so it stays light and keeps sealing well.</li></ul></div>' +
@@ -69,7 +69,7 @@
     ['The power went out, or the breaker tripped.', 'Reset the breaker or the GFCI at the disconnect. If it trips again right away, leave it off and send us a service request or call. That’s your tub telling us something needs a look. In cold weather, keep the cover on tight to hold the heat in.'],
     ['There’s a code on the control panel.', 'Write it down or take a photo, then send a service request with the code. Most codes are simple, like a low water level or a filter that needs a rinse, and the code tells us exactly where to look.'],
     ['How do I make a warranty claim?', 'Send a service request. Your serial number and delivery photos are already on file, so you don’t need to find anything. We’ll take it from there.'],
-    ['Can I use my own chemicals?', 'Hot tub chemicals only, never pool chemicals, and add one thing at a time with the jets running. If you’re not sure about a product, ask us first. It’s an easy way to protect your warranty.']
+    ['Can I use my own chemicals?', 'Hot tub chemicals only, never pool chemicals, and chlorine, not bromine. We don\u2019t recommend bromine in our tubs. Add one thing at a time with the jets running. If you’re not sure about a product, ask us first. It’s an easy way to protect your warranty.']
   ];
   var FAQ = '<article class="card faq" id="faq"><p class="eyebrow teal">Questions</p><h2>What new owners ask most</h2>' +
     FAQS.map(function (q) { return '<details><summary>' + q[0] + '</summary><p>' + q[1] + '</p></details>'; }).join('') +

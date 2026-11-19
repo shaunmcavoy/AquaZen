@@ -267,7 +267,7 @@ ${sale.delivery_window ? `${h("Your delivery window")}<p><b>${escapeHtml(windowL
 ${h("Getting your spot ready")}
 <p>A smooth delivery day comes down to three things, and it's worth sorting them out now:</p>
 <p><b>A solid, level base.</b> A concrete pad, pavers on compacted gravel or a deck built for the weight. Level matters: it protects the shell and frame for the life of the tub.<br>
-<b>The right power.</b> A licensed electrician runs the dedicated circuit and disconnect your ${productNoun(sale)} needs. This keeps you safe and keeps your warranty intact.<br>
+<b>The right power.</b> Your ${productNoun(sale)} needs its own dedicated circuit and disconnect, put in by a licensed electrician. Our electrical partner, Gerry Jansen, knows our tubs better than anybody: call or text him at 778-229-2560. It can be wired before or after delivery, and I recommend after, so he only has to come once.<br>
 <b>A clear path.</b> Measure gates, corners and steps from the street to the spot, and let me know about anything tight. We'll plan around it.</p>
 <p><b>Your pre-delivery guide (attached)</b> walks through each of these, with the power your model needs, the path size for your tub and a checklist. Please read it before we book your delivery. Twenty minutes now saves a rescheduled delivery later.</p>
 <p><b>Your owner's manual (attached)</b> is for after delivery: water care, filters and your control panel, so looking after your tub takes minutes a week.</p>
@@ -459,7 +459,7 @@ async function route_sale_progress(req: Request): Promise<Response> {
         html: emailShell({ preheader: "Your delivery day is booked. Here's how to get ready.", body:
           `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Your ${escapeHtml(productWhat(sale))} is booked for delivery on <b>${escapeHtml(day)}</b>. I'll confirm the time with you the day before.</p>
 ${h("Before we arrive")}
-<p>Please make sure the base is finished and level, the electrician has run the power and disconnect, and the path from the street is clear. That's what lets us set your ${productNoun(sale)} in place, fill it and get it heating the same day. The checklist on page 7 of your <a href="${SITE_URL}/assets/docs/aquazen-pre-delivery-guide.pdf">pre-delivery guide</a> covers everything.</p>
+<p>Please make sure the base is finished and level and the path from the street is clear. That's what lets us set your ${productNoun(sale)} in place without a hitch. If it's already wired, we'll fill it and get it heating the same day. If Gerry is wiring it after delivery, it gets filled once he's connected it. The checklist on page 7 of your <a href="${SITE_URL}/assets/docs/aquazen-pre-delivery-guide.pdf">pre-delivery guide</a> covers everything.</p>
 ${Number(sale.balance) > 0 && !sale.balance_paid_at ? `<p>Your balance of ${money(sale.balance)} is due before delivery, so delivery day is only about getting you soaking.</p>` : ""}
 <p style="color:${MUTED}">Need to change the day? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
       });
