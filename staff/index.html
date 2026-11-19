@@ -24,7 +24,7 @@
       <a href="#new" data-tab="new">New sale</a>
       <a href="#deliveries" data-tab="deliveries">Deliveries</a>
       <a href="#service" data-tab="service">Service</a>
-      <a href="#resources" data-tab="resources">Resources</a>
+      <a href="#resources" data-tab="resources">Documents</a>
       <a href="#money" data-tab="money" class="admin-only" hidden>Financials</a>
       <a href="#products" data-tab="products" class="admin-only" hidden>Products</a>
       <a href="#team" data-tab="team" class="admin-only" hidden>Team</a>
@@ -370,10 +370,16 @@
       <div id="svcList"><div class="card"><p>Loading...</p></div></div>
     </div>
 
-    <!-- Resources -->
+    <!-- Documents (route #resources) -->
     <div id="view-resources" class="view" hidden>
-      <p class="muted small">The guides every customer gets. They're attached to the congratulations email automatically when a deal is signed, and they're in every customer's portal. Download a copy to print, text or email whenever it helps.</p>
+      <p class="muted small">Our sales book and the guides every customer gets. The guides are attached to the congratulations email automatically when a deal is signed, and they're in every customer's portal. Download a copy to print, text or email whenever it helps.</p>
       <div class="resgrid">
+        <article class="card res">
+          <img src="/assets/img/aquazen-zenith-quarter.webp" alt="" width="640" height="427" loading="lazy">
+          <h2>The AquaSolus Book</h2>
+          <p class="muted">Who we are, why AquaSolus, and every series and model. Landscape, made for showing on a tablet or printing for a visit.</p>
+          <div class="formactions"><a class="btn btn-gold" href="/assets/docs/aquazen-aquasolus-book.pdf" download="AquaSolus by AquaZen.pdf">Download</a><a class="btn btn-line" href="/assets/docs/aquazen-aquasolus-book.pdf" target="_blank" rel="noopener">Open</a></div>
+        </article>
         <article class="card res">
           <img src="/assets/img/aquazen-aspen-lifestyle.webp" alt="" width="640" height="427" loading="lazy">
           <h2>Pre-Delivery Guide</h2>
@@ -385,12 +391,6 @@
           <h2>Owner&rsquo;s Manual</h2>
           <p class="muted">Water care, filters, control panels and safe soaking. For new owners after delivery, or anyone asking how easy care really is.</p>
           <div class="formactions"><a class="btn btn-gold" href="/assets/docs/aquazen-owners-manual.pdf" download="AquaZen Owner's Manual.pdf">Download</a><a class="btn btn-line" href="/assets/docs/aquazen-owners-manual.pdf" target="_blank" rel="noopener">Open</a></div>
-        </article>
-        <article class="card res">
-          <img src="/assets/img/aquazen-zenith-quarter.webp" alt="" width="640" height="427" loading="lazy">
-          <h2>The AquaSolus Book</h2>
-          <p class="muted">Who we are, why AquaSolus, and every series and model. Landscape, made for showing on a tablet or printing for a visit.</p>
-          <div class="formactions"><a class="btn btn-gold" href="/assets/docs/aquazen-aquasolus-book.pdf" download="AquaSolus by AquaZen.pdf">Download</a><a class="btn btn-line" href="/assets/docs/aquazen-aquasolus-book.pdf" target="_blank" rel="noopener">Open</a></div>
         </article>
       </div>
     </div>
@@ -491,6 +491,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js?v=3785e80d"></script>
-<script src="/assets/js/staff.js?v=5423317e"></script>
+<script src="/assets/js/staff.js?v=af948a50"></script>
 </body>
 </html>
