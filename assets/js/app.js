@@ -97,7 +97,7 @@
   };
 
   AZ.STATUS = {
-    draft: ['Draft', 'grey'], awaiting_customer: ['Waiting for customer', 'amber'], signed: ['Signed', 'teal'],
+    draft: ['Draft', 'grey'], awaiting_customer: ['Waiting for customer', 'amber'], signed: ['Signed, payment to come', 'amber'],
     deposit_paid: ['Deposit received', 'teal'], delivery_scheduled: ['Delivery booked', 'gold'], delivered: ['Delivered', 'green'], cancelled: ['Cancelled', 'grey']
   };
   AZ.pill = function (st) { var s = AZ.STATUS[st] || [st, 'grey']; return '<span class="pill pill-' + s[1] + '">' + AZ.esc(s[0]) + '</span>'; };

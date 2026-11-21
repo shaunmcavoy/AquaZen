@@ -837,7 +837,7 @@
       if (!st.connected) { body.innerHTML = banner + '<button class="btn btn-gold" type="button" id="qbConnect">Connect QuickBooks</button><p class="muted small">You\'ll sign in to the AquaZen QuickBooks and approve the connection once.</p>'; $('#qbConnect').onclick = function () { AZ.api('qb-connect', {}).then(function (r) { location.href = r.url; }).catch(function (e) { AZ.toast(e.message); }); }; return; }
       var L = st.lists || { items: [], taxCodes: [] };
       var opt = function (arr, sel) { return '<option value="">Choose...</option>' + arr.map(function (x) { return '<option value="' + AZ.esc(x.id) + '"' + (x.id === sel ? ' selected' : '') + '>' + AZ.esc(x.name) + (x.type ? ' (' + AZ.esc(x.type) + ')' : '') + '</option>'; }).join(''); };
-      body.innerHTML = banner + '<p>' + AZ.pill('signed').replace('Signed', 'Connected') + ' ' + AZ.esc(st.company || 'QuickBooks company') + '</p>' +
+      body.innerHTML = banner + '<p>' + '<span class="pill pill-teal">Connected</span>' + ' ' + AZ.esc(st.company || 'QuickBooks company') + '</p>' +
         (st.list_error ? '<p class="note">' + AZ.esc(st.list_error) + '</p>' : '') +
         '<form id="qbForm" class="form grid2"><label>Product or service for website invoices<select name="item">' + opt(L.items, st.item_id) + '</select></label>' +
         '<label>Tax code<select name="tax">' + opt(L.taxCodes, st.tax_code_id) + '</select></label>' +

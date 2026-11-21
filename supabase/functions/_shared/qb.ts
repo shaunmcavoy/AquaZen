@@ -167,7 +167,7 @@ export async function createDepositInvoice(sale: any, customer: any) {
     CustomerMemo: { value: p.full
       ? `Thank you for choosing AquaZen. This payment completes your order for your ${what}. Questions? Call or text Shaun at 236-304-4424.`
       : `Thank you for choosing AquaZen. This deposit confirms your order for your ${what}. Questions? Call or text Shaun at 236-304-4424.` },
-    PrivateNote: `Website sale #${sale.number} (${p.full ? "paid in full" : "deposit"}, ${sale.pay_methods ?? "both"})`,
+    PrivateNote: `Website sale #${sale.number} (terms: ${p.full ? "pay in full" : "deposit"}, ${sale.pay_methods ?? "both"}; not paid until this invoice shows a payment)`,
   })).Invoice;
   let link: string | null = null;
   try { link = (await qbGet(`/invoice/${inv.Id}?include=invoiceLink`)).Invoice?.InvoiceLink ?? null; } catch (e) { console.error("invoice link", e); }

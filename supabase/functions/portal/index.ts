@@ -305,7 +305,8 @@ ${payWhy(sale, payLink)}
     if (to.length) await sendEmail({
       from: FROM, to, subject: `Signed: agreement #${sale.number}, ${c.name}`,
       html: emailShell({ preheader: `${c.name} signed agreement #${sale.number}.`, body:
-        `<p>${escapeHtml(c.name)} ${method === "paper" ? "signed on paper:" : "just signed"} agreement #${sale.number} for the ${escapeHtml(what)}. Total ${money(sale.total)}, ${pt.full ? "paid in full" : `deposit ${money(sale.deposit)}`}, ${pt.how}.</p>
+        `<p>${escapeHtml(c.name)} ${method === "paper" ? "signed on paper:" : "just signed"} agreement #${sale.number} for the ${escapeHtml(what)}. Total ${money(sale.total)}. They agreed to pay ${pt.full ? "in full" : `a deposit of ${money(sale.deposit)}`} ${pt.how}.</p>
+${Number(sale.deposit) > 0 ? `<p><b>Payment isn't in yet.</b> You'll get a separate "${pt.full ? "Paid in full" : "Deposit paid"}" email once QuickBooks has the money. Until then, don't order from the manufacturer. If a large card payment is declined, the customer calls their card company to approve it and uses the same pay link again.</p>` : ""}
 <p>Delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window) || "not chosen")}</b>.</p><p>They've been sent their signed copy, how to get their spot ready and a link to their portal.</p>
 ${Number(sale.deposit) > 0 && !payLink ? `<p style="background:#fff4e5;border-radius:10px;padding:12px 14px"><b>No pay link went to the customer.</b> ${escapeHtml(invoiceProblem || "The invoice couldn't be created.")} Once that's sorted, open the sale and tap "Create invoice and email pay link".</p>` : ""}${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }),
       attachments: [{ filename: `Agreement #${sale.number}.pdf`, content: toBase64(pdfBytes) }],
