@@ -86,6 +86,14 @@
   ];
 
   var answers = {};
+  // Came from How we deliver Zen with a choice of what they want most? Tick it on the Zen Time question.
+  (function () {
+    try {
+      var use = new URLSearchParams(location.search).get('use');
+      var ok = STEPS.filter(function (s) { return s.id === 'use'; })[0].options.some(function (o) { return o.v === use; });
+      if (ok) answers.use = [use];
+    } catch (e) {}
+  })();
   // Came from a model page? Remember which tub caught their eye.
   var fromModel = (function () { try { return (new URLSearchParams(location.search).get('model') || '').replace(/[^a-z-]/g, '').slice(0, 30); } catch (e) { return ''; } })();
   var others = {};
