@@ -204,5 +204,5 @@ export async function createBalanceInvoice(sale: any, customer: any) {
 
 export async function invoiceBalance(id: string) {
   const inv = (await qbGet(`/invoice/${id}`)).Invoice;
-  return { balance: Number(inv.Balance), total: Number(inv.TotalAmt) };
+  return { balance: Number(inv.Balance), total: Number(inv.TotalAmt), viewed: inv.EInvoiceStatus === "Viewed" };
 }

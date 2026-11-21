@@ -777,6 +777,44 @@ ${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(s
   return jsonAuth(req, { ok: true, link: r.link });
 }
 
+// QuickBooks never tells us a card was declined, but it does tell us the customer opened the pay page.
+// Opened and still unpaid an hour later almost always means declined (large purchases often are) or abandoned.
+// So, once per invoice, we send the customer a gentle note on how to fix it, and tell the salesperson and admins.
+// Customers whose payment goes through never see any of this.
+const NUDGE_AFTER_MS = 60 * 60 * 1000;
+// deno-lint-ignore no-explicit-any
+async function nudgeIfStuck(sale: any, invoiceId: string, link: string | null, amount: number, noun: string) {
+  const db = admin();
+  const { data: evs } = await db.from("sale_events").select("kind, at").eq("sale_id", sale.id)
+    .in("kind", ["pay_page_viewed", "payment_nudge_sent"]).eq("detail->>invoice", invoiceId);
+  if ((evs ?? []).some((e) => e.kind === "payment_nudge_sent")) return;
+  const seen = (evs ?? []).find((e) => e.kind === "pay_page_viewed");
+  if (!seen) { await logEvent(sale.id, "pay_page_viewed", null, { invoice: invoiceId }); return; }
+  if (Date.now() - new Date(seen.at).getTime() < NUDGE_AFTER_MS || !link) return;
+  await logEvent(sale.id, "payment_nudge_sent", null, { invoice: invoiceId });
+  const c = sale.customers;
+  try {
+    await sendEmail({
+      from: FROM, to: c.email, reply_to: REPLY_TO, subject: `A quick note about your ${noun} for agreement #${sale.number}`,
+      html: emailShell({ preheader: `Your ${money(amount)} ${noun} hasn't come through yet. Here's the easy fix.`, body:
+        `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p>
+<p>It looks like your ${noun} of ${money(amount)} hasn't come through yet.</p>
+<p>If your card was declined, that's very common with a purchase this size. Card companies often hold a larger payment than usual to protect you from fraud. A quick call to the number on the back of your card to approve it sorts it out, and then you can pay with the same button below.</p>
+${button(link, `Pay my ${noun}`)}
+<p style="color:${MUTED}">If you just haven't got to it yet, no worries at all. The button is ready whenever you are. Questions? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
+    });
+  } catch (e) { console.error("nudge customer", sale.number, e); }
+  try {
+    const { data: rep } = await db.from("profiles").select("email").eq("id", sale.salesperson_id ?? "").maybeSingle();
+    const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
+    const to = [...new Set([rep?.email, ...(admins ?? []).map((a) => a.email)].filter(Boolean))] as string[];
+    if (to.length) await sendEmail({ from: FROM, to, subject: `Payment not in yet: agreement #${sale.number}, ${c.name}`,
+      html: emailShell({ preheader: `${c.name} opened the pay page over an hour ago but hasn't paid.`, body:
+        `<p>${escapeHtml(c.name)} opened the pay page for their ${money(amount)} ${noun} on agreement #${sale.number} over an hour ago, but QuickBooks hasn't received it. Their card may have been declined, which is common on a purchase this size.</p>
+<p>We've sent them a friendly note: call their card company to approve it, then use the same pay button. A quick call from you usually helps too.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+  } catch (e) { console.error("nudge staff", sale.number, e); }
+}
+
 // Scheduled: checks open deposit invoices and marks paid ones.
 async function route_qb_sync(req: Request): Promise<Response> {
   const db = admin();
@@ -788,8 +826,8 @@ async function route_qb_sync(req: Request): Promise<Response> {
   const paid = [];
   for (const sale of open ?? []) {
     try {
-      const { balance } = await invoiceBalance(sale.qb_deposit_invoice_id);
-      if (balance > 0) continue;
+      const { balance, viewed } = await invoiceBalance(sale.qb_deposit_invoice_id);
+      if (balance > 0) { if (viewed) await nudgeIfStuck(sale, sale.qb_deposit_invoice_id, sale.qb_invoice_link, Number(sale.deposit), payTerms(sale).noun); continue; }
       const now = new Date().toISOString();
       await db.from("sales").update({ status: "deposit_paid", deposit_paid_at: now }).eq("id", sale.id).eq("status", "signed");
       await logEvent(sale.id, "deposit_paid", null, { invoice: sale.qb_deposit_invoice_id });
@@ -820,8 +858,8 @@ ${button(portal, "Open my portal")}
   const balances = [];
   for (const sale of owing ?? []) {
     try {
-      const { balance } = await invoiceBalance(sale.qb_balance_invoice_id);
-      if (balance > 0) continue;
+      const { balance, viewed } = await invoiceBalance(sale.qb_balance_invoice_id);
+      if (balance > 0) { if (viewed) await nudgeIfStuck(sale, sale.qb_balance_invoice_id, sale.qb_balance_link, Number(sale.balance), "balance"); continue; }
       await db.from("sales").update({ balance_paid_at: new Date().toISOString() }).eq("id", sale.id).is("balance_paid_at", null);
       await logEvent(sale.id, "balance_paid", null, { invoice: sale.qb_balance_invoice_id });
       balances.push(sale.number);
