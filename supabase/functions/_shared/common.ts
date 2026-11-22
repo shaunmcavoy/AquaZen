@@ -56,8 +56,8 @@ export function emailShell(opts: { preheader: string; body: string; unsubscribeU
 <span style="display:none;max-height:0;overflow:hidden">${escapeHtml(opts.preheader)}</span>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden">
-<tr><td style="background:#000000;padding:22px 28px">
-<img src="${SITE_URL}/assets/img/logo-word.png" width="124" height="36" alt="AquaZen" style="display:block">
+<tr><td style="background:#ffffff;padding:24px 28px 18px;border-bottom:1px solid #e8e8ed">
+<img src="${SITE_URL}/assets/img/logo-dark-email.png" width="140" height="85" alt="AquaZen" style="display:block;border:0">
 </td></tr>
 <tr><td style="padding:30px 28px;font-size:16px;line-height:1.6">${opts.body}</td></tr>
 <tr><td style="padding:18px 28px;background:#f5f5f7;font-size:12px;line-height:1.5;color:#6e6e73">

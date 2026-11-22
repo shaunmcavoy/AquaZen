@@ -37,14 +37,35 @@ async function sendEmail(key: string, msg: Record<string, unknown>) {
   return r.ok;
 }
 
+// Hot tubs Find your Zen may show; the browser sends their slugs and we only trust these.
+const TUBS: Record<string, [string, string, string]> = {
+  brook: ["Brook", "series-one", "Series One"], zephyr: ["Zephyr", "series-one", "Series One"],
+  cypress: ["Cypress", "series-one", "Series One"], cove: ["Cove", "series-one", "Series One"],
+  sierra: ["Sierra", "series-two", "Series Two"], harmony: ["Harmony", "series-two", "Series Two"],
+  eden: ["Eden", "series-two", "Series Two"], aspen: ["Aspen", "series-two", "Series Two"],
+  calma: ["Calma", "series-two", "Series Two"], cascade: ["Cascade", "series-three", "Series Three"],
+  serenity: ["Serenity", "series-three", "Series Three"], zenith: ["Zenith", "series-three", "Series Three"],
+  solstice: ["Solstice", "series-three", "Series Three"],
+};
+
+function pickCard(slug: string, label: string) {
+  const [name, series, seriesName] = TUBS[slug];
+  const url = `${SITE}/hot-tubs/${series}/${slug}/`;
+  return `<td width="50%" valign="top" style="padding:0 6px">
+<a href="${url}" style="text-decoration:none;color:#1d1d1f"><img src="${SITE}/assets/img/email/${slug}.jpg" alt="The ${name}" width="230" style="display:block;width:100%;max-width:230px;height:auto;border-radius:12px;background:#f5f5f7">
+<p style="margin:10px 0 2px;font-size:12px;font-weight:600;color:#347c6e">${label}</p>
+<p style="margin:0;font-size:18px;font-weight:700">The ${name}</p>
+<p style="margin:2px 0 0;font-size:13px;color:#6e6e73">${seriesName}</p></a></td>`;
+}
+
 function shell(inner: string) {
   return `<!doctype html><html><body style="margin:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1d1d1f">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:18px">
-<tr><td style="background:#000;border-radius:18px 18px 0 0;padding:28px 32px"><img src="${SITE}/assets/img/logo-full.png" alt="AquaZen" width="120" style="display:block"></td></tr>
+<tr><td style="background:#ffffff;border-radius:18px 18px 0 0;padding:28px 32px 20px;border-bottom:1px solid #e8e8ed"><img src="${SITE}/assets/img/logo-dark-email.png" alt="AquaZen" width="150" height="91" style="display:block;border:0"></td></tr>
 <tr><td style="padding:32px;font-size:16px;line-height:1.55">${inner}</td></tr>
 </table>
-<p style="font-size:12px;color:#86868b;margin:20px 0 0">Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC.</p>
+<p style="font-size:12px;color:#86868b;margin:20px 0 0">Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC V5J 4R8.</p>
 </td></tr></table></body></html>`;
 }
 
@@ -126,9 +147,16 @@ ${rec ? `<div style="margin:24px 0;padding:16px 18px;background:#eef6f2;border-r
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:15px">${rows}</table>
 <p style="margin:20px 0 0;font-size:13px;color:#6e6e73">Emails about their search: ${b.email_ok ? "yes" : "no"}. AquaZen notes: ${b.newsletter ? "yes" : "no"}.</p>`);
 
+  const pk = Array.isArray(b.picks) ? (b.picks as unknown[]).map((x) => String(x)).filter((x) => x in TUBS).slice(0, 2) : [];
+  const picksHtml = pk.length === 2 ? `
+<p style="margin:0 0 12px">From your answers, these are the two I'd love you to sit in:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px"><tr>${pickCard(pk[0], "Your best fit")}${pickCard(pk[1], TUBS[pk[0]][1] === "series-three" ? "Also worth sitting in" : "One series up")}</tr></table>
+<p style="margin:0 0 14px">Specs only go so far. How the massage feels is something you notice in the first minute, and at your visit I'll show you the one detail that decides how little time you'll spend on your water.</p>` : "";
+
   const customer = shell(`
 <h1 style="font-size:24px;margin:0 0 16px">Thank you, ${esc(first)}.</h1>
 <p style="margin:0 0 14px">I've got your answers, and I'll call you${bestTime && bestTime !== "Any time" ? ` in the ${esc(bestTime.toLowerCase())}` : ""} to book a quiet visit to the showroom.</p>
+${picksHtml}
 <p style="margin:0 0 14px">Here's why I start with questions instead of a sales pitch. People don't really want a hot tub. They want a place of peace: twenty minutes a night where the phones stay inside and you can actually breathe and talk to the people you love. The right tub is the one that fits how you'll use it, not the biggest one on the floor.</p>
 <p style="margin:0 0 14px">So I read every answer myself. When we talk, I'll tell you honestly what I'd choose for your family, even if it's the smaller tub. I'd rather you love it for years than overspend.</p>
 <p style="margin:0 0 24px">Can't wait for my call? Call or text me any time at <a href="tel:+12363044424" style="color:#347c6e">${PHONE}</a>, or just reply to this email.</p>

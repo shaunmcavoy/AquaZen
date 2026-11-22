@@ -1,5 +1,7 @@
 /* Find your Zen: AquaZen's intake questionnaire.
-   Recommendations are worked out here but only sent to Shaun, never shown to the customer. */
+   When they send their answers, the thank-you screen shows two hot tubs: the best fit for their answers
+   (Series Two by default, Series One only for "keep it simple" on a regular outlet, Series Three for
+   "the best of everything") and the same layout one series up, with why. Shaun also gets his own note. */
 (function () {
   var ENDPOINT = 'https://zfqzajshbjfmflbttabq.supabase.co/functions/v1/lead';
 
@@ -230,20 +232,100 @@
     window.scrollTo({ top: 0 });
   }
 
-  // Shaun's private suggestion, never shown to the customer
+  // The hot tubs we can recommend. Keep in step with src/tubs.json.
+  var SERIES = {
+    one: { slug: 'series-one', name: 'Series One' },
+    two: { slug: 'series-two', name: 'Series Two' },
+    three: { slug: 'series-three', name: 'Series Three' }
+  };
+  var TUBS = {
+    brook: { s: 'one', name: 'Brook', people: 4, jets: 23, layout: 'four seats' },
+    zephyr: { s: 'one', name: 'Zephyr', people: 5, jets: 25, layout: 'two loungers and three seats' },
+    cypress: { s: 'one', name: 'Cypress', people: 6, jets: 26, layout: 'a lounger and five seats' },
+    cove: { s: 'one', name: 'Cove', people: 7, jets: 27, layout: 'seven upright seats' },
+    sierra: { s: 'two', name: 'Sierra', people: 3, jets: 40, layout: 'two loungers and a seat' },
+    harmony: { s: 'two', name: 'Harmony', people: 5, jets: 42, layout: 'two loungers and three seats' },
+    eden: { s: 'two', name: 'Eden', people: 6, jets: 42, layout: 'a lounger and five seats' },
+    aspen: { s: 'two', name: 'Aspen', people: 6, jets: 48, layout: 'a lounger and five seats' },
+    calma: { s: 'two', name: 'Calma', people: 7, jets: 38, layout: 'seven upright seats' },
+    cascade: { s: 'three', name: 'Cascade', people: 5, jets: 45, layout: 'two full-length loungers and three seats' },
+    serenity: { s: 'three', name: 'Serenity', people: 6, jets: 49, layout: 'a full-length lounger and five seats' },
+    zenith: { s: 'three', name: 'Zenith', people: 7, jets: 61, layout: 'a lounger and six seats' },
+    solstice: { s: 'three', name: 'Solstice', people: 7, jets: 41, layout: 'seven upright seats' }
+  };
+  // The same layout, one series up. Series Three points to the other one worth sitting in.
+  var UP = { brook: 'eden', zephyr: 'harmony', cypress: 'eden', cove: 'calma',
+    sierra: 'cascade', harmony: 'cascade', eden: 'serenity', aspen: 'serenity', calma: 'solstice',
+    cascade: 'serenity', serenity: 'zenith', zenith: 'serenity', solstice: 'zenith' };
+
+  function has(a, k, v) { return (a[k] || []).indexOf(v) > -1; }
+
+  // Which hot tub fits their answers best, and the step up from it.
+  function picks(a) {
+    if (a.kind === 'swim_spa' || a.kind === 'mini_pool') return null;
+    var series = a.tier === 'best' ? 'three' : (a.tier === 'good' && a.power === 'outlet') ? 'one' : 'two';
+    var p = a.people, seat = a.seat || 'unsure', small = p === '1' || p === '2', big = p === '5+';
+    var fit;
+    if (series === 'one') {
+      fit = small ? (seat === 'seats' ? 'brook' : 'zephyr') : big ? (seat === 'seats' ? 'cove' : 'cypress') : (seat === 'lounger' ? 'zephyr' : 'cypress');
+    } else if (series === 'two') {
+      if (small) fit = seat === 'seats' ? 'harmony' : 'sierra';
+      else if (big) fit = seat === 'seats' ? 'calma' : 'aspen';
+      else fit = has(a, 'use', 'recovery') ? 'aspen' : seat === 'lounger' ? 'harmony' : 'eden';
+    } else {
+      if (small) fit = 'cascade';
+      else if (big) fit = seat === 'seats' ? 'solstice' : 'zenith';
+      else fit = seat === 'lounger' ? 'cascade' : 'serenity';
+    }
+    return { fit: fit, up: UP[fit] };
+  }
+
+  function whoFor(a) {
+    return { '1': 'you', '2': 'the two of you', '3-4': 'your family', '5+': 'everyone' }[a.people] || 'everyone';
+  }
+
+  // Why this one, in their own words back to them.
+  function whyFit(a, k) {
+    var t = TUBS[k], r = [];
+    r.push('Room for ' + t.people + ', so there\'s space for ' + whoFor(a) + ' on a normal night');
+    if (a.seat === 'lounger') r.push(t.layout + ', so you can stretch right out');
+    else if (a.seat === 'seats') r.push(t.layout + ', so everyone faces each other and talks');
+    else r.push(t.layout);
+    if (has(a, 'use', 'recovery')) r.push(t.jets + ' jets for sore muscles at the end of the day');
+    if (t.s === 'two') r.push('two pumps on a dedicated 60 amp line, so the heater and jets run at full power together, even on a cold night');
+    if (t.s === 'three') r.push('programmable massage and real-time water monitoring, because you told us you want the best of everything');
+    if (t.s === 'one') r.push('it runs on a standard outlet, the simplest way to start');
+    return r;
+  }
+
+  function whyUp(fitKey, upKey) {
+    var f = TUBS[fitKey], u = TUBS[upKey];
+    if (f.s === 'one') return 'The same idea in Series Two. Two pumps on a dedicated 60 amp line mean the heater and jets never take turns, so it\'s ready every night, all winter. It\'s the series we recommend most.';
+    if (f.s === 'two') return 'The same layout in Series Three, with ' + u.jets + ' jets. It adds a programmable massage that runs the sequence you choose, and water monitoring that watches your water for you. If you\'ll be in it most nights, it\'s worth sitting in both.';
+    return 'Our other Series Three favourite for answers like yours: ' + u.layout + ' and ' + u.jets + ' jets. Sit in both and you\'ll know.';
+  }
+
+  function card(k, label, reasons) {
+    var t = TUBS[k], se = SERIES[t.s], url = '../hot-tubs/' + se.slug + '/' + k + '/';
+    var list = Array.isArray(reasons) ? '<ul>' + reasons.map(function (x) { return '<li>' + esc(x.charAt(0).toUpperCase() + x.slice(1)) + '.</li>'; }).join('') + '</ul>' : '<p>' + esc(reasons) + '</p>';
+    return '<article class="fz-pick">' +
+      '<a class="fz-pick-img" href="' + url + '"><img src="../assets/img/models/' + k + '-quarter.webp" alt="The AquaSolus ' + esc(t.name) + '" loading="lazy"></a>' +
+      '<div class="fz-pick-body"><p class="fz-pick-label">' + esc(label) + '</p>' +
+      '<h2>The ' + esc(t.name) + ' <span>' + esc(se.name) + '</span></h2>' + list +
+      '<a class="link-btn" href="' + url + '">See the ' + esc(t.name) + '</a></div></article>';
+  }
+
+  // Shaun's own note, with what the customer was shown
   function recommend(a) {
     if (a.kind === 'swim_spa') return 'Swim spa. Talk through swimming vs. exercise use and space.';
     if (a.kind === 'mini_pool') return 'Mini pool. Check space for a 6 m footprint and base.';
-    var big = a.people === '5+' || a.people === '3-4';
     var parts = [];
-    if (a.tier === 'best') parts.push('Series Three (Serenity, Cascade, Solstice, Zenith) for the full EcoPure water system');
-    else if (big) parts.push('Series Two (Calma seats 7, Aspen and Eden seat 6)');
-    else if (a.power === 'outlet' || a.power === 'none') parts.push('Series One (Brook 4 seats, Zephyr 5) with 120V plug-and-play options');
-    else parts.push('Series One or Two depending on budget');
     if (a.seat === 'lounger') parts.push('wants a lounger');
     if (a.seat === 'seats') parts.push('wants all seats');
     if (a.power === 'existing' && a.line) parts.push(a.line === 'other' ? 'existing line: ' + (a.line_other || 'other size') : a.line === 'unsure' ? 'existing line, size unknown' : 'existing ' + a.line + ' amp line');
     if (a.kind === 'unsure') parts.push('unsure of product type, start with a conversation');
+    var pk = picks(a);
+    if (pk) parts.unshift('Shown on screen: ' + TUBS[pk.fit].name + ' (best fit, ' + SERIES[TUBS[pk.fit].s].name + ') and ' + TUBS[pk.up].name + ' (' + (TUBS[pk.fit].s === 'three' ? 'also worth sitting in' : 'one series up') + ')');
     return parts.join('; ') + '.';
   }
 
@@ -277,11 +359,11 @@
       first_name: contact.first.trim(), last_name: contact.last.trim(), email: contact.email.trim(),
       phone: contact.phone.trim(), city: contact.city.trim(), best_time: contact.time,
       email_ok: contact.emailOk, newsletter: contact.news, website: contact.website,
-      answers: a, readable: readable, recommendation: recommend(a)
+      answers: a, readable: readable, recommendation: recommend(a), picks: (function () { var pk = picks(a); return pk ? [pk.fit, pk.up] : []; })()
     };
     fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'send failed'); return j; }); })
-      .then(function () { done(); })
+      .then(function () { done(a); })
       .catch(function () {
         sending = false;
         next.disabled = false;
@@ -290,16 +372,28 @@
       });
   }
 
-  function done() {
+  function done(a) {
     bar.style.width = '100%';
     var when = contact.time && contact.time !== 'Any time' ? ' in the ' + contact.time.toLowerCase() : '';
-    form.innerHTML = '<div class="fz-done">' +
+    var first = esc(contact.first.trim());
+    var pk = picks(a || {});
+    var h = '<div class="fz-done">' +
       '<img src="../assets/img/logo-mark.png" alt="" width="160" height="67">' +
-      '<h1 class="fz-title sunset" tabindex="-1">Thank you, ' + esc(contact.first.trim()) + '.</h1>' +
-      '<p class="fz-sub">We have your answers. We\'ll find the perfect model for you and call you' + when + ' to book a quiet visit, because the right tub starts with how you want to live, not with what is on the floor.</p>' +
-      '<p class="fz-sub">Can\'t wait? Call or text <a href="tel:+12363044424">236-304-4424</a>.</p>' +
-      '<p class="fz-sub">While you wait, have a look around. Every AquaSolus hot tub, with the details that matter.</p>' +
-      '<div class="fz-done-ctas"><a class="pill" href="../hot-tubs/">Browse our hot tubs</a><a class="link-btn" href="../">Back to AquaZen</a></div></div>';
+      '<h1 class="fz-title sunset" tabindex="-1">Thank you, ' + first + '.</h1>';
+    if (pk) {
+      var three = TUBS[pk.fit].s === 'three';
+      h += '<p class="fz-sub">Here\'s where your answers point. Two hot tubs we\'d love you to sit in, because the right tub starts with how you want to live, not with what is on the floor.</p>' +
+        '<div class="fz-picks">' + card(pk.fit, 'Your best fit', whyFit(a, pk.fit)) + card(pk.up, three ? 'Also worth sitting in' : 'One series up', whyUp(pk.fit, pk.up)) + '</div>' +
+        '<div class="fz-curious"><h2>What a screen can\'t tell you</h2>' +
+        '<p>Specs only go so far. How the massage feels in the ' + esc(TUBS[pk.fit].name) + ' compared with the ' + esc(TUBS[pk.up].name) + ' is something you notice in the first minute, and it\'s different for everyone. At a quiet visit we\'ll show you the one detail that decides how little time you\'ll spend on your water, and we\'ll tell you honestly what we\'d leave off, so you only pay for what you\'ll use.</p>' +
+        '<p>We\'ll call you' + when + ' to book it. Can\'t wait? Call or text <a href="tel:+12363044424">236-304-4424</a>.</p></div>';
+    } else {
+      h += '<p class="fz-sub">We have your answers. We\'ll find the perfect fit for you and call you' + when + ' to book a quiet visit, because the right choice starts with how you want to live, not with what is on the floor.</p>' +
+        '<p class="fz-sub">There\'s a lot a screen can\'t tell you: how it feels, how much room you really need, and what we\'d leave off so you only pay for what you\'ll use. That\'s what the visit is for.</p>' +
+        '<p class="fz-sub">Can\'t wait? Call or text <a href="tel:+12363044424">236-304-4424</a>.</p>';
+    }
+    h += '<div class="fz-done-ctas"><a class="pill" href="sms:+12363044424">Text us to book a visit</a><a class="link-btn" href="../hot-tubs/">Browse every hot tub</a></div></div>';
+    form.innerHTML = h;
     form.querySelector('.fz-title').focus();
     window.scrollTo({ top: 0 });
   }
