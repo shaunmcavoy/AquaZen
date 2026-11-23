@@ -38,6 +38,8 @@ export async function startCheckout(amount: number): Promise<{ checkoutToken: st
     currency: "CAD",
     paymentMethod: "cc",
     confirmationScreen: false,
+    // AquaZen teal (the logo's deep teal stripe), light theme.
+    customStyling: { appearance: "light", brandColor: "347c6e", cornerRadius: "rounded", ctaButtonText: "pay" },
   });
   if (!r.checkoutToken || !r.secretToken) throw new Error("Helcim didn't return a checkout session.");
   return { checkoutToken: String(r.checkoutToken), secretToken: String(r.secretToken) };
@@ -56,4 +58,14 @@ export async function hashMatches(data: unknown, hash: string, secretToken: stri
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
   const hex = Array.from(digest).map((b) => b.toString(16).padStart(2, "0")).join("");
   return hex === String(hash ?? "").toLowerCase();
+}
+
+// The logo HelcimPay.js shows above the amount. Uploaded once through the API (JPG or PNG, under 2 MB).
+export async function uploadLogo(bytes: Uint8Array, filename: string, type: string) {
+  const form = new FormData();
+  form.append("logo", new Blob([bytes], { type }), filename);
+  const res = await fetch(API + "/branding/logo", { method: "POST", headers: { accept: "application/json", "api-token": apiToken() }, body: form });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Helcim ${res.status}: ${text}`);
+  return text;
 }

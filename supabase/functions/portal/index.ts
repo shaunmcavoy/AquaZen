@@ -1,7 +1,7 @@
 // One edge function for the customer and staff portals. Route = last path segment, e.g. /functions/v1/portal/signing
 import { admin, button, FUNCTIONS_URL, payTerms, caller, cors, corsAuth, dataUrlToBytes, emailShell, ensureUser, escapeHtml, firstNameOf, FROM, json, jsonAuth, logEvent, loginLink, money, REPLY_TO, sendEmail, SITE_URL, productNoun, productMaker, productWhat, balanceHow, h, MUTED, windowLabel, windowChoices, validWindow, noonVancouver } from "../_shared/common.ts";
 import { buildAgreementPdf, sha256Hex, toBase64 } from "../_shared/pdf.ts";
-import { startCheckout, getTransaction, hashMatches } from "../_shared/helcim.ts";
+import { startCheckout, getTransaction, hashMatches, uploadLogo } from "../_shared/helcim.ts";
 import { createDepositInvoice, createBalanceInvoice, ensureSaleItem, invoiceBalance, qbAuthUrl, qbConfigured, qbDisconnect, qbExchange, qbLists, qbStatus } from "../_shared/qb.ts";
 
 // ---- login-link ----
@@ -986,6 +986,19 @@ async function route_pay(req: Request): Promise<Response> {
   return json(req, { error: "Unknown action." }, 400);
 }
 
+// ---- helcim-logo ----
+// POST {}  Admin. Uploads the AquaZen logo (assets/img/logo-dark-square.jpg on the site) to show on the HelcimPay.js card form.
+async function route_helcim_logo(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await caller(req);
+  if (!me || me.profile.role !== "admin") return jsonAuth(req, { error: "Admins only." }, 403);
+  const r = await fetch(`${SITE_URL}/assets/img/logo-dark-square.jpg`);
+  if (!r.ok) return jsonAuth(req, { error: "Couldn't load the logo from the website." }, 502);
+  const bytes = new Uint8Array(await r.arrayBuffer());
+  try { return jsonAuth(req, { ok: true, helcim: await uploadLogo(bytes, "aquazen-logo.jpg", "image/jpeg") }); }
+  catch (e) { return jsonAuth(req, { error: String((e as Error).message ?? e) }, 502); }
+}
+
 // ---- pay-link ----
 // POST {sale_id, email_customer}  Staff. The sale's pay page link, and optionally emails it to the customer
 // for whatever is owing now (deposit or balance).
@@ -1257,7 +1270,7 @@ const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "qb-status": route_qb_status, "qb-connect": route_qb_connect, "qb-callback": route_qb_callback,
   "deliveries": route_deliveries, "delivery-record": route_delivery_record, "portal-details": route_portal_details,
   "service-request": route_service_request, "service-list": route_service_list, "service-update": route_service_update,
-  "pay": route_pay, "pay-link": route_pay_link,
+  "pay": route_pay, "pay-link": route_pay_link, "helcim-logo": route_helcim_logo,
   "qb-settings": route_qb_settings, "qb-invoice": route_qb_invoice, "qb-balance-invoice": route_qb_balance_invoice, "qb-sync": route_qb_sync,
 };
 Deno.serve(async (req) => {
