@@ -1301,7 +1301,7 @@ Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":""}]}` });
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 1500, system: ADS_BRAND, messages: [{ role: "user", content }] }),
+    body: JSON.stringify({ model: Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 4000, system: ADS_BRAND, messages: [{ role: "user", content }] }),
   });
   if (!res.ok) { console.error("ads-write", res.status, await res.text().catch(() => "")); return jsonAuth(req, { error: "The AI writer didn't answer. Please try again." }, 502); }
   const out = await res.json();
@@ -1314,7 +1314,8 @@ Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":""}]}` });
     const hooks = (j.hooks ?? []).slice(0, 4).map((x: any) => ({ h: clean(x.h, 70), s: clean(x.s, 110), cta: clean(x.cta, 22) || "Find your Zen", post: clean(x.post, 600) })).filter((x: { h: string }) => x.h);
     if (!hooks.length) throw new Error("empty");
     return jsonAuth(req, { hooks });
-  } catch {
+  } catch (e) {
+    console.error("ads-write parse", String(e), out.stop_reason, JSON.stringify(out).slice(0, 1500));
     return jsonAuth(req, { error: "The AI writer's answer didn't come through right. Please try again." }, 502);
   }
 }
