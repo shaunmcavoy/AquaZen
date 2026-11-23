@@ -14,7 +14,7 @@
   }
   function done(text) {
     $('#payTitle').textContent = 'Thank you';
-    $('#payLead').textContent = 'Your payment went through.';
+    $('#payLead').textContent = 'Your payment was successful.';
     $('#payDoneText').textContent = text;
     show('#payDone');
   }
