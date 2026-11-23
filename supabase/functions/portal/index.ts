@@ -1476,7 +1476,7 @@ async function route_ads_image(req: Request): Promise<Response> {
   const b = await req.json().catch(() => ({}));
   const prompt = String(b.prompt ?? "").trim().slice(0, 900);
   if (!prompt) return jsonAuth(req, { error: "No image idea came through." }, 400);
-  const full = `A photorealistic lifestyle photograph for a hot tub store's ad in British Columbia, Canada. ${prompt} Natural, warm, believable light. Calm empty space in the upper or lower third for a headline. No text, words, letters, logos, watermarks or people's faces.`;
+  const full = `A photorealistic lifestyle photograph for a hot tub store's ad in British Columbia, Canada. ${prompt} Natural, warm, believable light. Calm empty space in the upper or lower third for a headline. Important: show no hot tub, spa, swim spa or pool of any kind, not even partly; only the setting, the steam, the light and the mood. No text, words, letters, logos, watermarks or people's faces.`;
   // OpenAI renames image models from time to time: try the preferred one, then their always-current alias.
   const models = [Deno.env.get("ADS_IMAGE_MODEL") || "gpt-image-2.5-sunburst", "chatgpt-image-latest"];
   let res: Response | null = null;
