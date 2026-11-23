@@ -6,7 +6,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   var C = { black: '#000000', ink: '#1d1d1f', paper: '#f5f5f7', muted: '#6e6e73', sand: '#a1a1a6', gold: '#f0bf33',
-    stripes: ['#d8432f', '#f78800', '#f0bf33', '#c5cf99', '#6eaa8f', '#347c6e'] };
+    stripes: ['#ca3432', '#f78800', '#f0bf33', '#c5cf99', '#6eaa8f', '#347c6e'] };
   var SUNSET = ['#f78800', '#f0bf33', '#c5cf99', '#6eaa8f'];
   var SIZES = { '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
   var SIZE_NAME = { '1:1': 'square', '4:5': 'feed', '9:16': 'story' };
