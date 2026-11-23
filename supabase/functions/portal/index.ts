@@ -1,6 +1,7 @@
 // One edge function for the customer and staff portals. Route = last path segment, e.g. /functions/v1/portal/signing
 import { admin, button, FUNCTIONS_URL, payTerms, caller, cors, corsAuth, dataUrlToBytes, emailShell, ensureUser, escapeHtml, firstNameOf, FROM, json, jsonAuth, logEvent, loginLink, money, REPLY_TO, sendEmail, SITE_URL, productNoun, productMaker, productWhat, balanceHow, h, MUTED, windowLabel, windowChoices, validWindow, noonVancouver } from "../_shared/common.ts";
 import { buildAgreementPdf, sha256Hex, toBase64 } from "../_shared/pdf.ts";
+import { startCheckout, getTransaction, hashMatches } from "../_shared/helcim.ts";
 import { createDepositInvoice, createBalanceInvoice, ensureSaleItem, invoiceBalance, qbAuthUrl, qbConfigured, qbDisconnect, qbExchange, qbLists, qbStatus } from "../_shared/qb.ts";
 
 // ---- login-link ----
@@ -225,7 +226,7 @@ function payWhy(sale: any, link: string | null) {
     ? `Your total is ${money(sale.deposit)}, paid in full as we agreed. Paying it confirms your order with ${escapeHtml(productMaker(sale))} so your ${productNoun(sale)} can be built and shipped to us, and there's nothing left to pay on delivery day.`
     : `Your deposit is ${money(sale.deposit)}, as we agreed. Paying it confirms your order with ${escapeHtml(productMaker(sale))} so your ${productNoun(sale)} can be built and shipped to us. ${sale.balance_method && sale.balance_method !== "before_delivery" ? `Your remaining balance of ${money(sale.balance)} will be paid ${balanceHow(sale)}, as we agreed.` : `Your remaining balance of ${money(sale.balance)} is due before delivery.`}`;
   return link
-    ? `<p>${why} You can pay securely online ${p.how} through QuickBooks:</p>${button(link, p.button)}`
+    ? `<p>${why} You can pay securely online by card, right from your phone or computer:</p>${button(link, p.button)}`
     : `<p>${why} I'll be in touch about payment.</p>`;
 }
 
@@ -233,22 +234,10 @@ function payWhy(sale: any, link: string | null) {
 // QuickBooks deposit invoice, welcome email with delivery prep and the portal, and a notice to the salesperson and admins.
 async function afterSigned(sale: any, c: any, pdfBytes: Uint8Array, method: "online" | "paper") {
   const db = admin();
-  // Deposit invoice in QuickBooks (if connected), so the welcome email can carry a Pay now button.
+  // The customer's own pay page (Helcim card form), so the welcome email and signing page can carry a Pay now button.
   let payLink: string | null = null, invoiceProblem = "";
-  try {
-    const st = await qbStatus();
-    if (!st.connected) invoiceProblem = "QuickBooks isn't connected, so no invoice was created.";
-    else {
-      const r = await createDepositInvoice({ ...sale, status: "signed" }, c);
-      payLink = r?.link ?? null;
-      if (r) await logEvent(sale.id, "qb_invoice_created", null, { invoice: r.invoiceId });
-      if (r && !payLink) invoiceProblem = "The invoice was created in QuickBooks, but QuickBooks didn't return a pay link. Check that online payments are turned on for the account.";
-    }
-  } catch (e) {
-    console.error("qb invoice", e);
-    invoiceProblem = String((e as Error).message ?? e);
-    await logEvent(sale.id, "qb_invoice_failed", null, { error: String(e) });
-  }
+  try { if (amountDue({ ...sale, status: "signed" })) payLink = await payLinkFor(sale); }
+  catch (e) { console.error("pay link", e); invoiceProblem = String((e as Error).message ?? e); }
 
   // Congratulations, from the salesperson who sold it: both guides attached, and how to set up their account.
   const setup = await loginLink(c.email, "/login/?setpw=1");
@@ -306,9 +295,9 @@ ${payWhy(sale, payLink)}
       from: FROM, to, subject: `Signed: agreement #${sale.number}, ${c.name}`,
       html: emailShell({ preheader: `${c.name} signed agreement #${sale.number}.`, body:
         `<p>${escapeHtml(c.name)} ${method === "paper" ? "signed on paper:" : "just signed"} agreement #${sale.number} for the ${escapeHtml(what)}. Total ${money(sale.total)}. They agreed to pay ${pt.full ? "in full" : `a deposit of ${money(sale.deposit)}`} ${pt.how}.</p>
-${Number(sale.deposit) > 0 ? `<p><b>Payment isn't in yet.</b> You'll get a separate "${pt.full ? "Paid in full" : "Deposit paid"}" email once QuickBooks has the money. Until then, don't order from the manufacturer. If a large card payment is declined, the customer calls their card company to approve it and uses the same pay link again.</p>` : ""}
+${Number(sale.deposit) > 0 ? `<p><b>Payment isn't in yet.</b> You'll get a separate "${pt.full ? "Paid in full" : "Deposit paid"}" email the moment their card payment goes through. Until then, don't order from the manufacturer. If their card is declined, you'll get an email about that too.</p>` : ""}
 <p>Delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window) || "not chosen")}</b>.</p><p>They've been sent their signed copy, how to get their spot ready and a link to their portal.</p>
-${Number(sale.deposit) > 0 && !payLink ? `<p style="background:#fff4e5;border-radius:10px;padding:12px 14px"><b>No pay link went to the customer.</b> ${escapeHtml(invoiceProblem || "The invoice couldn't be created.")} Once that's sorted, open the sale and tap "Create invoice and email pay link".</p>` : ""}${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }),
+${Number(sale.deposit) > 0 && !payLink ? `<p style="background:#fff4e5;border-radius:10px;padding:12px 14px"><b>No pay link went to the customer.</b> ${escapeHtml(invoiceProblem || "The pay link couldn't be created.")} Once that's sorted, open the sale and tap "Email pay link to customer".</p>` : ""}${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }),
       attachments: [{ filename: `Agreement #${sale.number}.pdf`, content: toBase64(pdfBytes) }],
     });
   } catch (e) { console.error("staff notice failed", e); }
@@ -815,6 +804,217 @@ ${button(link, `Pay my ${noun}`)}
   } catch (e) { console.error("nudge staff", sale.number, e); }
 }
 
+// The deposit (or full payment) is in: move the sale on, thank the customer, tell the salesperson and admins.
+// Used by QuickBooks sync (older sales) and by Helcim card payments. Safe to call twice: only the first moves the sale.
+// deno-lint-ignore no-explicit-any
+async function markDepositPaid(sale: any, detail: Record<string, unknown>) {
+  const db = admin();
+  const now = new Date().toISOString();
+  const { data: moved } = await db.from("sales").update({ status: "deposit_paid", deposit_paid_at: now }).eq("id", sale.id).eq("status", "signed").select("id");
+  if (!moved?.length) return false;
+  await logEvent(sale.id, "deposit_paid", null, detail);
+  const c = sale.customers;
+  const what = productWhat(sale);
+  const portal = await loginLink(c.email, "/portal/");
+  const pt = payTerms(sale);
+  try {
+    await sendEmail({
+      from: FROM, to: c.email, reply_to: REPLY_TO, subject: `${pt.received}. Your ${productNoun(sale)} is on order.`,
+      html: emailShell({ preheader: "Thank you. Here's what happens next.", body:
+        `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Thank you, we've received your ${money(sale.deposit)} ${pt.full ? "payment. You're paid in full, and your" : "deposit. Your"} ${escapeHtml(what)} is now on order with ${escapeHtml(productMaker(sale))}.</p>
+${h("What to do while you wait")}
+<p>This is the perfect time to get your spot ready: a solid, level base, a clear path to the backyard, and a plan for the power. Gerry Jansen, our electrical partner, can wire it before or after delivery (we recommend after, so he only comes once). Call or text him at 778-229-2560. Having these done before your ${productNoun(sale)} arrives is what makes delivery day quick and easy, and it protects your warranty.</p>
+${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>.</p>` : ""}
+${button(portal, "Open my portal")}
+<p style="color:${MUTED}">I'll be in touch to set the exact delivery day.${pt.full ? "" : ` Your remaining balance of ${money(sale.balance)} is due before delivery.`} Questions any time? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
+    });
+  } catch (e) { console.error("paid email customer", sale.number, e); }
+  try {
+    const { data: rep } = await db.from("profiles").select("email").eq("id", sale.salesperson_id ?? "").maybeSingle();
+    const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
+    const to = [...new Set([rep?.email, ...(admins ?? []).map((a) => a.email)].filter(Boolean))] as string[];
+    if (to.length) await sendEmail({ from: FROM, to, subject: `${pt.full ? "Paid in full" : "Deposit paid"}: agreement #${sale.number}, ${c.name}`,
+      html: emailShell({ preheader: `${pt.received}.`, body: `<p>${escapeHtml(c.name)} paid ${pt.full ? "in full" : "the deposit"} (${money(sale.deposit)}) on agreement #${sale.number}. Time to place the order with AquaSolus.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+  } catch (e) { console.error("paid email staff", sale.number, e); }
+  return true;
+}
+
+// The balance is in: record it, thank the customer and tell the admins. Safe to call twice.
+// deno-lint-ignore no-explicit-any
+async function markBalancePaid(sale: any, detail: Record<string, unknown>) {
+  const db = admin();
+  const { data: moved } = await db.from("sales").update({ balance_paid_at: new Date().toISOString() }).eq("id", sale.id).is("balance_paid_at", null).select("id");
+  if (!moved?.length) return false;
+  await logEvent(sale.id, "balance_paid", null, detail);
+  const c = sale.customers;
+  try {
+    await sendEmail({
+      from: FROM, to: c.email, reply_to: REPLY_TO, subject: `Paid in full. Thank you, ${firstNameOf(c.name)}.`,
+      html: emailShell({ preheader: "Your balance is paid. All that's left is delivery day.", body:
+        `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Thank you, we've received your balance of ${money(sale.balance)}. Your ${escapeHtml(productWhat(sale))} is paid in full, so delivery day is just about getting it in place and getting you into your first Zen Time.</p>
+${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>. I'll call you to set the exact day.</p>` : ""}
+<p style="color:${MUTED}">Questions any time? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
+    });
+  } catch (e) { console.error("balance email customer", sale.number, e); }
+  try {
+    const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
+    const to = (admins ?? []).map((a) => a.email).filter(Boolean) as string[];
+    if (to.length) await sendEmail({ from: FROM, to, subject: `Balance paid: agreement #${sale.number}, ${c.name}`,
+      html: emailShell({ preheader: "Balance received.", body: `<p>${escapeHtml(c.name)} paid the balance (${money(sale.balance)}) on agreement #${sale.number}. Paid in full.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+  } catch (e) { console.error("balance email staff", sale.number, e); }
+  return true;
+}
+
+// ---- Helcim card payments ----
+// Each sale has a /pay/?t=<pay_token> page. What it charges is worked out here from the sale, never sent by the browser:
+// the deposit (or full payment) while the sale is signed, then the balance once the deposit is in.
+// deno-lint-ignore no-explicit-any
+function amountDue(sale: any): { kind: "deposit" | "balance"; amount: number } | null {
+  if (sale.status === "signed" && !sale.deposit_paid_at && Number(sale.deposit) > 0) return { kind: "deposit", amount: Number(sale.deposit) };
+  if (["deposit_paid", "delivery_scheduled", "delivered"].includes(sale.status) && !sale.balance_paid_at && Number(sale.balance) > 0 && sale.balance_method === "before_delivery")
+    return { kind: "balance", amount: Number(sale.balance) };
+  return null;
+}
+
+// The sale's pay page link, creating its token the first time.
+// deno-lint-ignore no-explicit-any
+async function payLinkFor(sale: any): Promise<string> {
+  let tok = sale.pay_token;
+  if (!tok) {
+    tok = crypto.randomUUID();
+    const { data } = await admin().from("sales").update({ pay_token: tok }).eq("id", sale.id).is("pay_token", null).select("pay_token");
+    if (!data?.length) {
+      const { data: again } = await admin().from("sales").select("pay_token").eq("id", sale.id).single();
+      tok = again?.pay_token;
+    }
+    sale.pay_token = tok;
+  }
+  return `${SITE_URL}/pay/?t=${tok}`;
+}
+
+// GET ?t=  what's owing (for the pay page).  POST {t, action: "start"} opens a Helcim checkout for it.
+// POST {t, action: "confirm", checkout_token, message} checks the payment with Helcim and marks it paid.
+// POST {t, action: "declined", checkout_token, message} records a decline and lets staff know.
+async function route_pay(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
+  const db = admin();
+  const loadSale = async (t: string) => {
+    if (!/^[0-9a-f-]{36}$/i.test(t)) return null;
+    const { data } = await db.from("sales").select("*, customers(*)").eq("pay_token", t).neq("status", "cancelled").maybeSingle();
+    return data;
+  };
+  if (req.method === "GET") {
+    const sale = await loadSale(new URL(req.url).searchParams.get("t") ?? "");
+    if (!sale) return json(req, { error: "This payment link isn't valid. Call or text Shaun at 236-304-4424." }, 404);
+    const due = amountDue(sale), pt = payTerms(sale);
+    return json(req, {
+      number: sale.number, first_name: firstNameOf(sale.customers?.name ?? ""), what: productWhat(sale),
+      due: due ? { kind: due.kind, amount: due.amount, label: due.kind === "balance" ? "your balance" : pt.full ? "your payment in full" : "your deposit" } : null,
+      deposit_paid: !!sale.deposit_paid_at, balance_paid: !!sale.balance_paid_at, total: Number(sale.total),
+    });
+  }
+  const b = await req.json().catch(() => ({}));
+  const sale = await loadSale(String(b.t ?? ""));
+  if (!sale) return json(req, { error: "This payment link isn't valid. Call or text Shaun at 236-304-4424." }, 404);
+  const action = String(b.action ?? "");
+
+  if (action === "start") {
+    const due = amountDue(sale);
+    if (!due) return json(req, { error: "There's nothing to pay on this agreement right now.", nothing_due: true }, 409);
+    try {
+      const s = await startCheckout(due.amount);
+      await db.from("payment_sessions").insert({ sale_id: sale.id, kind: due.kind, amount: due.amount, checkout_token: s.checkoutToken, secret_token: s.secretToken });
+      await logEvent(sale.id, "pay_started", null, { kind: due.kind, amount: due.amount });
+      return json(req, { checkout_token: s.checkoutToken, amount: due.amount, kind: due.kind });
+    } catch (e) {
+      console.error("pay start", sale.number, e);
+      return json(req, { error: "We couldn't open the secure card form. Please try again in a minute, or call or text Shaun at 236-304-4424." }, 502);
+    }
+  }
+
+  const { data: sess } = await db.from("payment_sessions").select("*").eq("checkout_token", String(b.checkout_token ?? "")).eq("sale_id", sale.id).maybeSingle();
+  if (!sess) return json(req, { error: "We couldn't match this payment. Call or text Shaun at 236-304-4424 and we'll sort it out." }, 404);
+  // deno-lint-ignore no-explicit-any
+  let msg: any = b.message;
+  try { if (typeof msg === "string") msg = JSON.parse(msg); } catch { /* not JSON: a plain message */ }
+
+  if (action === "declined") {
+    const reason = typeof msg === "string" ? msg : (msg?.data?.data?.responseMessage ?? msg?.data?.responseMessage ?? "");
+    await logEvent(sale.id, "card_declined", null, { kind: sess.kind, amount: Number(sess.amount), reason: String(reason).slice(0, 200) });
+    try {
+      const c = sale.customers;
+      const { data: rep } = await db.from("profiles").select("email").eq("id", sale.salesperson_id ?? "").maybeSingle();
+      const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
+      const to = [...new Set([rep?.email, ...(admins ?? []).map((a) => a.email)].filter(Boolean))] as string[];
+      if (to.length) await sendEmail({ from: FROM, to, subject: `Card declined: agreement #${sale.number}, ${c.name}`,
+        html: emailShell({ preheader: `${c.name}'s card was declined for ${money(sess.amount)}.`, body:
+          `<p>${escapeHtml(c.name)} tried to pay ${money(sess.amount)} on agreement #${sale.number} and the card was declined${reason ? ` (Helcim says: ${escapeHtml(String(reason))})` : ""}.</p>
+<p>The pay page has already told them what to do: call the number on the back of their card to approve the purchase, then try again with the same link. A quick call from you usually helps.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+    } catch (e) { console.error("declined email", sale.number, e); }
+    return json(req, { ok: true });
+  }
+
+  if (action === "confirm") {
+    if (sess.paid_at) return json(req, { ok: true, already: true });
+    const data = msg?.data?.data ?? msg?.data ?? null;
+    const txnId = data?.transactionId;
+    if (!txnId) return json(req, { error: "We couldn't read the payment result. Call or text Shaun at 236-304-4424 before trying again." }, 400);
+    const hashOk = await hashMatches(data, msg?.data?.hash, sess.secret_token).catch(() => false);
+    // Helcim is the source of truth: look the transaction up ourselves.
+    // deno-lint-ignore no-explicit-any
+    let t: any;
+    try { t = await getTransaction(txnId); } catch (e) {
+      console.error("pay confirm lookup", sale.number, e);
+      return json(req, { error: "Your payment went to Helcim, but we couldn't confirm it just now. Please don't pay again. Shaun will confirm it and be in touch." }, 502);
+    }
+    const ok = String(t.status).toUpperCase() === "APPROVED" && String(t.type ?? "purchase") === "purchase" &&
+      Math.abs(Number(t.amount) - Number(sess.amount)) < 0.005 && String(t.currency ?? "CAD").toUpperCase() === "CAD";
+    if (!ok) {
+      await logEvent(sale.id, "pay_mismatch", null, { txn: txnId, status: t.status, amount: t.amount, expected: Number(sess.amount) });
+      return json(req, { error: "This payment wasn't approved. Please try again, or call or text Shaun at 236-304-4424." }, 409);
+    }
+    const { data: claimed } = await db.from("payment_sessions").update({
+      transaction_id: String(txnId), paid_at: new Date().toISOString(),
+      card_type: data?.cardType ?? t.cardType ?? null, card_last4: String(data?.cardNumber ?? t.cardNumber ?? "").slice(-4) || null,
+    }).eq("id", sess.id).is("paid_at", null).select("id");
+    if (!claimed?.length) return json(req, { ok: true, already: true });
+    const detail = { via: "helcim", txn: String(txnId), amount: Number(sess.amount), hash_ok: hashOk };
+    if (sess.kind === "deposit") await markDepositPaid(sale, detail);
+    else await markBalancePaid(sale, detail);
+    return json(req, { ok: true });
+  }
+  return json(req, { error: "Unknown action." }, 400);
+}
+
+// ---- pay-link ----
+// POST {sale_id, email_customer}  Staff. The sale's pay page link, and optionally emails it to the customer
+// for whatever is owing now (deposit or balance).
+async function route_pay_link(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const b = await req.json().catch(() => ({}));
+  const r0 = await staffSale(req, String(b.sale_id ?? ""));
+  if (r0.err) return r0.err;
+  const { me, sale } = r0;
+  const due = amountDue(sale);
+  if (!due) return jsonAuth(req, { error: sale.status === "awaiting_customer" || sale.status === "draft" ? "The pay link is ready once the customer signs." : "Nothing is owing on this sale right now." }, 409);
+  const link = await payLinkFor(sale);
+  if (b.email_customer) {
+    const c = sale.customers;
+    const body = due.kind === "deposit"
+      ? payWhy(sale, link)
+      : `<p>Your ${escapeHtml(productWhat(sale))} is getting close. Your remaining balance is <b>${money(sale.balance)}</b>. Paying it before delivery means delivery day is only about getting you soaking, with nothing to sort out at the door.</p>
+${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>.</p>` : ""}
+<p>You can pay securely online by card, right from your phone or computer:</p>${button(link, "Pay my balance")}`;
+    await sendEmail({
+      from: FROM, to: c.email, reply_to: REPLY_TO, subject: due.kind === "deposit" ? `Your ${payTerms(sale).noun} for agreement #${sale.number}` : `Your balance for agreement #${sale.number}`,
+      html: emailShell({ preheader: due.kind === "deposit" ? `Pay your ${payTerms(sale).noun} securely online.` : "Pay your balance securely online before delivery.", body:
+        `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p>${body}<p style="color:${MUTED}">Questions? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
+    });
+    await logEvent(sale.id, due.kind === "deposit" ? "pay_link_emailed" : "balance_link_emailed", me!.user.id, { to: c.email });
+  }
+  return jsonAuth(req, { ok: true, link, kind: due.kind, amount: due.amount });
+}
+
 // Scheduled: checks open deposit invoices and marks paid ones.
 async function route_qb_sync(req: Request): Promise<Response> {
   const db = admin();
@@ -828,29 +1028,7 @@ async function route_qb_sync(req: Request): Promise<Response> {
     try {
       const { balance, viewed } = await invoiceBalance(sale.qb_deposit_invoice_id);
       if (balance > 0) { if (viewed) await nudgeIfStuck(sale, sale.qb_deposit_invoice_id, sale.qb_invoice_link, Number(sale.deposit), payTerms(sale).noun); continue; }
-      const now = new Date().toISOString();
-      await db.from("sales").update({ status: "deposit_paid", deposit_paid_at: now }).eq("id", sale.id).eq("status", "signed");
-      await logEvent(sale.id, "deposit_paid", null, { invoice: sale.qb_deposit_invoice_id });
-      paid.push(sale.number);
-      const c = sale.customers;
-      const what = productWhat(sale);
-      const portal = await loginLink(c.email, "/portal/");
-      const pt = payTerms(sale);
-      await sendEmail({
-        from: FROM, to: c.email, reply_to: REPLY_TO, subject: `${pt.received}. Your ${productNoun(sale)} is on order.`,
-        html: emailShell({ preheader: "Thank you. Here's what happens next.", body:
-          `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Thank you, we've received your ${money(sale.deposit)} ${pt.full ? "payment. You're paid in full, and your" : "deposit. Your"} ${escapeHtml(what)} is now on order with ${escapeHtml(productMaker(sale))}.</p>
-${h("What to do while you wait")}
-<p>This is the perfect time to get your spot ready: a solid, level base, a clear path to the backyard, and a plan for the power. Gerry Jansen, our electrical partner, can wire it before or after delivery (we recommend after, so he only comes once). Call or text him at 778-229-2560. Having these done before your ${productNoun(sale)} arrives is what makes delivery day quick and easy, and it protects your warranty.</p>
-${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>.</p>` : ""}
-${button(portal, "Open my portal")}
-<p style="color:${MUTED}">I'll be in touch to set the exact delivery day.${pt.full ? "" : ` Your remaining balance of ${money(sale.balance)} is due before delivery.`} Questions any time? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
-      });
-      const { data: rep } = await db.from("profiles").select("email").eq("id", sale.salesperson_id).single();
-      const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
-      const to = [...new Set([rep?.email, ...(admins ?? []).map((a) => a.email)].filter(Boolean))] as string[];
-      if (to.length) await sendEmail({ from: FROM, to, subject: `${pt.full ? "Paid in full" : "Deposit paid"}: agreement #${sale.number}, ${c.name}`,
-        html: emailShell({ preheader: `${pt.received} in QuickBooks.`, body: `<p>${escapeHtml(c.name)} paid ${pt.full ? "in full" : "the deposit"} (${money(sale.deposit)}) on agreement #${sale.number}. Time to place the order with AquaSolus.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+      if (await markDepositPaid(sale, { invoice: sale.qb_deposit_invoice_id, via: "quickbooks" })) paid.push(sale.number);
     } catch (e) { console.error("sync", sale.number, e); }
   }
   // Balance invoices: mark the balance paid and say thank you.
@@ -860,21 +1038,7 @@ ${button(portal, "Open my portal")}
     try {
       const { balance, viewed } = await invoiceBalance(sale.qb_balance_invoice_id);
       if (balance > 0) { if (viewed) await nudgeIfStuck(sale, sale.qb_balance_invoice_id, sale.qb_balance_link, Number(sale.balance), "balance"); continue; }
-      await db.from("sales").update({ balance_paid_at: new Date().toISOString() }).eq("id", sale.id).is("balance_paid_at", null);
-      await logEvent(sale.id, "balance_paid", null, { invoice: sale.qb_balance_invoice_id });
-      balances.push(sale.number);
-      const c = sale.customers;
-      await sendEmail({
-        from: FROM, to: c.email, reply_to: REPLY_TO, subject: `Paid in full. Thank you, ${firstNameOf(c.name)}.`,
-        html: emailShell({ preheader: "Your balance is paid. All that's left is delivery day.", body:
-          `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Thank you, we've received your balance of ${money(sale.balance)}. Your ${escapeHtml(productWhat(sale))} is paid in full, so delivery day is just about getting it in place and getting you into your first Zen Time.</p>
-${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>. I'll call you to set the exact day.</p>` : ""}
-<p style="color:${MUTED}">Questions any time? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
-      });
-      const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
-      const to = (admins ?? []).map((a) => a.email).filter(Boolean) as string[];
-      if (to.length) await sendEmail({ from: FROM, to, subject: `Balance paid: agreement #${sale.number}, ${c.name}`,
-        html: emailShell({ preheader: "Balance received in QuickBooks.", body: `<p>${escapeHtml(c.name)} paid the balance (${money(sale.balance)}) on agreement #${sale.number}. Paid in full.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+      if (await markBalancePaid(sale, { invoice: sale.qb_balance_invoice_id, via: "quickbooks" })) balances.push(sale.number);
     } catch (e) { console.error("balance sync", sale.number, e); }
   }
   return new Response(JSON.stringify({ checked: (open ?? []).length, paid, balances }), { headers: { "Content-Type": "application/json" } });
@@ -1093,6 +1257,7 @@ const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "qb-status": route_qb_status, "qb-connect": route_qb_connect, "qb-callback": route_qb_callback,
   "deliveries": route_deliveries, "delivery-record": route_delivery_record, "portal-details": route_portal_details,
   "service-request": route_service_request, "service-list": route_service_list, "service-update": route_service_update,
+  "pay": route_pay, "pay-link": route_pay_link,
   "qb-settings": route_qb_settings, "qb-invoice": route_qb_invoice, "qb-balance-invoice": route_qb_balance_invoice, "qb-sync": route_qb_sync,
 };
 Deno.serve(async (req) => {

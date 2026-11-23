@@ -384,3 +384,6 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .res img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:12px;margin-bottom:4px}
 .res h2{margin:0}
 .res p{margin:0;flex:1}
+
+/* Pay page */
+.payamount{font-family:var(--display);font-size:clamp(40px,8vw,56px);font-weight:700;letter-spacing:-.03em;margin:4px 0 10px}

@@ -519,7 +519,7 @@ def build_app():
         "mini_pool": {"label": "Mini pool", "make": "AquaSolus", "groups": []},
     }
     data = f"<script>window.AZ_TUBS={json.dumps(tubs)};window.AZ_PRODUCTS={json.dumps(products)};</script>\n"
-    for slug, title, js in [("login", "Sign in", "login"), ("staff", "Staff portal", "staff"), ("sign", "Sign your agreement", "sign"), ("portal", "Your portal", "portal")]:
+    for slug, title, js in [("login", "Sign in", "login"), ("staff", "Staff portal", "staff"), ("sign", "Sign your agreement", "sign"), ("portal", "Your portal", "portal"), ("pay", "Secure payment", "pay")]:
         body = open(os.path.join(ROOT, "src", "app", slug + ".html")).read()
         write(f"{slug}/index.html", f"""<!doctype html>
 <html lang="en-CA">
@@ -549,7 +549,7 @@ def stamp_assets():
     import hashlib
     import re
     ver = {}
-    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/how.js", "assets/js/prices.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js"]:
+    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/how.js", "assets/js/prices.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js", "assets/js/pay.js"]:
         ver[os.path.basename(rel)] = hashlib.md5(open(os.path.join(ROOT, rel), "rb").read()).hexdigest()[:8]
     pat = re.compile(r'((?:\.\./|/)?assets/(?:css|js)/)(' + "|".join(re.escape(k) for k in ver) + r')(\?v=[0-9a-f]+)?')
     for dirpath, _, files in os.walk(ROOT):

@@ -361,7 +361,7 @@
   }
   function loadEvents(id) {
     sb.from('sale_events').select('at,kind,detail').eq('sale_id', id).order('at').then(function (r) {
-      var L = { pay_page_viewed: 'Customer opened the pay page', payment_nudge_sent: 'Not paid an hour after opening the pay page: customer sent how-to-fix note, staff emailed', qb_invoice_created: 'Deposit invoice created in QuickBooks', qb_invoice_failed: 'QuickBooks invoice could not be created', pay_link_emailed: 'Deposit pay link emailed', deposit_paid: 'Deposit received', rep_signed: 'Signed by salesperson and sent for signature', link_emailed: 'Signing link emailed to customer', link_resent: 'New signing link created', customer_signed: 'Customer signed', welcome_sent: 'Welcome email sent with agreement, guide and manual', welcome_failed: 'Welcome email failed to send', balance_paid: 'Balance recorded as paid', undo_balance: 'Balance payment undone', delivered: 'Marked delivered', undo_delivered: 'Delivery undone', paper_signed: 'Signed on paper', printed_for_paper: 'Printed for paper signing', recorded_past: 'Recorded as a past sale (no agreement, emails or invoice)', reopened: 'Unlocked for changes (old signing link cancelled)' };
+      var L = { pay_started: 'Customer opened the card form', card_declined: 'Card declined (customer shown how to fix it, staff emailed)', pay_mismatch: 'Payment result did not match Helcim (not marked paid)', balance_link_emailed: 'Balance pay link emailed', pay_page_viewed: 'Customer opened the pay page', payment_nudge_sent: 'Not paid an hour after opening the pay page: customer sent how-to-fix note, staff emailed', qb_invoice_created: 'Deposit invoice created in QuickBooks', qb_invoice_failed: 'QuickBooks invoice could not be created', pay_link_emailed: 'Deposit pay link emailed', deposit_paid: 'Deposit received', rep_signed: 'Signed by salesperson and sent for signature', link_emailed: 'Signing link emailed to customer', link_resent: 'New signing link created', customer_signed: 'Customer signed', welcome_sent: 'Welcome email sent with agreement, guide and manual', welcome_failed: 'Welcome email failed to send', balance_paid: 'Balance recorded as paid', undo_balance: 'Balance payment undone', delivered: 'Marked delivered', undo_delivered: 'Delivery undone', paper_signed: 'Signed on paper', printed_for_paper: 'Printed for paper signing', recorded_past: 'Recorded as a past sale (no agreement, emails or invoice)', reopened: 'Unlocked for changes (old signing link cancelled)' };
       var ev = r.data || []; if (!ev.length) return;
       $('#events').innerHTML = ev.map(function (e) { return '<li><b>' + AZ.esc(L[e.kind] || e.kind) + '</b><span>' + AZ.dateTime(e.at) + '</span></li>'; }).join('');
       $('#eventsPanel').hidden = false;
@@ -618,26 +618,22 @@
       .finally(function () { btn.disabled = false; });
   });
 
-  // ---------- Deposit (QuickBooks) ----------
+  // ---------- Deposit (Helcim card payment) ----------
   function renderDeposit() {
     var box = $('#depositBox'), s = current;
     var full = s.payment_type === 'full', H = full ? '<h3>Payment</h3>' : '<h3>Deposit</h3>';
     if (s.status === 'deposit_paid' || s.deposit_paid_at) { box.innerHTML = H + '<p>' + AZ.pill('deposit_paid').replace('Deposit received', full ? 'Paid in full' : 'Deposit received') + ' ' + AZ.money(s.deposit) + ' received ' + AZ.dateTime(s.deposit_paid_at) + '. Time to place the order with AquaSolus.</p>'; return; }
-    if (!(Number(s.deposit) > 0)) { box.innerHTML = ''; return; }
-    if (s.qb_deposit_invoice_id) {
-      box.innerHTML = H + '<p>QuickBooks invoice created for ' + AZ.money(s.deposit) + (full ? ' (paid in full)' : ' (deposit)') + '. It updates on its own within 15 minutes of the customer paying.</p>' +
-        '<div class="formactions">' + (s.qb_invoice_link ? '<button class="btn btn-line btn-sm" type="button" id="copyPay">Copy pay link</button><button class="btn btn-ink btn-sm" type="button" id="emailPay">Email pay link to customer</button>' : '') + '<p class="formmsg" id="payMsg"></p></div>';
-    } else {
-      box.innerHTML = H + '<p class="muted">No QuickBooks invoice yet for the ' + AZ.money(s.deposit) + (full ? ' payment' : ' deposit') + '.</p><div class="formactions"><button class="btn btn-gold btn-sm" type="button" id="makeInvoice">Create invoice and email pay link</button><p class="formmsg" id="payMsg"></p></div>';
-    }
-    var cp = $('#copyPay'); if (cp) cp.onclick = function () { AZ.copy(s.qb_invoice_link); };
-    var send = function () {
-      $('#payMsg').textContent = 'Working...';
-      AZ.api('qb-invoice', { sale_id: s.id, email_customer: true }).then(function () { $('#payMsg').textContent = 'Pay link emailed to the customer.'; openSale(s.id); })
+    if (!(Number(s.deposit) > 0) || s.status !== 'signed') { box.innerHTML = ''; return; }
+    box.innerHTML = H + '<p>' + AZ.money(s.deposit) + (full ? ' to be paid in full' : ' deposit') + ' by card. The sale updates the moment the customer pays, and you get an email if their card is declined.</p>' +
+      '<div class="formactions"><button class="btn btn-line btn-sm" type="button" id="copyPay">Copy pay link</button><button class="btn btn-ink btn-sm" type="button" id="emailPay">Email pay link to customer</button><p class="formmsg" id="payMsg"></p></div>';
+    $('#copyPay').onclick = function () {
+      AZ.api('pay-link', { sale_id: s.id }).then(function (r) { AZ.copy(r.link); }).catch(function (e) { $('#payMsg').textContent = e.message; });
+    };
+    $('#emailPay').onclick = function () {
+      $('#payMsg').textContent = 'Sending...';
+      AZ.api('pay-link', { sale_id: s.id, email_customer: true }).then(function () { $('#payMsg').textContent = 'Pay link emailed to the customer.'; })
         .catch(function (e) { $('#payMsg').textContent = e.message; });
     };
-    var ep = $('#emailPay'); if (ep) ep.onclick = send;
-    var mk = $('#makeInvoice'); if (mk) mk.onclick = send;
   }
 
   // ---------- After the deposit: balance and delivery ----------
@@ -652,9 +648,7 @@
       } else {
         var paidDep = !!s.deposit_paid_at || ['deposit_paid', 'delivery_scheduled', 'delivered'].indexOf(s.status) >= 0;
         h += '<div class="progrow"><p>Balance of <b>' + AZ.money(s.balance) + '</b> still owing.</p>' +
-          (s.qb_balance_invoice_id
-            ? '<p class="muted small">Balance invoice is in QuickBooks. It updates on its own within 15 minutes of the customer paying.</p>' + (s.qb_balance_link ? '<button class="btn btn-line btn-sm" type="button" id="copyBal">Copy pay link</button><button class="btn btn-ink btn-sm" type="button" id="sendBal">Email pay link again</button>' : '')
-            : (paidDep && s.balance_method === 'before_delivery' ? '<button class="btn btn-gold btn-sm" type="button" id="sendBal">Send balance invoice</button>' : '')) +
+          (paidDep && s.balance_method === 'before_delivery' ? '<button class="btn btn-line btn-sm" type="button" id="copyBal">Copy pay link</button><button class="btn btn-gold btn-sm" type="button" id="sendBal">Email balance pay link</button>' : '') +
           '</div><div class="progrow"><label>Paid on<input type="date" id="balDate" value="' + today + '"></label><button class="btn btn-line btn-sm" type="button" data-prog="balance_paid">Record balance paid another way</button></div>';
       }
     }
@@ -667,10 +661,10 @@
       ? '<p>' + AZ.pill('delivered') + ' ' + AZ.date(s.delivered_at) + (s.serial_number ? ' · Serial ' + AZ.esc(s.serial_number) : '') + '. <button class="textbtn" type="button" data-prog="undo_delivered">Undo</button></p>'
       : '<div class="progrow"><label>Delivered on<input type="date" id="delDate" value="' + today + '"></label><label>Serial number<input id="delSerial" value="' + AZ.esc(s.serial_number || '') + '" placeholder="From the tub"></label><button class="btn btn-gold btn-sm" type="button" data-prog="delivered">Mark delivered</button></div>';
     box.innerHTML = h + '<p class="formmsg" id="progMsg" role="status" aria-live="polite"></p>';
-    var cb = $('#copyBal'); if (cb) cb.onclick = function () { AZ.copy(s.qb_balance_link); };
+    var cb = $('#copyBal'); if (cb) cb.onclick = function () { AZ.api('pay-link', { sale_id: s.id }).then(function (r) { AZ.copy(r.link); }).catch(function (err) { $('#progMsg').textContent = err.message; }); };
     var sbal = $('#sendBal'); if (sbal) sbal.onclick = function () {
-      sbal.disabled = true; $('#progMsg').textContent = 'Creating the invoice and emailing it...';
-      AZ.api('qb-balance-invoice', { sale_id: s.id, email_customer: true }).then(function () { AZ.toast('Balance invoice emailed'); openSale(s.id); })
+      sbal.disabled = true; $('#progMsg').textContent = 'Emailing the pay link...';
+      AZ.api('pay-link', { sale_id: s.id, email_customer: true }).then(function () { AZ.toast('Balance pay link emailed'); openSale(s.id); })
         .catch(function (err) { $('#progMsg').textContent = err.message; sbal.disabled = false; });
     };
     $$('[data-prog]', box).forEach(function (b) {

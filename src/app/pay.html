@@ -1,0 +1,35 @@
+<section class="lhero apphero">
+  <div class="wrap narrow">
+    <p class="eyebrow">Secure payment</p>
+    <h1 id="payTitle">Your payment</h1>
+    <p class="lead" id="payLead">One moment while we load your agreement.</p>
+  </div>
+</section>
+<section class="appmain">
+  <div class="wrap narrow">
+    <div id="payLoading" class="card"><p>Loading...</p></div>
+    <div id="payError" class="card" hidden></div>
+    <div id="payCard" class="card paynow" hidden>
+      <p class="eyebrow" id="payWhat"></p>
+      <p class="payamount" id="payAmount"></p>
+      <p id="payWhy"></p>
+      <button class="btn btn-gold" type="button" id="payGo">Pay by card</button>
+      <p class="formmsg" id="payMsg" role="status" aria-live="polite"></p>
+      <p class="muted small">Your card details go straight to Helcim, our payment processor, on their secure form. AquaZen never sees or stores your card number.</p>
+    </div>
+    <div id="payDeclined" class="card" hidden>
+      <h2>Your card was declined</h2>
+      <p>Nothing was charged. With a purchase this size, card companies sometimes hold the payment to protect you from fraud.</p>
+      <p><b>The quick fix:</b> call the number on the back of your card, let them know you're making a purchase from AquaZen, and ask them to approve it. Then tap the button below to try again.</p>
+      <button class="btn btn-gold" type="button" id="payRetry">Try again</button>
+      <p class="muted small">Questions? Call or text Shaun at 236-304-4424.</p>
+    </div>
+    <div id="payDone" class="card done" hidden>
+      <img src="/assets/img/icon-512.png" alt="" width="72" height="72" style="border-radius:16px">
+      <h2>Payment received. Thank you!</h2>
+      <p id="payDoneText"></p>
+      <p>A confirmation is on its way to your email. Questions any time? Call or text Shaun at 236-304-4424.</p>
+    </div>
+  </div>
+</section>
+<script src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
