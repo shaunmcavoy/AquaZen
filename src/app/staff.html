@@ -407,19 +407,24 @@
         <h3>2. Hooks</h3>
         <p class="muted small">Start with ours, edit them on each ad below, or have AI write fresh ones for what you're promoting.</p>
         <div class="filters" role="group" aria-label="Hook sets" id="adSets"></div>
-        <details class="adai">
-          <summary>Write with AI</summary>
+        <details class="adai" id="adAi">
+          <summary>Write with AI, or copy an ad you like</summary>
           <form class="form" id="adAiForm">
-            <label>What's this ad for?<input name="goal" placeholder="Example: Book a visit to see the Series Two before Christmas" required></label>
+            <label>Copy an ad you like <span class="muted">(optional screenshot)</span><input type="file" name="ref" accept="image/*"></label>
+            <p class="muted small adnote">AI matches its layout, angle and feel, then rebuilds it with your photos, logo, colours and fresh words. It never copies their words, photos or logo.</p>
+            <label>What's this ad for? <span class="muted">(optional with a screenshot)</span><input name="goal" placeholder="Example: Book a visit to see the Series Two before Christmas"></label>
             <label>Any offer or detail to include? <span class="muted">(optional)</span><input name="offer" placeholder="Example: Free cover lifter with any Series Two"></label>
-            <label>An ad that's already working <span class="muted">(optional, AI matches its feel)</span><input type="file" name="ref" accept="image/*"></label>
-            <div class="formactions"><button class="btn btn-gold" type="submit">Write 4 hooks</button><span class="formmsg muted small" id="adAiMsg"></span></div>
+            <div class="formactions"><button class="btn btn-gold" type="submit">Make 4 ads</button><span class="formmsg muted small" id="adAiMsg"></span></div>
           </form>
         </details>
       </article>
 
       <div class="listhead adhead">
         <h2>3. Your four ads</h2>
+        <div class="filters" role="group" aria-label="Still or motion" id="adMotion">
+          <button class="chip" type="button" data-motion="off" aria-pressed="true">Still</button>
+          <button class="chip" type="button" data-motion="on" aria-pressed="false">Motion</button>
+        </div>
         <div class="filters" role="group" aria-label="Ad size" id="adSizes">
           <button class="chip" type="button" data-size="1:1" aria-pressed="false">Square</button>
           <button class="chip" type="button" data-size="4:5" aria-pressed="true">Feed 4:5</button>
@@ -435,7 +440,7 @@
           <button class="btn btn-gold" type="button" id="adSave" disabled>Save approved ads</button>
           <label class="adallsizes"><input type="checkbox" id="adAllSizes" checked> All three sizes</label>
         </div>
-        <p class="muted small">Each ad saves as a PNG, ready to upload to Facebook and Instagram. On a phone, choose Save Image to put them in Photos.</p>
+        <p class="muted small" id="adSaveNote">Each ad saves as a PNG, ready to upload to Facebook and Instagram. On a phone, choose Save Image to put them in Photos.</p>
       </article>
     </div>
 

@@ -52,7 +52,7 @@
     ] }
   ];
 
-  var S = { photo: 0, size: '4:5', set: 0, variants: [], aiHooks: null, opened: false };
+  var S = { photo: 0, size: '4:5', set: 0, variants: [], aiHooks: null, opened: false, motion: false };
   var imgCache = {};
   var logos = {};
 
@@ -81,8 +81,9 @@
   var FONT = '"AZ Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif';
 
   // ---------- Drawing helpers ----------
+  var ZOOM = 1; // set per frame: motion ads slowly push in on the photo
   function cover(ctx, img, x, y, w, h, fx, fy) {
-    var r = Math.max(w / img.width, h / img.height);
+    var r = Math.max(w / img.width, h / img.height) * ZOOM;
     var sw = w / r, sh = h / r;
     var sx = Math.min(Math.max(img.width * (fx == null ? 0.5 : fx) - sw / 2, 0), img.width - sw);
     var sy = Math.min(Math.max(img.height * (fy == null ? 0.5 : fy) - sh / 2, 0), img.height - sh);
@@ -147,15 +148,27 @@
   }
 
   // ---------- Layouts ----------
-  function render(canvas, v, size) {
+  // t: seconds into a motion ad. Leave it out for the finished still.
+  var DUR = 8, ENTER = 0.7;
+  function ease(p) { p = Math.min(Math.max(p, 0), 1); return 1 - Math.pow(1 - p, 3); }
+  function render(canvas, v, size, t) {
     var dim = SIZES[size], W = dim[0], H = dim[1];
-    canvas.width = W; canvas.height = H;
+    if (canvas.width !== W) canvas.width = W;
+    if (canvas.height !== H) canvas.height = H;
     var ctx = canvas.getContext('2d');
+    var T = t == null ? 99 : t;
+    // Each piece fades and rises into place from its start time. Measurements still run while hidden.
+    function show(start, fn) {
+      var p = ease((T - start) / ENTER);
+      ctx.save(); ctx.globalAlpha = p; ctx.translate(0, (1 - p) * 40);
+      var r = fn(); ctx.restore(); return r;
+    }
     var ph = photoAt(v.photo), hook = v.hook;
     return Promise.all([fonts(), load(ph.src), logos.light, logos.dark, logos.word]).then(function (r) {
       var img = r[1], logoLight = r[2], logoDark = r[3], word = r[4];
       var M = 72, tall = H / W, bottomSafe = size === '9:16' ? 300 : 0, topSafe = size === '9:16' ? 220 : 0;
       ctx.clearRect(0, 0, W, H); track(ctx, 0);
+      ZOOM = t == null ? 1 : 1 + 0.09 * ease(T / DUR) ;
 
       if (v.layout === 'bleed') {
         cover(ctx, img, 0, 0, W, H, ph.fx, ph.fy);
@@ -163,23 +176,23 @@
         g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(0.22, 'rgba(0,0,0,0)');
         g.addColorStop(0.45, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.88)');
         ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-        ctx.drawImage(word, M, M + topSafe, 250, 250 * word.height / word.width);
+        show(0.2, function () { ctx.drawImage(word, M, M + topSafe, 250, 250 * word.height / word.width); });
         var bottom = H - M - bottomSafe;
         ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 24;
-        contact(ctx, M, bottom, 28, 'rgba(255,255,255,.75)');
-        var cta = pill(ctx, hook.cta, M, bottom - 64 - 75, 30, C.gold, C.black);
+        show(2.1, function () { contact(ctx, M, bottom, 28, 'rgba(255,255,255,.75)'); });
+        var cta = show(1.7, function () { return pill(ctx, hook.cta, M, bottom - 64 - 75, 30, C.gold, C.black); });
         ctx.fillStyle = 'rgba(255,255,255,.88)';
         var sf = fit(ctx, hook.s, '400', W - M * 2, 2, 40, 32);
         var sh = sf.lines.length * sf.size * 1.3;
         var sy = bottom - 64 - cta.h - 40 - sh + sf.size;
-        drawLines(ctx, sf, M, sy, 1.3);
+        show(1.2, function () { drawLines(ctx, sf, M, sy, 1.3); });
         track(ctx, -2);
         var hf = fit(ctx, hook.h, '800', W - M * 2, 3, tall > 1.5 ? 118 : 104, 64);
         ctx.fillStyle = '#fff';
         var hh = hf.lines.length * hf.size * 1.04;
-        drawLines(ctx, hf, M, sy - sf.size - 30 - hh + hf.size, 1.04);
+        show(0.6, function () { drawLines(ctx, hf, M, sy - sf.size - 30 - hh + hf.size, 1.04); });
         track(ctx, 0); ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
-        stripes(ctx, 0, H - 14, W, 14, true);
+        stripes(ctx, 0, H - 14, W * (t == null ? 1 : ease(T / 1.2)), 14, true);
       }
 
       else if (v.layout === 'split') {
@@ -189,8 +202,8 @@
         var tg = ctx.createLinearGradient(0, 0, 0, split * 0.35);
         tg.addColorStop(0, 'rgba(0,0,0,.5)'); tg.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = tg; ctx.fillRect(0, 0, W, split * 0.35);
-        ctx.drawImage(word, M, M * 0.8 + topSafe, 210, 210 * word.height / word.width);
-        stripes(ctx, 0, split, W, 36, false);
+        show(0.2, function () { ctx.drawImage(word, M, M * 0.8 + topSafe, 210, 210 * word.height / word.width); });
+        stripes(ctx, 0, split, W * (t == null ? 1 : ease(T / 1.2)), 36, false);
         // Measure the text block, shrink the headline until it fits the panel, then centre it.
         var room = H - bottomSafe - (split + 36) - 2 * (size === '1:1' ? 50 : 70);
         var sf2, hf2, blockH, hMax = size === '1:1' ? 80 : 96;
@@ -202,65 +215,69 @@
         } while (blockH > room && hMax >= 48);
         var y = split + 36 + (H - bottomSafe - split - 36 - blockH) / 2;
         ctx.fillStyle = '#fff';
-        y += drawLines(ctx, hf2, M, y + hf2.size * 0.82, 1.04);
+        var y0 = y; y += show(0.6, function () { return drawLines(ctx, hf2, M, y0 + hf2.size * 0.82, 1.04); });
         track(ctx, 0);
         ctx.font = '400 ' + sf2.size + 'px ' + FONT;
         ctx.fillStyle = C.sand;
-        y += 26 + drawLines(ctx, sf2, M, y + 26 + sf2.size * 0.82, 1.3);
+        var y1 = y; y += 26 + show(1.2, function () { return drawLines(ctx, sf2, M, y1 + 26 + sf2.size * 0.82, 1.3); });
         var py = y + 36;
-        pill(ctx, hook.cta, M, py, 30, C.gold, C.black);
-        contact(ctx, W - M, py + 47, 26, C.sand, 'right');
+        show(1.7, function () { pill(ctx, hook.cta, M, py, 30, C.gold, C.black); });
+        show(2.1, function () { contact(ctx, W - M, py + 47, 26, C.sand, 'right'); });
       }
 
       else if (v.layout === 'statement') {
         ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
         var lw = 300, lh = lw * logoLight.height / logoLight.width;
         var top = M + topSafe;
-        ctx.drawImage(logoLight, (W - lw) / 2, top, lw, lh);
+        show(0.1, function () { ctx.drawImage(logoLight, (W - lw) / 2, top, lw, lh); });
         track(ctx, -3);
         var hf3 = fit(ctx, hook.h, '800', W - M * 2, 3, size === '1:1' ? 92 : 112, 60);
         ctx.fillStyle = sunsetText(ctx, M, W - M);
         var hy = top + lh + 60 + hf3.size;
-        var used = drawLines(ctx, hf3, W / 2, hy, 1.04, 'center');
+        var used = show(0.5, function () { return drawLines(ctx, hf3, W / 2, hy, 1.04, 'center'); });
         track(ctx, 0);
         var sf3 = fit(ctx, hook.s, '400', W - M * 2.5, 2, 36, 28);
         ctx.fillStyle = 'rgba(255,255,255,.82)';
         var sy3 = hy - hf3.size + used + 18 + sf3.size;
-        var sUsed = drawLines(ctx, sf3, W / 2, sy3, 1.3, 'center');
+        var sUsed = show(1.1, function () { return drawLines(ctx, sf3, W / 2, sy3, 1.3, 'center'); });
         var ctaY = H - M - bottomSafe - 75 - 60;
         var cardTop = sy3 - sf3.size + sUsed + 36;
         var cardH = ctaY - 44 - cardTop;
         if (cardH > 140) {
-          ctx.save(); rr(ctx, M, cardTop, W - M * 2, cardH, 36); ctx.clip();
-          cover(ctx, img, M, cardTop, W - M * 2, cardH, ph.fx, ph.fy); ctx.restore();
+          show(1.4, function () {
+            ctx.save(); rr(ctx, M, cardTop, W - M * 2, cardH, 36); ctx.clip();
+            cover(ctx, img, M, cardTop, W - M * 2, cardH, ph.fx, ph.fy); ctx.restore();
+          });
         }
-        pill(ctx, hook.cta, W / 2, ctaY, 30, C.gold, C.black, 'center');
-        contact(ctx, W / 2, H - M - bottomSafe + 4, 26, C.sand, 'center');
+        show(1.9, function () { pill(ctx, hook.cta, W / 2, ctaY, 30, C.gold, C.black, 'center'); });
+        show(2.2, function () { contact(ctx, W / 2, H - M - bottomSafe + 4, 26, C.sand, 'center'); });
       }
 
       else { // light
         ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
         var dw = 190, dh = dw * logoDark.height / logoDark.width;
-        ctx.drawImage(logoDark, M, M + topSafe, dw, dh);
+        show(0.1, function () { ctx.drawImage(logoDark, M, M + topSafe, dw, dh); });
         track(ctx, -2);
         var hf4 = fit(ctx, hook.h, '800', W - M * 2, 3, size === '1:1' ? 80 : 96, 56);
         ctx.fillStyle = C.ink;
         var y4 = M + topSafe + dh + 54 + hf4.size;
-        var u4 = drawLines(ctx, hf4, M, y4, 1.04);
+        var u4 = show(0.5, function () { return drawLines(ctx, hf4, M, y4, 1.04); });
         track(ctx, 0);
         var sf4 = fit(ctx, hook.s, '400', W - M * 2, 2, 36, 28);
         ctx.fillStyle = C.muted;
         var s4 = y4 - hf4.size + u4 + 24 + sf4.size;
-        var su4 = drawLines(ctx, sf4, M, s4, 1.3);
+        var su4 = show(1.0, function () { return drawLines(ctx, sf4, M, s4, 1.3); });
         var foot = H - M - bottomSafe;
         var ct = s4 - sf4.size + su4 + 40, ch = foot - 75 - 44 - ct;
         if (ch > 140) {
-          ctx.save(); rr(ctx, M, ct, W - M * 2, ch, 40); ctx.clip();
-          cover(ctx, img, M, ct, W - M * 2, ch, ph.fx, ph.fy); ctx.restore();
-          ctx.save(); rr(ctx, M, ct, W - M * 2, ch, 40); ctx.clip(); stripes(ctx, M, ct + ch - 12, W - M * 2, 12, true); ctx.restore();
+          show(1.4, function () {
+            ctx.save(); rr(ctx, M, ct, W - M * 2, ch, 40); ctx.clip();
+            cover(ctx, img, M, ct, W - M * 2, ch, ph.fx, ph.fy);
+            stripes(ctx, M, ct + ch - 12, W - M * 2, 12, true); ctx.restore();
+          });
         }
-        pill(ctx, hook.cta, M, foot - 75, 30, C.ink, '#fff');
-        contact(ctx, W - M, foot - 28, 26, C.muted, 'right');
+        show(1.9, function () { pill(ctx, hook.cta, M, foot - 75, 30, C.ink, '#fff'); });
+        show(2.2, function () { contact(ctx, W - M, foot - 28, 26, C.muted, 'right'); });
       }
       return canvas;
     });
@@ -308,6 +325,7 @@
   }
   var pending = {};
   function draw(i) {
+    if (S.motion) return; // the motion loop is already redrawing every frame
     // Redraw at most once per frame while someone types.
     if (pending[i]) return;
     pending[i] = true;
@@ -325,10 +343,70 @@
     $('#adSave').disabled = !n;
   }
 
+  // ---------- Motion ----------
+  var loopStart = 0, lastFrame = 0;
+  function loop(now) {
+    if (!S.motion || !$('#view-ads') || $('#view-ads').hidden) { S.looping = false; return; }
+    S.looping = true;
+    // About 30 frames a second is plenty for a preview and kinder to phones.
+    if (now - lastFrame > 32) {
+      lastFrame = now;
+      var t = ((now - loopStart) / 1000) % (DUR + 1);
+      $$('#adVariants .advar').forEach(function (el) {
+        var i = +el.dataset.i;
+        el.querySelector('.adcanvas').style.aspectRatio = SIZES[S.size][0] + ' / ' + SIZES[S.size][1];
+        render(el.querySelector('canvas'), S.variants[i], S.size, Math.min(t, DUR)).catch(function () {});
+      });
+    }
+    requestAnimationFrame(loop);
+  }
+  function startLoop() { loopStart = performance.now(); if (!S.looping) requestAnimationFrame(loop); }
+
+  function videoType() {
+    if (!window.MediaRecorder) return null;
+    var list = ['video/mp4;codecs=avc1.42E01F', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+    for (var i = 0; i < list.length; i++) if (MediaRecorder.isTypeSupported(list[i])) return list[i];
+    return null;
+  }
+  // Plays the ad once on a hidden canvas and records it. Runs in real time, so it takes as long as the ad.
+  function videoOf(v, size, type) {
+    var cv = document.createElement('canvas'), dim = SIZES[size];
+    cv.width = dim[0]; cv.height = dim[1];
+    return render(cv, v, size, 0).then(function () {
+      return new Promise(function (res, rej) {
+        var stream = cv.captureStream(30), chunks = [];
+        var rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 8000000 });
+        rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+        rec.onstop = function () { res(new Blob(chunks, { type: type.split(';')[0] })); };
+        rec.onerror = function (e) { rej(e.error || new Error('Recording failed')); };
+        var t0 = performance.now(), track0 = stream.getVideoTracks()[0];
+        rec.start(250);
+        (function frame() {
+          var t = (performance.now() - t0) / 1000;
+          render(cv, v, size, Math.min(t, DUR)).then(function () {
+            if (track0.requestFrame) track0.requestFrame();
+            if (t < DUR + 0.5) setTimeout(frame, 1000 / 30); else rec.stop();
+          });
+        })();
+      });
+    });
+  }
+
   // ---------- Saving ----------
   function blobOf(v, size) {
     var cv = document.createElement('canvas');
     return render(cv, v, size).then(function () { return new Promise(function (res) { cv.toBlob(res, 'image/png'); }); });
+  }
+  // Runs fn over items, at most n at a time, keeping the order.
+  function pool(items, n, fn) {
+    var out = new Array(items.length), next = 0;
+    function worker() {
+      if (next >= items.length) return Promise.resolve();
+      var i = next++;
+      return fn(items[i]).then(function (r) { out[i] = r; return worker(); });
+    }
+    var ws = []; for (var k = 0; k < Math.min(n, items.length); k++) ws.push(worker());
+    return Promise.all(ws).then(function () { return out; });
   }
   function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ad'; }
   function save() {
@@ -338,8 +416,16 @@
       if (!v.approved) return;
       sizes.forEach(function (sz) { jobs.push({ v: v, sz: sz, name: 'AquaZen-' + (i + 1) + '-' + slug(v.hook.h) + '-' + SIZE_NAME[sz] + '.png' }); });
     });
-    var btn = $('#adSave'); btn.disabled = true; btn.textContent = 'Getting them ready...';
-    Promise.all(jobs.map(function (j) { return blobOf(j.v, j.sz).then(function (b) { return new File([b], j.name, { type: 'image/png' }); }); }))
+    var btn = $('#adSave'); btn.disabled = true;
+    var type = S.motion ? videoType() : null;
+    if (S.motion && !type) { AZ.toast("This browser can't record video. Try Chrome or Safari."); count(); return; }
+    var ext = type && type.indexOf('mp4') > -1 ? '.mp4' : '.webm';
+    var secs = Math.ceil(jobs.length / 3) * Math.ceil(DUR + 1);
+    btn.textContent = S.motion ? 'Recording ' + jobs.length + (jobs.length === 1 ? ' video' : ' videos') + ', about ' + secs + ' seconds...' : 'Getting them ready...';
+    pool(jobs, S.motion ? 3 : 12, function (j) {
+      if (S.motion) return videoOf(j.v, j.sz, type).then(function (b) { return new File([b], j.name.replace(/\.png$/, ext), { type: b.type }); });
+      return blobOf(j.v, j.sz).then(function (b) { return new File([b], j.name, { type: 'image/png' }); });
+    })
       .then(function (files) {
         // Phones: share sheet, so they can go straight to Photos. Computers: download each.
         if (navigator.canShare && /iPhone|iPad|Android/i.test(navigator.userAgent) && navigator.canShare({ files: files })) {
@@ -427,17 +513,35 @@
       }
     });
     $('#adSave').addEventListener('click', save);
+    $('#adMotion').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      S.motion = b.dataset.motion === 'on';
+      $$('#adMotion .chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      $('#adSaveNote').textContent = S.motion
+        ? 'Each ad saves as an 8 second video. Recording happens live, so keep this page open until they save.'
+        : 'Each ad saves as a PNG, ready to upload to Facebook and Instagram. On a phone, choose Save Image to put them in Photos.';
+      if (S.motion) startLoop(); else S.variants.forEach(function (v, i) { draw(i); });
+    });
 
     $('#adAiForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var form = e.target, msg = $('#adAiMsg'), btn = form.querySelector('button[type="submit"]');
       var file = form.ref.files[0];
-      btn.disabled = true; msg.textContent = 'Writing...';
+      if (!file && !form.goal.value.trim()) { msg.textContent = "Add a screenshot of an ad you like, or say what this ad is for."; return; }
+      btn.disabled = true; msg.textContent = file ? 'Studying that ad and writing yours...' : 'Writing...';
       (file ? shrink(file, 1400) : Promise.resolve(null)).then(function (ref) {
-        return AZ.api('ads-write', { goal: form.goal.value, offer: form.offer.value, image: ref, photo: photoAt(S.photo).n });
+        return AZ.api('ads-write', { goal: form.goal.value, offer: form.offer.value, image: ref, photo: photoAt(S.photo).n,
+          photos: PHOTOS.map(function (p) { return p.n; }), layouts: LAYOUTS.map(function (l) { return l.k + ': ' + l.n; }) });
       }).then(function (r) {
-        if (!r.hooks || !r.hooks.length) throw new Error('No hooks came back. Please try again.');
-        S.aiHooks = r.hooks.slice(0, 4); buildSets(); freshVariants(); buildVariants();
+        if (!r.hooks || !r.hooks.length) throw new Error('Nothing came back. Please try again.');
+        S.aiHooks = r.hooks.slice(0, 4); buildSets(); freshVariants();
+        // The AI can pick a layout and one of our photos for each ad, to match the ad being copied.
+        S.variants.forEach(function (v, i) {
+          var hk = S.aiHooks[i % S.aiHooks.length];
+          if (hk.layout && LAYOUTS.some(function (l) { return l.k === hk.layout; })) v.layout = hk.layout;
+          if (typeof hk.photo === 'number' && hk.photo >= 0 && hk.photo < PHOTOS.length) v.photo = hk.photo;
+        });
+        buildVariants();
         msg.textContent = 'Done. Edit anything on the ads below.';
       }).catch(function (err) { msg.textContent = err.message; })
         .then(function () { btn.disabled = false; });
@@ -446,7 +550,7 @@
 
   window.AZAds = {
     open: function () {
-      if (S.opened) { S.variants.forEach(function (v, i) { draw(i); }); return; }
+      if (S.opened) { if (S.motion) startLoop(); else S.variants.forEach(function (v, i) { draw(i); }); return; }
       S.opened = true;
       logos.light = load('/assets/img/logo-full.png');
       logos.dark = load('/assets/img/logo-dark.png');

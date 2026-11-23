@@ -419,3 +419,4 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .adbtns{display:flex;gap:8px;flex-wrap:wrap}
 .adbtns .btn{flex:1}
 .adallsizes{font-size:.9rem;display:flex;gap:6px;align-items:center}
+.adnote{margin:-4px 0 0}

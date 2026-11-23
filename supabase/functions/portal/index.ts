@@ -1279,24 +1279,29 @@ async function route_ads_write(req: Request): Promise<Response> {
   if (!key) return jsonAuth(req, { error: "AI writing isn't switched on yet. Add an ANTHROPIC_API_KEY secret in Supabase." }, 400);
   const b = await req.json().catch(() => ({}));
   const goal = String(b.goal ?? "").trim().slice(0, 600);
-  if (!goal) return jsonAuth(req, { error: "Say what the ad is for." }, 400);
+  const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 30).map((x: unknown) => String(x).slice(0, 40)) : [];
+  const layouts: string[] = Array.isArray(b.layouts) ? b.layouts.slice(0, 8).map((x: unknown) => String(x).slice(0, 60)) : [];
   const offer = String(b.offer ?? "").trim().slice(0, 300);
   const photo = String(b.photo ?? "").trim().slice(0, 80);
   // deno-lint-ignore no-explicit-any
   const content: any[] = [];
   const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(b.image ?? ""));
-  if (m && m[2].length < 4_000_000) {
-    content.push({ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } });
-    content.push({ type: "text", text: "This is an ad that is already working for us. Match its energy and angle, but write fresh lines in our voice." });
+  const copying = !!(m && m[2].length < 4_000_000);
+  if (!goal && !copying) return jsonAuth(req, { error: "Add a screenshot of an ad you like, or say what this ad is for." }, 400);
+  if (copying) {
+    content.push({ type: "image", source: { type: "base64", media_type: m![1], data: m![2] } });
+    content.push({ type: "text", text: `This is someone else's ad that Shaun likes. Recreate it for AquaZen: keep its structure, angle, rhythm, length and tone, and pick the layout and photo of ours that come closest to its look. Write entirely fresh words in AquaZen's voice about AquaZen. Never reuse its wording, slogans, brand names, claims, numbers or offers.` });
   }
-  content.push({ type: "text", text: `What this ad is for: ${goal}
+  content.push({ type: "text", text: `What this ad is for: ${goal || "Same goal as the ad shown, applied to AquaZen."}
 ${offer ? `Offer to include, exactly as written: ${offer}\n` : "No offer. Don't mention one.\n"}${photo ? `The photo on the ad: ${photo}\n` : ""}
 Write 4 different hooks, each from a different angle (feeling, proof, local, curiosity). For each give:
 - h: headline, at most 7 words
 - s: supporting line, at most 14 words
 - cta: button text, at most 3 words (use "Find your Zen" or "Book a visit" unless something else fits better)
 - post: the post text above the ad, 2 or 3 short sentences ending with what to do next
-Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":""}]}` });
+${layouts.length ? `- layout: the key of the best-fitting layout from: ${layouts.join("; ")}${copying ? " (use the one closest to the ad shown)" : ""}
+` : ""}${photos.length ? `- photo: the number of the best-fitting photo from: ${photos.map((p, i) => `${i} ${p}`).join("; ")}
+` : ""}Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":""${layouts.length ? ',"layout":""' : ""}${photos.length ? ',"photo":0' : ""}}]}` });
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -1311,7 +1316,11 @@ Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":""}]}` });
   try {
     const j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
     // deno-lint-ignore no-explicit-any
-    const hooks = (j.hooks ?? []).slice(0, 4).map((x: any) => ({ h: clean(x.h, 70), s: clean(x.s, 110), cta: clean(x.cta, 22) || "Find your Zen", post: clean(x.post, 600) })).filter((x: { h: string }) => x.h);
+    const hooks = (j.hooks ?? []).slice(0, 4).map((x: any) => ({
+      h: clean(x.h, 70), s: clean(x.s, 110), cta: clean(x.cta, 22) || "Find your Zen", post: clean(x.post, 600),
+      layout: clean(x.layout, 20).split(":")[0] || undefined,
+      photo: Number.isInteger(Number(x.photo)) && Number(x.photo) >= 0 && Number(x.photo) < photos.length ? Number(x.photo) : undefined,
+    })).filter((x: { h: string }) => x.h);
     if (!hooks.length) throw new Error("empty");
     return jsonAuth(req, { hooks });
   } catch (e) {
