@@ -387,3 +387,35 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 
 /* Pay page */
 .payamount{font-family:var(--display);font-size:clamp(40px,8vw,56px);font-weight:700;letter-spacing:-.03em;margin:4px 0 10px}
+/* ---------- Ad studio (admins) ---------- */
+#view-ads > .card,#view-ads > .adgrid{margin-bottom:18px}
+#view-ads .card h3:first-child{margin-top:0}
+.adgrid{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:18px}
+@media (max-width:760px){.adgrid{grid-template-columns:1fr}}
+.kitlogo{background:var(--night);border-radius:12px;padding:18px;display:flex;justify-content:center}
+.kitlogo img{width:150px;height:auto}
+.swatches{display:flex;gap:6px;margin:14px 0 10px}
+.swatches span{width:28px;height:28px;border-radius:50%;border:1px solid var(--line)}
+.kitfont{font:800 1.8rem/1 var(--display);margin:0 0 8px}
+.kitfont span{font:400 .86rem var(--body);color:var(--muted);margin-left:6px}
+.adphotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-bottom:12px}
+.adphotos button{padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;cursor:pointer;background:none;aspect-ratio:4/3}
+.adphotos button[aria-checked="true"]{border-color:var(--gold);box-shadow:0 0 0 2px var(--night)}
+.adphotos img{width:100%;height:100%;object-fit:cover;display:block}
+.adupload{cursor:pointer}
+.adai{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.adai summary{cursor:pointer;font-weight:600;margin-bottom:10px}
+.adhead{margin:26px 0 14px}
+.adhead h2{font-size:1.4rem}
+.advariants{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;margin-bottom:18px}
+.advar{padding:14px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .15s ease}
+.advar.approved{box-shadow:0 0 0 3px var(--gold)}
+.adcanvas{background:var(--night);border-radius:10px;overflow:hidden;aspect-ratio:1080/1350}
+.adcanvas canvas{width:100%;height:100%;display:block}
+.adctl{display:grid;gap:8px}
+.adctl label{display:grid;gap:4px;font-size:.8rem;font-weight:600}
+.adctl input,.adctl select,.adctl textarea{font:inherit;font-weight:400;font-size:.9rem;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);width:100%;min-width:0}
+.adctl textarea{resize:vertical}
+.adbtns{display:flex;gap:8px;flex-wrap:wrap}
+.adbtns .btn{flex:1}
+.adallsizes{font-size:.9rem;display:flex;gap:6px;align-items:center}

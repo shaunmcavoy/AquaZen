@@ -1262,7 +1262,65 @@ async function route_service_update(req: Request): Promise<Response> {
   return jsonAuth(req, { ok: true });
 }
 
+// ---- Ad studio (admins): AI writes four hooks in Shaun's voice. Needs the ANTHROPIC_API_KEY secret. ----
+const ADS_BRAND = `You write Facebook and Instagram ad copy for AquaZen, Shaun McAvoy's hot tub store at 7049 Russell Ave, Burnaby, BC.
+- Sells AquaSolus hot tubs, swim spas and mini pools (always spell it AquaSolus). Visits by appointment. Own crew delivers from Whistler to Hope. Phone and text 236-304-4424. Website aquazen.ca.
+- The why: a place of peace at home. Hot tub time is "Zen Time". Main call to action is "Find your Zen" (a short quiz on aquazen.ca that shows the two best hot tubs for you). Tagline: "Your Zen is calling."
+- Every hot tub should deliver four things: luxury, healthy low-maintenance water, eco-friendly and energy efficient, and a massage that releases tension.
+- Facts you may use: 56-frame pumps, not 48-frame. AQ10 insulation keeps 100% of the water insulated 100% of the time (full foam leaves the pumps, heater and lines bare). Double ozonator, so care is one teaspoon of chlorine after each soak. Shaun has over twenty years in the industry. Stores often hold back on equipment to protect chemical and service revenue; AquaZen sells the right equipment from day one.
+- Voice: warm, plain, confident, like Shaun talking to a neighbour. Canadian spelling. Never use em dashes or en dashes. No hype words, no emojis, no hashtags.
+- Never invent prices, discounts, statistics, reviews, awards or customer stories. Only mention an offer if the user gives one, worded exactly as given. Never mention other stores by name. Never write "Stop going. Start being."`;
+
+async function route_ads_write(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!key) return jsonAuth(req, { error: "AI writing isn't switched on yet. Add an ANTHROPIC_API_KEY secret in Supabase." }, 400);
+  const b = await req.json().catch(() => ({}));
+  const goal = String(b.goal ?? "").trim().slice(0, 600);
+  if (!goal) return jsonAuth(req, { error: "Say what the ad is for." }, 400);
+  const offer = String(b.offer ?? "").trim().slice(0, 300);
+  const photo = String(b.photo ?? "").trim().slice(0, 80);
+  // deno-lint-ignore no-explicit-any
+  const content: any[] = [];
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(b.image ?? ""));
+  if (m && m[2].length < 4_000_000) {
+    content.push({ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } });
+    content.push({ type: "text", text: "This is an ad that is already working for us. Match its energy and angle, but write fresh lines in our voice." });
+  }
+  content.push({ type: "text", text: `What this ad is for: ${goal}
+${offer ? `Offer to include, exactly as written: ${offer}\n` : "No offer. Don't mention one.\n"}${photo ? `The photo on the ad: ${photo}\n` : ""}
+Write 4 different hooks, each from a different angle (feeling, proof, local, curiosity). For each give:
+- h: headline, at most 7 words
+- s: supporting line, at most 14 words
+- cta: button text, at most 3 words (use "Find your Zen" or "Book a visit" unless something else fits better)
+- post: the post text above the ad, 2 or 3 short sentences ending with what to do next
+Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":""}]}` });
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 1500, system: ADS_BRAND, messages: [{ role: "user", content }] }),
+  });
+  if (!res.ok) { console.error("ads-write", res.status, await res.text().catch(() => "")); return jsonAuth(req, { error: "The AI writer didn't answer. Please try again." }, 502); }
+  const out = await res.json();
+  // deno-lint-ignore no-explicit-any
+  const text = (out.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("");
+  const clean = (s: unknown, n: number) => String(s ?? "").replace(/\s*[—–]\s*/g, ", ").replace(/\s+/g, " ").trim().slice(0, n);
+  try {
+    const j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+    // deno-lint-ignore no-explicit-any
+    const hooks = (j.hooks ?? []).slice(0, 4).map((x: any) => ({ h: clean(x.h, 70), s: clean(x.s, 110), cta: clean(x.cta, 22) || "Find your Zen", post: clean(x.post, 600) })).filter((x: { h: string }) => x.h);
+    if (!hooks.length) throw new Error("empty");
+    return jsonAuth(req, { hooks });
+  } catch {
+    return jsonAuth(req, { error: "The AI writer's answer didn't come through right. Please try again." }, 502);
+  }
+}
+
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
+  "ads-write": route_ads_write,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

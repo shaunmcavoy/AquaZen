@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/assets/img/icon-512.png">
-<link rel="stylesheet" href="/assets/css/app.css?v=ab17ad4e">
+<link rel="stylesheet" href="/assets/css/app.css?v=07a22702">
 <!-- seo --><meta name="robots" content="noindex, nofollow"><!-- /seo -->
 </head>
 <body class="app app-staff">
@@ -28,6 +28,7 @@
       <a href="#resources" data-tab="resources">Documents</a>
       <a href="#money" data-tab="money" class="admin-only" hidden>Financials</a>
       <a href="#products" data-tab="products" class="admin-only" hidden>Products</a>
+      <a href="#ads" data-tab="ads" class="admin-only" hidden>Ads</a>
       <a href="#team" data-tab="team" class="admin-only" hidden>Team</a>
     </nav>
   </div>
@@ -397,6 +398,62 @@
     </div>
 
     <!-- Products (admins) -->
+    <!-- Ad studio (admins) -->
+    <div id="view-ads" class="view" hidden>
+      <p class="muted small">Make on-brand ads for Facebook and Instagram. Pick a photo, pick or write your hooks, and four versions land in every size. Approve the ones you like and save them.</p>
+
+      <div class="adgrid">
+        <article class="card adkit">
+          <h3>Brand kit</h3>
+          <div class="kitlogo"><img src="/assets/img/logo-full.png" alt="AquaZen logo" width="160" height="97"></div>
+          <div class="swatches" aria-label="Brand colours"><span style="background:#000"></span><span style="background:#f5f5f7"></span><span style="background:#f78800"></span><span style="background:#f0bf33"></span><span style="background:#c5cf99"></span><span style="background:#6eaa8f"></span><span style="background:#347c6e"></span></div>
+          <p class="kitfont">Aa <span>Inter, bold and plain</span></p>
+          <p class="muted small">aquazen.ca · 236-304-4424 · Burnaby, delivering Whistler to Hope</p>
+        </article>
+
+        <article class="card">
+          <h3>1. Pick the photo</h3>
+          <div class="adphotos" id="adPhotos" role="radiogroup" aria-label="Ad photo"></div>
+          <label class="btn btn-line btn-sm adupload">Use my own photo<input type="file" id="adOwnPhoto" accept="image/*" hidden></label>
+        </article>
+      </div>
+
+      <article class="card">
+        <h3>2. Hooks</h3>
+        <p class="muted small">Start with ours, edit them on each ad below, or have AI write fresh ones for what you're promoting.</p>
+        <div class="filters" role="group" aria-label="Hook sets" id="adSets"></div>
+        <details class="adai">
+          <summary>Write with AI</summary>
+          <form class="form" id="adAiForm">
+            <label>What's this ad for?<input name="goal" placeholder="Example: Book a visit to see the Series Two before Christmas" required></label>
+            <label>Any offer or detail to include? <span class="muted">(optional)</span><input name="offer" placeholder="Example: Free cover lifter with any Series Two"></label>
+            <label>An ad that's already working <span class="muted">(optional, AI matches its feel)</span><input type="file" name="ref" accept="image/*"></label>
+            <div class="formactions"><button class="btn btn-gold" type="submit">Write 4 hooks</button><span class="formmsg muted small" id="adAiMsg"></span></div>
+          </form>
+        </details>
+      </article>
+
+      <div class="listhead adhead">
+        <h2>3. Your four ads</h2>
+        <div class="filters" role="group" aria-label="Ad size" id="adSizes">
+          <button class="chip" type="button" data-size="1:1" aria-pressed="false">Square</button>
+          <button class="chip" type="button" data-size="4:5" aria-pressed="true">Feed 4:5</button>
+          <button class="chip" type="button" data-size="9:16" aria-pressed="false">Stories 9:16</button>
+        </div>
+      </div>
+      <div class="advariants" id="adVariants"></div>
+
+      <article class="card adsave">
+        <h3>4. Approve and save</h3>
+        <p class="muted small" id="adCount">Tap Approve on the ads you like.</p>
+        <div class="formactions">
+          <button class="btn btn-gold" type="button" id="adSave" disabled>Save approved ads</button>
+          <label class="adallsizes"><input type="checkbox" id="adAllSizes" checked> All three sizes</label>
+        </div>
+        <p class="muted small">Each ad saves as a PNG, ready to upload to Facebook and Instagram. On a phone, choose Save Image to put them in Photos.</p>
+      </article>
+    </div>
+
     <div id="view-products" class="view" hidden>
       <div class="card">
         <h3>How pricing works</h3>
@@ -492,6 +549,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js?v=e9e700e1"></script>
-<script src="/assets/js/staff.js?v=ad35aa27"></script>
+<script src="/assets/js/staff.js?v=3465d8bd"></script>
+<script src="/assets/js/ads.js?v=f0d747ca"></script>
 </body>
 </html>
