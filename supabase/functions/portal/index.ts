@@ -1477,12 +1477,22 @@ async function route_ads_image(req: Request): Promise<Response> {
   const prompt = String(b.prompt ?? "").trim().slice(0, 900);
   if (!prompt) return jsonAuth(req, { error: "No image idea came through." }, 400);
   const full = `A photorealistic lifestyle photograph for a hot tub store's ad in British Columbia, Canada. ${prompt} Natural, warm, believable light. Calm empty space in the upper or lower third for a headline. No text, words, letters, logos, watermarks or people's faces.`;
-  const res = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: Deno.env.get("ADS_IMAGE_MODEL") || "gpt-image-1", prompt: full, size: "1024x1536", quality: "medium", n: 1, output_format: "jpeg", output_compression: 88 }),
-  });
-  const out = await res.json().catch(() => ({}));
+  // OpenAI renames image models from time to time: try the preferred one, then their always-current alias.
+  const models = [Deno.env.get("ADS_IMAGE_MODEL") || "gpt-image-2.5-sunburst", "chatgpt-image-latest"];
+  let res: Response | null = null;
+  // deno-lint-ignore no-explicit-any
+  let out: any = {};
+  for (const model of models) {
+    res = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, prompt: full, size: "1024x1536", quality: "medium", n: 1, output_format: "jpeg", output_compression: 88 }),
+    });
+    out = await res.json().catch(() => ({}));
+    if (res.ok || out?.error?.param !== "model") break;
+    console.error("ads-image model", model, String(out?.error?.message ?? ""));
+  }
+  if (!res) return jsonAuth(req, { error: "The image didn't come through. Please try again." }, 502);
   if (!res.ok) {
     console.error("ads-image", res.status, JSON.stringify(out).slice(0, 800));
     const msg = String(out?.error?.message ?? "");
