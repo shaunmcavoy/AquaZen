@@ -308,7 +308,7 @@
   function cardHtml(v, i) {
     return '<article class="card advar' + (v.approved ? ' approved' : '') + '" data-i="' + i + '">' +
       '<div class="adcanvas"><canvas aria-label="Ad preview ' + (i + 1) + '"></canvas></div>' +
-      '<div class="adctl">' +
+      '<div class="adctl">' + (v.hook.principle ? '<p class="adprin">SCP: ' + AZ.esc(v.hook.principle) + '</p>' : '') +
         '<label>Layout<select data-f="layout">' + LAYOUTS.map(function (l) { return '<option value="' + l.k + '"' + (l.k === v.layout ? ' selected' : '') + '>' + l.n + '</option>'; }).join('') + '</select></label>' +
         '<div class="adbtns"><button class="btn btn-line btn-sm" type="button" data-act="prev" aria-label="Previous photo">&larr; Photo</button><button class="btn btn-line btn-sm" type="button" data-act="next" aria-label="Next photo">Photo &rarr;</button></div>' +
         '<label>Headline<input data-f="h" value="' + AZ.esc(v.hook.h) + '" maxlength="70"></label>' +

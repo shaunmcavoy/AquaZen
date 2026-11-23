@@ -1271,6 +1271,22 @@ const ADS_BRAND = `You write Facebook and Instagram ad copy for AquaZen, Shaun M
 - Voice: warm, plain, confident, like Shaun talking to a neighbour. Canadian spelling. Never use em dashes or en dashes. No hype words, no emojis, no hashtags.
 - Never invent prices, discounts, statistics, reviews, awards or customer stories. Only mention an offer if the user gives one, worded exactly as given. Never mention other stores by name. Never write "Stop going. Start being."`;
 
+// The SCP ad language. Drawn only from SCP Core, Act Two: The Presentation, and Foundations of Professional Selling.
+const ADS_SCP = `Write every ad in the SCP ad language. Use only these principles:
+1. Inside out. WHY, then HOW, then WHAT. Emotion makes the decision; logic justifies it. Open with meaning (what the reader's life gets back), never with a spec. Speak first to the part of the reader that decides, not the part that compares.
+2. The WHY connects AquaZen's purpose to the reader's reason for buying: a place of peace at home, a better evening, disconnecting on purpose. True and plain, never a slogan.
+3. The HOW is the bridge of proof: the decision behind the belief. Shape it as anchor (the belief), decision (what was done about it), distinction (why it's the harder, better way). Standard versus shortcut: the easy way often taken, then the way AquaZen and AquaSolus chose, without naming or criticising anyone. Process is hard to copy and makes buying feel safe.
+4. The WHAT is evidence, not a list. At most one feature in a headline and three in a post. Turn each feature into a proof point tied to the reader's life ("so you..."). A primary anchor proves the WHY; a secondary shield answers an unspoken worry (upkeep, running costs, winter, what happens if something goes wrong).
+5. Ownership. Help the reader picture it already theirs: a Friday night, a cold evening, the first soak after a long day.
+6. The coffee shop test. Plain human words you'd say to a friend. People, not "the company". Feeling words. Shaun's own opinion where it fits ("What I love is..."). No corporate words (premium, solutions, leverage, industry-leading, state-of-the-art).
+7. Clarity and certainty. Short, clear, powerful. Statements, not hopeful questions. No hedge words (kind of, maybe, basically, I think). A clear, confident next step.
+8. Challenger teaching. Hook with something counterintuitive, reframe a common belief (price tag versus cost of owning it, number of jets versus where they hit), then connect it to the reader's life. Teach, never argue or talk down. Warmth first, then competence.
+9. Identity. People buy a better version of themselves. Reflect who the reader is becoming (someone who takes their evenings back), never who they are failing to be.
+10. The emotional journey. An ad meets people at uncertainty and curiosity. Create safety and curiosity, then a little excitement. Never pressure, never hype, no exclamation marks.
+11. Positive emotional tension. Open an honest gap between wanting it and having it, so the call to action feels like the natural next step.
+12. Impulse factors, ethically only. Emotional connection always. Reciprocity by giving a genuinely useful insight. Scarcity, urgency and a value anchor only when the user gives a real offer, date or price, worded as given. Social proof and third-voice stories only if real and supplied; never invent customers, numbers or results. Indifference: calm and confident, never needy.
+Each of the four ads leads with a different principle, chosen to fit the idea (for example: inside-out WHY, HOW as standard versus shortcut, WHAT as proof with ownership, a challenger reframe, identity).`;
+
 async function route_ads_write(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
   const me = await adminOnly(req);
@@ -1292,21 +1308,22 @@ async function route_ads_write(req: Request): Promise<Response> {
     content.push({ type: "image", source: { type: "base64", media_type: m![1], data: m![2] } });
     content.push({ type: "text", text: `This is someone else's ad that Shaun likes. Recreate it for AquaZen: keep its structure, angle, rhythm, length and tone, and pick the layout and photo of ours that come closest to its look. Write entirely fresh words in AquaZen's voice about AquaZen. Never reuse its wording, slogans, brand names, claims, numbers or offers.` });
   }
-  content.push({ type: "text", text: `What this ad is for: ${goal || "Same goal as the ad shown, applied to AquaZen."}
+  content.push({ type: "text", text: `The idea for this ad: ${goal || "Same goal as the ad shown, applied to AquaZen."}
 ${offer ? `Offer to include, exactly as written: ${offer}\n` : "No offer. Don't mention one.\n"}${photo ? `The photo on the ad: ${photo}\n` : ""}
-Write 4 different hooks, each from a different angle (feeling, proof, local, curiosity). For each give:
+Write 4 different ads, each leading with a different SCP principle. For each give:
+- principle: the SCP principle it leads with, in 2 to 5 words (for example "Inside-out WHY" or "Standard versus shortcut")
 - h: headline, at most 7 words
 - s: supporting line, at most 14 words
 - cta: button text, at most 3 words (use "Find your Zen" or "Book a visit" unless something else fits better)
 - post: the post text above the ad, 2 or 3 short sentences ending with what to do next
 ${layouts.length ? `- layout: the key of the best-fitting layout from: ${layouts.join("; ")}${copying ? " (use the one closest to the ad shown)" : ""}
 ` : ""}${photos.length ? `- photo: the number of the best-fitting photo from: ${photos.map((p, i) => `${i} ${p}`).join("; ")}
-` : ""}Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":""${layouts.length ? ',"layout":""' : ""}${photos.length ? ',"photo":0' : ""}}]}` });
+` : ""}Reply with only JSON: {"hooks":[{"principle":"","h":"","s":"","cta":"","post":""${layouts.length ? ',"layout":""' : ""}${photos.length ? ',"photo":0' : ""}}]}` });
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 4000, system: ADS_BRAND, messages: [{ role: "user", content }] }),
+    body: JSON.stringify({ model: Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 4000, system: ADS_BRAND + "\n\n" + ADS_SCP, messages: [{ role: "user", content }] }),
   });
   if (!res.ok) { console.error("ads-write", res.status, await res.text().catch(() => "")); return jsonAuth(req, { error: "The AI writer didn't answer. Please try again." }, 502); }
   const out = await res.json();
@@ -1317,7 +1334,7 @@ ${layouts.length ? `- layout: the key of the best-fitting layout from: ${layouts
     const j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
     // deno-lint-ignore no-explicit-any
     const hooks = (j.hooks ?? []).slice(0, 4).map((x: any) => ({
-      h: clean(x.h, 70), s: clean(x.s, 110), cta: clean(x.cta, 22) || "Find your Zen", post: clean(x.post, 600),
+      h: clean(x.h, 70), s: clean(x.s, 110), cta: clean(x.cta, 22) || "Find your Zen", post: clean(x.post, 600), principle: clean(x.principle, 40) || undefined,
       layout: clean(x.layout, 20).split(":")[0] || undefined,
       photo: Number.isInteger(Number(x.photo)) && Number(x.photo) >= 0 && Number(x.photo) < photos.length ? Number(x.photo) : undefined,
     })).filter((x: { h: string }) => x.h);

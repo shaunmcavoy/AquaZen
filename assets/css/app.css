@@ -420,3 +420,4 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .adbtns .btn{flex:1}
 .adallsizes{font-size:.9rem;display:flex;gap:6px;align-items:center}
 .adnote{margin:-4px 0 0}
+.adprin{margin:0;font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--water-deep)}
