@@ -1271,22 +1271,124 @@ const ADS_BRAND = `You write Facebook and Instagram ad copy for AquaZen, Shaun M
 - Voice: warm, plain, confident, like Shaun talking to a neighbour. Canadian spelling. Never use em dashes or en dashes. No hype words, no emojis, no hashtags.
 - Never invent prices, discounts, statistics, reviews, awards or customer stories. Only mention an offer if the user gives one, worded exactly as given. Never mention other stores by name. Never write "Stop going. Start being."`;
 
-// The SCP ad language. Drawn only from SCP Core, Act Two: The Presentation, and Foundations of Professional Selling.
-const ADS_SCP = `Write every ad in the SCP ad language. Use only these principles:
-1. Inside out. WHY, then HOW, then WHAT. Emotion makes the decision; logic justifies it. Open with meaning (what the reader's life gets back), never with a spec. Speak first to the part of the reader that decides, not the part that compares.
-2. The WHY connects AquaZen's purpose to the reader's reason for buying: a place of peace at home, a better evening, disconnecting on purpose. True and plain, never a slogan.
-3. The HOW is the bridge of proof: the decision behind the belief. Shape it as anchor (the belief), decision (what was done about it), distinction (why it's the harder, better way). Standard versus shortcut: the easy way often taken, then the way AquaZen and AquaSolus chose, without naming or criticising anyone. Process is hard to copy and makes buying feel safe.
-4. The WHAT is evidence, not a list. At most one feature in a headline and three in a post. Turn each feature into a proof point tied to the reader's life ("so you..."). A primary anchor proves the WHY; a secondary shield answers an unspoken worry (upkeep, running costs, winter, what happens if something goes wrong).
-5. Ownership. Help the reader picture it already theirs: a Friday night, a cold evening, the first soak after a long day.
-6. The coffee shop test. Plain human words you'd say to a friend. People, not "the company". Feeling words. Shaun's own opinion where it fits ("What I love is..."). No corporate words (premium, solutions, leverage, industry-leading, state-of-the-art).
-7. Clarity and certainty. Short, clear, powerful. Statements, not hopeful questions. No hedge words (kind of, maybe, basically, I think). A clear, confident next step.
-8. Challenger teaching. Hook with something counterintuitive, reframe a common belief (price tag versus cost of owning it, number of jets versus where they hit), then connect it to the reader's life. Teach, never argue or talk down. Warmth first, then competence.
-9. Identity. People buy a better version of themselves. Reflect who the reader is becoming (someone who takes their evenings back), never who they are failing to be.
-10. The emotional journey. An ad meets people at uncertainty and curiosity. Create safety and curiosity, then a little excitement. Never pressure, never hype, no exclamation marks.
-11. Positive emotional tension. Open an honest gap between wanting it and having it, so the call to action feels like the natural next step.
-12. Impulse factors, ethically only. Emotional connection always. Reciprocity by giving a genuinely useful insight. Scarcity, urgency and a value anchor only when the user gives a real offer, date or price, worded as given. Social proof and third-voice stories only if real and supplied; never invent customers, numbers or results. Indifference: calm and confident, never needy.
-Each of the four ads leads with a different principle, chosen to fit the idea (for example: inside-out WHY, HOW as standard versus shortcut, WHAT as proof with ownership, a challenger reframe, identity).`;
+// The SCP ad language. Drawn only from SCP Core (Act One, Core Skill 1: The Pattern Interrupt; Act Two: The Presentation)
+// and Foundations of Professional Selling. Shaun picks factors and techniques in the Ad Brief; these are what the AI is told.
+const ADS_SCP = `Write in the SCP ad language. Always:
+- Inside out: emotion makes the decision, logic justifies it. Open with meaning, never a spec.
+- The coffee shop test: plain human words you'd say to a friend, people not "the company", feeling words, Shaun's own opinion where it fits. No corporate words (premium, solutions, leverage, industry-leading, state-of-the-art).
+- Clarity and certainty: short, clear, powerful. Statements, not hopeful questions. No hedge words (kind of, maybe, basically, I think).
+- The emotional journey: meet the reader where they are. Never pressure, never hype, no exclamation marks.
+- Positive emotional tension: an honest gap between wanting it and having it, so the call to action is the natural next step.
+- Ethics (Foundations, the five rules of A-C-A and ethical persuasion): tell the truth. Never invent customers, stories, numbers, deadlines, stock levels or offers.`;
 
+const ADS_FACTORS: Record<string, { n: string; d: string; fact?: string }> = {
+  emotional: { n: "Emotional connection", d: "Help the reader vividly picture their life improved. When they can see it, they can feel it, and when they feel it, acting becomes natural." },
+  loss: { n: "Fear of loss", fact: "the real limit", d: "Losses loom larger than gains. Show what waiting costs (the inaction cost) using only the real limit given. Use the transparency tone: 'I'd hate for you to miss it', never a fake buyer or fake scarcity." },
+  urgency: { n: "Sense of urgency", fact: "the real timing", d: "Give a real reason to act now: time (the real deadline given), life (their own goal, like being in the water before the cold sets in) or momentum. Urgency is calm and helpful; pressure is selfish." },
+  jones: { n: "Jones effect", fact: "the real pattern or customer", d: "Social proof. Nobody wants to be first; everyone wants to be next. Use only the real pattern or customer given, as the broad herd, a specific tribe or a local neighbour. 'My customers love this' beats 'I think'." },
+  greed: { n: "Greed (value)", fact: "the real value", d: "People want to feel like savvy buyers. Widen the gap between what it should cost and what it does: set the anchor first, then the offer, or give a free bonus instead of a discount. Use only the real numbers given." },
+  indifference: { n: "Indifference", d: "Calm, unattached confidence: 'If it's a fit, wonderful. If not, no hard feelings.' Be the prize, not the pest. People lean in when you lean back. Never needy." },
+  reciprocity: { n: "Reciprocity", d: "Give a genuinely useful insight or tip for free, so value arrives before any ask." },
+  authority: { n: "Authority", d: "Lead like the expert who has done this a thousand times: statements, a clear recommendation, a clear next step. Shaun has over twenty years in the industry." },
+  consistency: { n: "Consistency", d: "Connect to something the reader already believes or wants, so acting is simply staying true to it." },
+  suggestion: { n: "Power of suggestion", d: "Remove the burden of choice. Instead of listing options, suggest one clear path, the way a trusted expert would." },
+};
+
+const ADS_TECHNIQUES: Record<string, { n: string; d: string }> = {
+  interrupt: { n: "Pattern interrupt", d: "People scroll on autopilot, armed with 'just looking'. Break the script with an opener that is unexpected, sincere and good to receive: gratitude, a genuine observation, honest humour, a question nobody else asks, or plain honesty about how AquaZen works. Never a gimmick or clickbait; a trick puts the guard back up higher. Say one true thing, then let it land. Set a warm temperature from the first line." },
+  why: { n: "Inside-out WHY", d: "Connect AquaZen's purpose (a place of peace at home, a better evening, disconnecting on purpose) to the reader's reason for buying, before any product." },
+  empathy: { n: "Empathy bridge", d: "Reflect the reader's real reason (what they want changed in their life, like their evenings back) and connect it, genuinely, to why AquaZen does this work." },
+  story: { n: "Company story", d: "A founding problem beats a marketing fact. The industry scar AquaZen exists to heal: stores often hold back on equipment to protect chemical and service revenue. The belief, the commitment (the right equipment from day one), the result for the reader. Human and short." },
+  howproof: { n: "HOW as proof", d: "Prove the WHY with a real decision: anchor (the belief), decision (what was done about it), distinction (why it's the harder, better way)." },
+  shortcut: { n: "Standard versus shortcut", d: "Show the easy way often taken, then the way AquaZen and AquaSolus chose, and what it costs them to do it right. Never name or criticise anyone." },
+  what: { n: "WHAT as proof", d: "One feature turned into proof, tied to the reader's life ('so you...'). The anchor proves the WHY; a shield answers an unspoken worry (upkeep, running cost, winter, what if something goes wrong)." },
+  ownership: { n: "Ownership picture", d: "Help the reader picture it already theirs: a Friday night, a cold evening, the first soak after a long day." },
+  reframe: { n: "Challenger reframe", d: "Hook with something counterintuitive, reframe a common belief (price tag versus cost of owning it, number of jets versus where they hit, summer versus winter), then connect it to the reader's life. Teach, never argue. Warmth first, then competence." },
+  thirdvoice: { n: "Third voice", d: "Carry a truth through someone else's story so the reader doesn't have to defend against it. Use only a real story given, or the general pattern ('what tends to happen is...'). Never invent a customer." },
+  identity: { n: "Identity", d: "People buy a better version of themselves. Reflect who the reader is becoming (someone who takes their evenings back, someone serious about recovery)." },
+  connect: { n: "A-C-A Connect", d: "Name what the reader's interest says about them, truthfully: thoughtful, serious about their health, someone who does their homework. People live up to the labels they're given." },
+};
+
+const ADS_STAGES: Record<string, string> = {
+  uncertainty: "Uncertainty: not shopping yet, maybe just curious. They need safety, warmth and permission to explore, with no pressure.",
+  curiosity: "Curiosity: interested and asking questions. They need stimulation, new perspectives and genuine insight.",
+  excitement: "Excitement: imagining it. They need validation and a vivid picture, without overhyping.",
+  anxiety: "Close to deciding and second-guessing. They need calm reassurance, answers to their worries and permission to proceed.",
+};
+
+const ADS_PURPOSES: Record<string, string> = {
+  visit: "Get people to book a visit to the Burnaby showroom (by appointment).",
+  quiz: "Get people to take the Find your Zen quiz at aquazen.ca, which shows the two best hot tubs for them.",
+  offer: "Promote the offer given, worded exactly as given.",
+  trust: "Build trust in AquaZen, so people think of us first when they're ready.",
+  other: "The purpose described in the idea.",
+};
+
+// deno-lint-ignore no-explicit-any
+function adsBrief(b: any) {
+  const clean = (s: unknown, n: number) => String(s ?? "").replace(/\s*[—–]\s*/g, ", ").trim().slice(0, n);
+  const purpose = ADS_PURPOSES[b.purpose] ? b.purpose : "other";
+  const factors = (Array.isArray(b.factors) ? b.factors : []).filter((k: string) => ADS_FACTORS[k]).slice(0, 4);
+  const techniques = (Array.isArray(b.techniques) ? b.techniques : []).filter((k: string) => ADS_TECHNIQUES[k]).slice(0, 2);
+  const facts: Record<string, string> = {};
+  for (const k of factors) if (ADS_FACTORS[k].fact) facts[k] = clean(b.facts?.[k], 300);
+  const missing = factors.filter((k: string) => ADS_FACTORS[k].fact && !facts[k]);
+  const story = clean(b.story, 500);
+  return {
+    purpose, factors, techniques, facts, missing, story,
+    mode: b.mode === "test" ? "test" : "same",
+    idea: clean(b.idea, 600), offer: clean(b.offer, 300), audience: clean(b.audience, 200),
+    stage: ADS_STAGES[b.stage] ? b.stage : "curiosity",
+    imagery: ["photos", "ai", "mix"].includes(b.imagery) ? b.imagery : "photos",
+    photos: Array.isArray(b.photos) ? b.photos.slice(0, 30).map((x: unknown) => clean(x, 40)) : [],
+    layouts: Array.isArray(b.layouts) ? b.layouts.slice(0, 8).map((x: unknown) => clean(x, 60)) : [],
+    look: b.look === "creative" ? "creative" : "on brand", style: clean(b.style, 20) || "modern",
+  };
+}
+
+function adsBriefText(x: ReturnType<typeof adsBrief>): string {
+  const lines = [
+    `PURPOSE: ${ADS_PURPOSES[x.purpose]}`,
+    x.idea ? `THE IDEA: ${x.idea}` : "",
+    x.offer ? `OFFER (use exactly as written): ${x.offer}` : "NO OFFER. Don't mention one.",
+    x.audience ? `WHO IT'S FOR: ${x.audience}` : "WHO IT'S FOR: homeowners in the Lower Mainland and Sea to Sky.",
+    `WHERE THEY ARE ON THE EMOTIONAL JOURNEY: ${ADS_STAGES[x.stage]}`,
+    x.factors.length
+      ? `IMPULSE FACTORS (Foundations, Core Skill 5):\n${x.factors.map((k) => `- ${ADS_FACTORS[k].n}: ${ADS_FACTORS[k].d}${x.facts[k] ? ` THE REAL FACT TO USE: ${x.facts[k]}` : ""}`).join("\n")}`
+      : "IMPULSE FACTORS: choose what fits, using only factors that need no outside facts (emotional connection, indifference, reciprocity, authority, consistency, power of suggestion).",
+    x.techniques.length
+      ? `SCP TECHNIQUES:\n${x.techniques.map((k) => `- ${ADS_TECHNIQUES[k].n}: ${ADS_TECHNIQUES[k].d}`).join("\n")}`
+      : `SCP TECHNIQUES: choose what fits from: ${Object.values(ADS_TECHNIQUES).map((t) => t.n).join(", ")}.`,
+    x.story ? `A REAL CUSTOMER STORY SHAUN GAVE (may be used): ${x.story}` : "",
+    x.mode === "test"
+      ? "THE FOUR ADS: a test. Keep the purpose and technique the same, and give each ad a different impulse factor so Facebook shows which one wins. Use the factors chosen; if fewer than four were chosen, fill the rest with factors that need no outside facts."
+      : "THE FOUR ADS: the same recipe four ways. Every ad uses the chosen factors and techniques, each with a different execution (a different opener, angle and line).",
+    `DESIGN: look is ${x.look}, style is ${x.style}.`,
+    x.layouts.length ? `LAYOUTS (pick a key per ad): ${x.layouts.join("; ")}` : "",
+    x.imagery === "photos" ? `IMAGES: use our photos only. Pick by number: ${x.photos.map((p, i) => `${i} ${p}`).join("; ")}`
+      : x.imagery === "ai" ? "IMAGES: an AI-generated image for every ad. Write an image prompt for each."
+      : `IMAGES: per ad, pick one of our photos by number (${x.photos.map((p, i) => `${i} ${p}`).join("; ")}) or write an AI image prompt, whichever fits the ad better.`,
+    "AI IMAGE PROMPTS show settings, moments and feelings (steam rising on a snowy night, a robe on a hook, water close up, a quiet BC backyard at dusk, stars over cedar trees). Never a full hot tub product shot, because an invented tub would misrepresent what we sell; our own photos show the product. No people's faces, no text.",
+  ];
+  return lines.filter(Boolean).join("\n\n");
+}
+
+// deno-lint-ignore no-explicit-any
+async function adsClaude(key: string, content: any[], maxTokens = 4000): Promise<any> {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: maxTokens, system: ADS_BRAND + "\n\n" + ADS_SCP, messages: [{ role: "user", content }] }),
+  });
+  if (!res.ok) { console.error("ads claude", res.status, await res.text().catch(() => "")); throw new Error("answer"); }
+  const out = await res.json();
+  // deno-lint-ignore no-explicit-any
+  const text = (out.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("");
+  try { return JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); }
+  catch { console.error("ads parse", out.stop_reason, text.slice(0, 1200)); throw new Error("parse"); }
+}
+
+// POST {action: "plan" | "write", brief, plan?, note?, image?}  Admins. Plans, then writes, four ads from Shaun's brief.
 async function route_ads_write(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
   const me = await adminOnly(req);
@@ -1294,60 +1396,108 @@ async function route_ads_write(req: Request): Promise<Response> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) return jsonAuth(req, { error: "AI writing isn't switched on yet. Add an ANTHROPIC_API_KEY secret in Supabase." }, 400);
   const b = await req.json().catch(() => ({}));
-  const goal = String(b.goal ?? "").trim().slice(0, 600);
-  const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 30).map((x: unknown) => String(x).slice(0, 40)) : [];
-  const layouts: string[] = Array.isArray(b.layouts) ? b.layouts.slice(0, 8).map((x: unknown) => String(x).slice(0, 60)) : [];
-  const offer = String(b.offer ?? "").trim().slice(0, 300);
-  const photo = String(b.photo ?? "").trim().slice(0, 80);
-  // deno-lint-ignore no-explicit-any
-  const content: any[] = [];
+  const x = adsBrief(b.brief ?? {});
   const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(b.image ?? ""));
   const copying = !!(m && m[2].length < 4_000_000);
-  if (!goal && !copying) return jsonAuth(req, { error: "Add a screenshot of an ad you like, or say what this ad is for." }, 400);
+  if (!x.idea && !copying && x.purpose === "other") return jsonAuth(req, { error: "Pick a purpose, add the idea, or add an ad you like." }, 400);
+  if (x.missing.length) return jsonAuth(req, { error: `${x.missing.map((k: string) => ADS_FACTORS[k].n).join(" and ")} needs a real fact to be honest. Add it, or pick a different factor.` }, 400);
+  const clean = (s: unknown, n: number) => String(s ?? "").replace(/\s*[—–]\s*/g, ", ").replace(/\s+/g, " ").trim().slice(0, n);
+  const factorKeys = Object.keys(ADS_FACTORS), techKeys = Object.keys(ADS_TECHNIQUES);
+
+  // deno-lint-ignore no-explicit-any
+  const content: any[] = [];
   if (copying) {
     content.push({ type: "image", source: { type: "base64", media_type: m![1], data: m![2] } });
-    content.push({ type: "text", text: `This is someone else's ad that Shaun likes. Recreate it for AquaZen: keep its structure, angle, rhythm, length and tone, and pick the layout and photo of ours that come closest to its look. Write entirely fresh words in AquaZen's voice about AquaZen. Never reuse its wording, slogans, brand names, claims, numbers or offers.` });
+    content.push({ type: "text", text: "This is someone else's ad that Shaun likes. Use its structure, rhythm, length and feel, and pick the layout and photo of ours closest to its look. Write entirely fresh words about AquaZen. Never reuse its wording, slogans, brand names, claims, numbers or offers." });
   }
-  content.push({ type: "text", text: `The idea for this ad: ${goal || "Same goal as the ad shown, applied to AquaZen."}
-${offer ? `Offer to include, exactly as written: ${offer}\n` : "No offer. Don't mention one.\n"}${photo ? `The photo on the ad: ${photo}\n` : ""}
-Write 4 different ads, each leading with a different SCP principle. For each give:
-- principle: the SCP principle it leads with, in 2 to 5 words (for example "Inside-out WHY" or "Standard versus shortcut")
+  content.push({ type: "text", text: adsBriefText(x) });
+
+  try {
+    if (b.action === "plan") {
+      content.push({ type: "text", text: `Plan the four ads before writing them. Reply with only JSON:
+{"angle":"one sentence: the core idea all four ads build on","reader":"one sentence: who they are and what they feel right now","ads":[{"factor":"one key from ${factorKeys.join(", ")}","technique":"one key from ${techKeys.join(", ")}","idea":"one sentence: how this ad works, in plain words","layout":"a layout key","photo":0,"imagePrompt":""}]}
+For each ad set either photo (our photo number) or imagePrompt (an AI image prompt), not both.` });
+      const j = await adsClaude(key, content, 2500);
+      // deno-lint-ignore no-explicit-any
+      const ads = (j.ads ?? []).slice(0, 4).map((a: any) => {
+        const prompt = x.imagery !== "photos" ? clean(a.imagePrompt, 600) : "";
+        return {
+          factor: factorKeys.includes(a.factor) ? a.factor : x.factors[0] || "emotional",
+          technique: techKeys.includes(a.technique) ? a.technique : x.techniques[0] || "why",
+          idea: clean(a.idea, 300), layout: clean(a.layout, 20).split(":")[0],
+          photo: prompt ? undefined : Math.max(0, Math.min(Math.max(x.photos.length - 1, 0), Number(a.photo) || 0)),
+          imagePrompt: prompt || undefined,
+        };
+      });
+      return jsonAuth(req, { plan: { angle: clean(j.angle, 300), reader: clean(j.reader, 300), ads } });
+    }
+
+    // Write: follow the approved plan, with Shaun's changes.
+    const plan = b.plan && Array.isArray(b.plan.ads) ? b.plan : null;
+    if (plan) content.push({ type: "text", text: `THE APPROVED PLAN (follow it):\n${JSON.stringify({ angle: plan.angle, reader: plan.reader, ads: plan.ads }).slice(0, 4000)}` });
+    const note = clean(b.note, 600);
+    if (note) content.push({ type: "text", text: `SHAUN'S CHANGES TO THE PLAN (these win): ${note}` });
+    content.push({ type: "text", text: `Write the four ads. For each give:
 - h: headline, at most 7 words
 - s: supporting line, at most 14 words
-- cta: button text, at most 3 words (use "Find your Zen" or "Book a visit" unless something else fits better)
+- cta: button text, at most 3 words
 - post: the post text above the ad, 2 or 3 short sentences ending with what to do next
-${layouts.length ? `- layout: the key of the best-fitting layout from: ${layouts.join("; ")}${copying ? " (use the one closest to the ad shown)" : ""}
-` : ""}${photos.length ? `- photo: the number of the best-fitting photo from: ${photos.map((p, i) => `${i} ${p}`).join("; ")}
-` : ""}Reply with only JSON: {"hooks":[{"principle":"","h":"","s":"","cta":"","post":""${layouts.length ? ',"layout":""' : ""}${photos.length ? ',"photo":0' : ""}}]}` });
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 4000, system: ADS_BRAND + "\n\n" + ADS_SCP, messages: [{ role: "user", content }] }),
-  });
-  if (!res.ok) { console.error("ads-write", res.status, await res.text().catch(() => "")); return jsonAuth(req, { error: "The AI writer didn't answer. Please try again." }, 502); }
-  const out = await res.json();
-  // deno-lint-ignore no-explicit-any
-  const text = (out.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("");
-  const clean = (s: unknown, n: number) => String(s ?? "").replace(/\s*[—–]\s*/g, ", ").replace(/\s+/g, " ").trim().slice(0, n);
-  try {
-    const j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+- factor and technique: the keys it uses
+- layout, and either photo (number) or imagePrompt, as planned
+Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":"","factor":"","technique":"","layout":"","photo":0,"imagePrompt":""}]}` });
+    const j = await adsClaude(key, content, 4000);
     // deno-lint-ignore no-explicit-any
-    const hooks = (j.hooks ?? []).slice(0, 4).map((x: any) => ({
-      h: clean(x.h, 70), s: clean(x.s, 110), cta: clean(x.cta, 22) || "Find your Zen", post: clean(x.post, 600), principle: clean(x.principle, 40) || undefined,
-      layout: clean(x.layout, 20).split(":")[0] || undefined,
-      photo: Number.isInteger(Number(x.photo)) && Number(x.photo) >= 0 && Number(x.photo) < photos.length ? Number(x.photo) : undefined,
-    })).filter((x: { h: string }) => x.h);
-    if (!hooks.length) throw new Error("empty");
+    const hooks = (j.hooks ?? []).slice(0, 4).map((h: any) => {
+      const f = factorKeys.includes(h.factor) ? h.factor : undefined, t = techKeys.includes(h.technique) ? h.technique : undefined;
+      const prompt = x.imagery !== "photos" ? clean(h.imagePrompt, 600) : "";
+      return {
+        h: clean(h.h, 70), s: clean(h.s, 110), cta: clean(h.cta, 22) || "Find your Zen", post: clean(h.post, 600),
+        factor: f, technique: t,
+        principle: [f && ADS_FACTORS[f].n, t && ADS_TECHNIQUES[t].n].filter(Boolean).join(" + ") || undefined,
+        layout: clean(h.layout, 20).split(":")[0] || undefined,
+        photo: !prompt && Number.isInteger(Number(h.photo)) && Number(h.photo) >= 0 && Number(h.photo) < x.photos.length ? Number(h.photo) : undefined,
+        imagePrompt: prompt || undefined,
+      };
+    }).filter((h: { h: string }) => h.h);
+    if (!hooks.length) throw new Error("parse");
     return jsonAuth(req, { hooks });
   } catch (e) {
-    console.error("ads-write parse", String(e), out.stop_reason, JSON.stringify(out).slice(0, 1500));
-    return jsonAuth(req, { error: "The AI writer's answer didn't come through right. Please try again." }, 502);
+    return jsonAuth(req, { error: String((e as Error).message) === "answer" ? "The AI writer didn't answer. Please try again." : "The AI writer's answer didn't come through right. Please try again." }, 502);
   }
 }
 
+// POST {prompt}  Admins. An AI background image (OpenAI), returned as a data URL. Needs the OPENAI_API_KEY secret.
+async function route_ads_image(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const key = Deno.env.get("OPENAI_API_KEY");
+  if (!key) return jsonAuth(req, { error: "AI images aren't switched on yet. Add an OPENAI_API_KEY secret in Supabase." }, 400);
+  const b = await req.json().catch(() => ({}));
+  const prompt = String(b.prompt ?? "").trim().slice(0, 900);
+  if (!prompt) return jsonAuth(req, { error: "No image idea came through." }, 400);
+  const full = `A photorealistic lifestyle photograph for a hot tub store's ad in British Columbia, Canada. ${prompt} Natural, warm, believable light. Calm empty space in the upper or lower third for a headline. No text, words, letters, logos, watermarks or people's faces.`;
+  const res = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: Deno.env.get("ADS_IMAGE_MODEL") || "gpt-image-1", prompt: full, size: "1024x1536", quality: "medium", n: 1, output_format: "jpeg", output_compression: 88 }),
+  });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error("ads-image", res.status, JSON.stringify(out).slice(0, 800));
+    const msg = String(out?.error?.message ?? "");
+    if (/verif/i.test(msg)) return jsonAuth(req, { error: "OpenAI needs your organization verified before it will make images. In OpenAI, go to Settings, Organization, General and click Verify." }, 502);
+    if (/billing|quota|credit/i.test(msg)) return jsonAuth(req, { error: "OpenAI says there's no credit on the account. Add some under Settings, Billing." }, 502);
+    if (/safety|policy/i.test(msg)) return jsonAuth(req, { error: "OpenAI wouldn't make that image. Try a different idea." }, 502);
+    return jsonAuth(req, { error: "The image didn't come through. Please try again." }, 502);
+  }
+  const b64 = out?.data?.[0]?.b64_json;
+  if (!b64) return jsonAuth(req, { error: "The image didn't come through. Please try again." }, 502);
+  return jsonAuth(req, { image: `data:image/jpeg;base64,${b64}` });
+}
+
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write,
+  "ads-write": route_ads_write, "ads-image": route_ads_image,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

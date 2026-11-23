@@ -5,7 +5,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
-  var C = { black: '#000000', ink: '#1d1d1f', paper: '#f5f5f7', muted: '#6e6e73', sand: '#a1a1a6', gold: '#f0bf33',
+  var C = { black: '#000000', ink: '#1d1d1f', paper: '#f5f5f7', muted: '#6e6e73', sand: '#a1a1a6', gold: '#f0bf33', sage: '#c5cf99',
     stripes: ['#ca3432', '#f78800', '#f0bf33', '#c5cf99', '#6eaa8f', '#347c6e'] };
   var SUNSET = ['#f78800', '#f0bf33', '#c5cf99', '#6eaa8f'];
   var SIZES = { '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
@@ -52,7 +52,16 @@
     ] }
   ];
 
-  var S = { photo: 0, size: '4:5', set: 0, variants: [], aiHooks: null, opened: false, motion: false };
+  var S = { photo: 0, size: '4:5', set: 0, variants: [], aiHooks: null, opened: false, motion: false, look: 'brand', style: 'modern' };
+  // Design styles: headline weight (hw), tracking (ht), size (hs), line height (lh), capitals (up), supporting weight (sw), sunset headline (sunset).
+  var STYLES = [
+    { k: 'modern', n: 'Modern', d: 'Clean and confident: bold type, tight spacing.', hw: '800', ht: -2, hs: 1, lh: 1.04, sw: '400' },
+    { k: 'contemporary', n: 'Contemporary', d: 'Lighter, airier and current.', hw: '600', ht: -1, hs: 0.95, lh: 1.08, sw: '400' },
+    { k: 'elegant', n: 'Elegant', d: 'Light type and calm space.', hw: '300', ht: -0.5, hs: 0.92, lh: 1.14, sw: '300' },
+    { k: 'expressive', n: 'Expressive', d: 'Sunset colour in the headline and more energy.', hw: '800', ht: -2, hs: 1.06, lh: 1.02, sw: '400', sunset: true },
+    { k: 'bold', n: 'Bold', d: 'Huge capitals that stop the scroll.', hw: '900', ht: -1, hs: 1.14, lh: 0.98, up: true, sw: '600' }
+  ];
+  function styleOf(k) { return STYLES.filter(function (x) { return x.k === k; })[0] || STYLES[0]; }
   var imgCache = {};
   var logos = {};
 
@@ -71,7 +80,7 @@
   function fonts() {
     if (fontsReady) return fontsReady;
     var base = 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/files/inter-latin-';
-    var list = [['800', 'normal'], ['600', 'normal'], ['400', 'normal']].map(function (w) {
+    var list = [['900', 'normal'], ['800', 'normal'], ['600', 'normal'], ['400', 'normal'], ['300', 'normal']].map(function (w) {
       var f = new FontFace('AZ Inter', 'url(' + base + w[0] + '-normal.woff2) format("woff2")', { weight: w[0], style: w[1] });
       return f.load().then(function (ff) { document.fonts.add(ff); }).catch(function () { /* fall back to system font */ });
     });
@@ -164,14 +173,31 @@
       var r = fn(); ctx.restore(); return r;
     }
     var ph = photoAt(v.photo), hook = v.hook;
+    var st = styleOf(S.style), cr = S.look === 'creative';
+    var HEAD = st.up ? String(hook.h || '').toUpperCase() : hook.h;
+    // Headline helpers that follow the chosen style.
+    function headFit(maxW, lines, max, min) { track(ctx, st.ht); return fit(ctx, HEAD, st.hw, maxW, lines, Math.round(max * st.hs), min); }
+    function subFit(maxW, max, min) { track(ctx, 0); return fit(ctx, hook.s, st.sw, maxW, 2, max, min); }
+    function warm(x0, x1, stops) {
+      var g = ctx.createLinearGradient(x0, 0, x1, 0), c = stops || SUNSET;
+      c.forEach(function (s, i) { g.addColorStop(i / (c.length - 1), s); });
+      return g;
+    }
     return Promise.all([fonts(), load(ph.src), logos.light, logos.dark, logos.word]).then(function (r) {
       var img = r[1], logoLight = r[2], logoDark = r[3], word = r[4];
       var M = 72, tall = H / W, bottomSafe = size === '9:16' ? 300 : 0, topSafe = size === '9:16' ? 220 : 0;
       ctx.clearRect(0, 0, W, H); track(ctx, 0);
-      ZOOM = t == null ? 1 : 1 + 0.09 * ease(T / DUR) ;
+      ZOOM = t == null ? 1 : 1 + 0.09 * ease(T / DUR);
 
       if (v.layout === 'bleed') {
         cover(ctx, img, 0, 0, W, H, ph.fx, ph.fy);
+        if (cr) {
+          // Creative: a warm sunset wash over the photo.
+          ctx.save(); ctx.globalCompositeOperation = 'soft-light'; ctx.globalAlpha = 0.75;
+          var wg = ctx.createLinearGradient(0, 0, W, H);
+          wg.addColorStop(0, '#f78800'); wg.addColorStop(0.5, '#ca3432'); wg.addColorStop(1, '#347c6e');
+          ctx.fillStyle = wg; ctx.fillRect(0, 0, W, H); ctx.restore();
+        }
         var g = ctx.createLinearGradient(0, 0, 0, H);
         g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(0.22, 'rgba(0,0,0,0)');
         g.addColorStop(0.45, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.88)');
@@ -181,23 +207,23 @@
         ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 24;
         show(2.1, function () { contact(ctx, M, bottom, 28, 'rgba(255,255,255,.75)'); });
         var cta = show(1.7, function () { return pill(ctx, hook.cta, M, bottom - 64 - 75, 30, C.gold, C.black); });
+        var sf = subFit(W - M * 2, 40, 32);
         ctx.fillStyle = 'rgba(255,255,255,.88)';
-        var sf = fit(ctx, hook.s, '400', W - M * 2, 2, 40, 32);
         var sh = sf.lines.length * sf.size * 1.3;
         var sy = bottom - 64 - cta.h - 40 - sh + sf.size;
         show(1.2, function () { drawLines(ctx, sf, M, sy, 1.3); });
-        track(ctx, -2);
-        var hf = fit(ctx, hook.h, '800', W - M * 2, 3, tall > 1.5 ? 118 : 104, 64);
-        ctx.fillStyle = '#fff';
-        var hh = hf.lines.length * hf.size * 1.04;
-        show(0.6, function () { drawLines(ctx, hf, M, sy - sf.size - 30 - hh + hf.size, 1.04); });
+        var hf = headFit(W - M * 2, 3, tall > 1.5 ? 118 : 104, 60);
+        ctx.fillStyle = st.sunset ? warm(M, W - M) : '#fff';
+        var hh = hf.lines.length * hf.size * st.lh;
+        show(0.6, function () { drawLines(ctx, hf, M, sy - sf.size - 30 - hh + hf.size, st.lh); });
         track(ctx, 0); ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
         stripes(ctx, 0, H - 14, W * (t == null ? 1 : ease(T / 1.2)), 14, true);
       }
 
       else if (v.layout === 'split') {
         var split = Math.round(H * (size === '1:1' ? 0.5 : 0.55));
-        ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+        var panel = cr ? '#347c6e' : C.black;
+        ctx.fillStyle = panel; ctx.fillRect(0, 0, W, H);
         cover(ctx, img, 0, 0, W, split, ph.fx, ph.fy);
         var tg = ctx.createLinearGradient(0, 0, 0, split * 0.35);
         tg.addColorStop(0, 'rgba(0,0,0,.5)'); tg.addColorStop(1, 'rgba(0,0,0,0)');
@@ -208,36 +234,37 @@
         var room = H - bottomSafe - (split + 36) - 2 * (size === '1:1' ? 50 : 70);
         var sf2, hf2, blockH, hMax = size === '1:1' ? 80 : 96;
         do {
-          track(ctx, 0); sf2 = fit(ctx, hook.s, '400', W - M * 2, 2, 38, 30);
-          track(ctx, -2); hf2 = fit(ctx, hook.h, '800', W - M * 2, 3, hMax, 48);
-          blockH = hf2.lines.length * hf2.size * 1.04 + 26 + sf2.lines.length * sf2.size * 1.3 + 36 + 75;
+          sf2 = subFit(W - M * 2, 38, 30);
+          hf2 = headFit(W - M * 2, 3, hMax, 44);
+          blockH = hf2.lines.length * hf2.size * st.lh + 26 + sf2.lines.length * sf2.size * 1.3 + 36 + 75;
           hMax -= 4;
-        } while (blockH > room && hMax >= 48);
+        } while (blockH > room && hMax >= 44);
         var y = split + 36 + (H - bottomSafe - split - 36 - blockH) / 2;
-        ctx.fillStyle = '#fff';
-        var y0 = y; y += show(0.6, function () { return drawLines(ctx, hf2, M, y0 + hf2.size * 0.82, 1.04); });
+        ctx.fillStyle = st.sunset ? (cr ? C.gold : warm(M, W - M)) : (cr ? '#fbf7e6' : '#fff');
+        var y0 = y; y += show(0.6, function () { return drawLines(ctx, hf2, M, y0 + hf2.size * 0.82, st.lh); });
         track(ctx, 0);
-        ctx.font = '400 ' + sf2.size + 'px ' + FONT;
-        ctx.fillStyle = C.sand;
+        ctx.font = st.sw + ' ' + sf2.size + 'px ' + FONT;
+        ctx.fillStyle = cr ? 'rgba(255,255,255,.85)' : C.sand;
         var y1 = y; y += 26 + show(1.2, function () { return drawLines(ctx, sf2, M, y1 + 26 + sf2.size * 0.82, 1.3); });
         var py = y + 36;
         show(1.7, function () { pill(ctx, hook.cta, M, py, 30, C.gold, C.black); });
-        show(2.1, function () { contact(ctx, W - M, py + 47, 26, C.sand, 'right'); });
+        show(2.1, function () { contact(ctx, W - M, py + 47, 26, cr ? 'rgba(255,255,255,.8)' : C.sand, 'right'); });
       }
 
       else if (v.layout === 'statement') {
-        ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
-        var lw = 300, lh = lw * logoLight.height / logoLight.width;
+        // Creative turns the page deep evergreen; every stripe in the logo still shows.
+        var dark = true;
+        ctx.fillStyle = cr ? '#14322c' : C.black; ctx.fillRect(0, 0, W, H);
+        var lg = logoLight;
+        var lw = 300, lh = lw * lg.height / lg.width;
         var top = M + topSafe;
-        show(0.1, function () { ctx.drawImage(logoLight, (W - lw) / 2, top, lw, lh); });
-        track(ctx, -3);
-        var hf3 = fit(ctx, hook.h, '800', W - M * 2, 3, size === '1:1' ? 92 : 112, 60);
-        ctx.fillStyle = sunsetText(ctx, M, W - M);
+        show(0.1, function () { ctx.drawImage(lg, (W - lw) / 2, top, lw, lh); });
+        var hf3 = headFit(W - M * 2, 3, size === '1:1' ? 92 : 112, 56);
+        ctx.fillStyle = dark ? warm(M, W - M) : (st.sunset ? warm(M, W - M, ['#ca3432', '#a8410c']) : C.ink);
         var hy = top + lh + 60 + hf3.size;
-        var used = show(0.5, function () { return drawLines(ctx, hf3, W / 2, hy, 1.04, 'center'); });
-        track(ctx, 0);
-        var sf3 = fit(ctx, hook.s, '400', W - M * 2.5, 2, 36, 28);
-        ctx.fillStyle = 'rgba(255,255,255,.82)';
+        var used = show(0.5, function () { return drawLines(ctx, hf3, W / 2, hy, st.lh, 'center'); });
+        var sf3 = subFit(W - M * 2.5, 36, 28);
+        ctx.fillStyle = dark ? 'rgba(255,255,255,.82)' : 'rgba(29,29,31,.85)';
         var sy3 = hy - hf3.size + used + 18 + sf3.size;
         var sUsed = show(1.1, function () { return drawLines(ctx, sf3, W / 2, sy3, 1.3, 'center'); });
         var ctaY = H - M - bottomSafe - 75 - 60;
@@ -249,22 +276,20 @@
             cover(ctx, img, M, cardTop, W - M * 2, cardH, ph.fx, ph.fy); ctx.restore();
           });
         }
-        show(1.9, function () { pill(ctx, hook.cta, W / 2, ctaY, 30, C.gold, C.black, 'center'); });
-        show(2.2, function () { contact(ctx, W / 2, H - M - bottomSafe + 4, 26, C.sand, 'center'); });
+        show(1.9, function () { pill(ctx, hook.cta, W / 2, ctaY, 30, dark ? C.gold : C.ink, dark ? C.black : '#fff', 'center'); });
+        show(2.2, function () { contact(ctx, W / 2, H - M - bottomSafe + 4, 26, dark ? C.sand : 'rgba(29,29,31,.75)', 'center'); });
       }
 
       else { // light
-        ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = cr ? '#f3e8d2' : C.paper; ctx.fillRect(0, 0, W, H);
         var dw = 190, dh = dw * logoDark.height / logoDark.width;
         show(0.1, function () { ctx.drawImage(logoDark, M, M + topSafe, dw, dh); });
-        track(ctx, -2);
-        var hf4 = fit(ctx, hook.h, '800', W - M * 2, 3, size === '1:1' ? 80 : 96, 56);
-        ctx.fillStyle = C.ink;
+        var hf4 = headFit(W - M * 2, 3, size === '1:1' ? 80 : 96, 52);
+        ctx.fillStyle = st.sunset ? warm(M, W - M, ['#ca3432', '#c25e00']) : C.ink;
         var y4 = M + topSafe + dh + 54 + hf4.size;
-        var u4 = show(0.5, function () { return drawLines(ctx, hf4, M, y4, 1.04); });
-        track(ctx, 0);
-        var sf4 = fit(ctx, hook.s, '400', W - M * 2, 2, 36, 28);
-        ctx.fillStyle = C.muted;
+        var u4 = show(0.5, function () { return drawLines(ctx, hf4, M, y4, st.lh); });
+        var sf4 = subFit(W - M * 2, 36, 28);
+        ctx.fillStyle = cr ? 'rgba(29,29,31,.78)' : C.muted;
         var s4 = y4 - hf4.size + u4 + 24 + sf4.size;
         var su4 = show(1.0, function () { return drawLines(ctx, sf4, M, s4, 1.3); });
         var foot = H - M - bottomSafe;
@@ -277,7 +302,7 @@
           });
         }
         show(1.9, function () { pill(ctx, hook.cta, M, foot - 75, 30, C.ink, '#fff'); });
-        show(2.2, function () { contact(ctx, W - M, foot - 28, 26, C.muted, 'right'); });
+        show(2.2, function () { contact(ctx, W - M, foot - 28, 26, cr ? 'rgba(29,29,31,.75)' : C.muted, 'right'); });
       }
       return canvas;
     });
@@ -306,7 +331,7 @@
   }
 
   function cardHtml(v, i) {
-    return '<article class="card advar' + (v.approved ? ' approved' : '') + '" data-i="' + i + '">' +
+    return '<article class="card advar' + (v.approved ? ' approved' : '') + (v.painting ? ' painting' : '') + '" data-i="' + i + '">' +
       '<div class="adcanvas"><canvas aria-label="Ad preview ' + (i + 1) + '"></canvas></div>' +
       '<div class="adctl">' + (v.hook.principle ? '<p class="adprin">SCP: ' + AZ.esc(v.hook.principle) + '</p>' : '') +
         '<label>Layout<select data-f="layout">' + LAYOUTS.map(function (l) { return '<option value="' + l.k + '"' + (l.k === v.layout ? ' selected' : '') + '>' + l.n + '</option>'; }).join('') + '</select></label>' +
@@ -523,28 +548,175 @@
       if (S.motion) startLoop(); else S.variants.forEach(function (v, i) { draw(i); });
     });
 
-    $('#adAiForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var form = e.target, msg = $('#adAiMsg'), btn = form.querySelector('button[type="submit"]');
-      var file = form.ref.files[0];
-      if (!file && !form.goal.value.trim()) { msg.textContent = "Add a screenshot of an ad you like, or say what this ad is for."; return; }
-      btn.disabled = true; msg.textContent = file ? 'Studying that ad and writing yours...' : 'Writing...';
-      (file ? shrink(file, 1400) : Promise.resolve(null)).then(function (ref) {
-        return AZ.api('ads-write', { goal: form.goal.value, offer: form.offer.value, image: ref, photo: photoAt(S.photo).n,
-          photos: PHOTOS.map(function (p) { return p.n; }), layouts: LAYOUTS.map(function (l) { return l.k + ': ' + l.n; }) });
-      }).then(function (r) {
-        if (!r.hooks || !r.hooks.length) throw new Error('Nothing came back. Please try again.');
-        S.aiHooks = r.hooks.slice(0, 4); buildSets(); freshVariants();
-        // The AI can pick a layout and one of our photos for each ad, to match the ad being copied.
-        S.variants.forEach(function (v, i) {
-          var hk = S.aiHooks[i % S.aiHooks.length];
-          if (hk.layout && LAYOUTS.some(function (l) { return l.k === hk.layout; })) v.layout = hk.layout;
-          if (typeof hk.photo === 'number' && hk.photo >= 0 && hk.photo < PHOTOS.length) v.photo = hk.photo;
-        });
-        buildVariants();
-        msg.textContent = 'Done. Edit anything on the ads below.';
-      }).catch(function (err) { msg.textContent = err.message; })
-        .then(function () { btn.disabled = false; });
+    wireBrief();
+  }
+
+  // ---------- The Ad Brief ----------
+  var PURPOSES = [
+    { k: 'visit', n: 'Book a visit' }, { k: 'quiz', n: 'Find your Zen quiz' }, { k: 'offer', n: 'Promote an offer' },
+    { k: 'trust', n: 'Build trust' }, { k: 'other', n: 'Something else' }
+  ];
+  // fact: what the factor needs to stay honest (asked for when the factor is picked).
+  var FACTORS = [
+    { k: 'emotional', n: 'Emotional connection', d: 'They picture their life better with it, and acting feels natural.' },
+    { k: 'loss', n: 'Fear of loss', d: 'Losses loom larger than gains. Shows what waiting costs.', fact: "What's genuinely limited?", ph: 'Example: Only two Series Two Cascades left before the January price increase' },
+    { k: 'urgency', n: 'Sense of urgency', d: 'A real reason to act now: a deadline, their own goal, or momentum.', fact: "What's the real timing?", ph: 'Example: Order by Dec 5 to be in the water for Christmas' },
+    { k: 'jones', n: 'Jones effect', d: 'Nobody wants to be first, everyone wants to be next.', fact: 'The real pattern or customer', ph: 'Example: Most of our Series Two buyers choose the Harmony' },
+    { k: 'greed', n: 'Greed (value)', d: 'They feel like a savvy buyer: anchor first, then the offer, or a free bonus.', fact: 'The real value', ph: 'Example: MSRP $14,999, our price $11,499, cover lifter included' },
+    { k: 'indifference', n: 'Indifference', d: 'Calm, unattached confidence. The prize, not the pest.' },
+    { k: 'reciprocity', n: 'Reciprocity', d: 'Give a genuinely useful tip first.' },
+    { k: 'authority', n: 'Authority', d: 'Lead like the expert, with a clear recommendation.' },
+    { k: 'consistency', n: 'Consistency', d: "Connect to what they already believe, so acting is staying true to it." },
+    { k: 'suggestion', n: 'Power of suggestion', d: 'Take away the burden of choice with one clear path.' }
+  ];
+  var TECHS = [
+    { k: 'interrupt', n: 'Pattern interrupt', d: 'Act One. Breaks the scroll with something unexpected, sincere and good to receive.' },
+    { k: 'why', n: 'Inside-out WHY', d: 'Our purpose meets their reason, before any product.' },
+    { k: 'empathy', n: 'Empathy bridge', d: 'Reflects what they want changed, and why we care.' },
+    { k: 'story', n: 'Company story', d: 'The founding problem: stores hold back on equipment. We don\'t.' },
+    { k: 'howproof', n: 'HOW as proof', d: 'Anchor, decision, distinction.' },
+    { k: 'shortcut', n: 'Standard vs shortcut', d: 'The easy way, then the way we chose, and what it costs us.' },
+    { k: 'what', n: 'WHAT as proof', d: 'One feature tied to their life, plus a shield for a worry.' },
+    { k: 'ownership', n: 'Ownership picture', d: 'They picture it already theirs.' },
+    { k: 'reframe', n: 'Challenger reframe', d: 'Hook, reframe a common belief, connect it to them.' },
+    { k: 'thirdvoice', n: 'Third voice', d: 'A truth told through a real customer\'s story.' },
+    { k: 'identity', n: 'Identity', d: 'Reflects who they\'re becoming.' },
+    { k: 'connect', n: 'A-C-A Connect', d: 'Names what their interest says about them.' }
+  ];
+  var STAGES = [
+    { k: 'uncertainty', n: 'Just curious' }, { k: 'curiosity', n: 'Looking around' },
+    { k: 'excitement', n: 'Excited' }, { k: 'anxiety', n: 'Close to deciding' }
+  ];
+  var MODES = [
+    { k: 'same', n: 'Same recipe, four ways', d: 'All four use your factors and technique, each with a different opener and angle.' },
+    { k: 'test', n: 'Test the factors', d: 'Same purpose and technique, a different impulse factor on each, so Facebook shows you which one wins. Pick up to four factors.' }
+  ];
+  var IMAGERY = [{ k: 'photos', n: 'Our photos' }, { k: 'ai', n: 'AI images' }, { k: 'mix', n: 'Mix, AI decides' }];
+  var B = { purpose: 'visit', factors: [], techniques: [], facts: {}, stage: 'curiosity', mode: 'same', imagery: 'photos', plan: null };
+
+  function chips(el, list, sel, key) {
+    $(el).innerHTML = list.map(function (o) {
+      return '<button class="chip" type="button" data-' + key + '="' + o.k + '" aria-pressed="' + (sel.indexOf ? sel.indexOf(o.k) > -1 : sel === o.k) + '">' + AZ.esc(o.n) + '</button>';
+    }).join('');
+  }
+  function maxFactors() { return B.mode === 'test' ? 4 : 2; }
+  function buildBrief() {
+    chips('#abPurpose', PURPOSES, B.purpose, 'v');
+    chips('#abFactors', FACTORS, B.factors, 'v');
+    chips('#abTech', TECHS, B.techniques, 'v');
+    chips('#abStage', STAGES, B.stage, 'v');
+    chips('#abMode', MODES, B.mode, 'v');
+    chips('#abImagery', IMAGERY, B.imagery, 'v');
+    var fd = FACTORS.filter(function (f) { return B.factors.indexOf(f.k) > -1; });
+    $('#abFactorHelp').textContent = fd.length ? fd.map(function (f) { return f.n + ': ' + f.d; }).join(' ') : 'Pick up to ' + maxFactors() + '. Leave them empty and the AI chooses ones that need no outside facts.';
+    var td = TECHS.filter(function (t) { return B.techniques.indexOf(t.k) > -1; });
+    $('#abTechHelp').textContent = td.length ? td.map(function (t) { return t.n + ': ' + t.d; }).join(' ') : 'Leave empty and the AI chooses.';
+    $('#abModeHelp').textContent = MODES.filter(function (m) { return m.k === B.mode; })[0].d;
+    $('#abStoryBox').hidden = B.techniques.indexOf('thirdvoice') < 0 && B.factors.indexOf('jones') < 0;
+    // A box for each factor that needs a real fact, keeping anything already typed.
+    var box = $('#abFacts');
+    box.innerHTML = fd.filter(function (f) { return f.fact; }).map(function (f) {
+      return '<label>' + AZ.esc(f.n) + ': ' + AZ.esc(f.fact) + ' <span class="muted">(required, only if true)</span><input data-fact="' + f.k + '" maxlength="300" placeholder="' + AZ.esc(f.ph) + '" value="' + AZ.esc(B.facts[f.k] || '') + '"></label>';
+    }).join('');
+  }
+  function toggle(list, k, max) {
+    var i = list.indexOf(k);
+    if (i > -1) list.splice(i, 1);
+    else { if (list.length >= max) list.shift(); list.push(k); }
+  }
+  function briefBody() {
+    return {
+      purpose: B.purpose, idea: $('#abIdea').value, offer: $('#abOffer').value, audience: $('#abAudience').value,
+      factors: B.factors.slice(), techniques: B.techniques.slice(), facts: B.facts, story: $('#abStory').value,
+      stage: B.stage, mode: B.mode, imagery: B.imagery, look: S.look === 'creative' ? 'creative' : 'brand', style: S.style,
+      photos: PHOTOS.map(function (p) { return p.n; }), layouts: LAYOUTS.map(function (l) { return l.k + ': ' + l.n; })
+    };
+  }
+  function nameOf(list, k) { var o = list.filter(function (x) { return x.k === k; })[0]; return o ? o.n : k; }
+  function showPlan(p) {
+    B.plan = p;
+    $('#abAngle').innerHTML = '<b>' + AZ.esc(p.angle) + '</b>' + (p.reader ? '<br><span class="muted">' + AZ.esc(p.reader) + '</span>' : '');
+    $('#abPlanAds').innerHTML = p.ads.map(function (a) {
+      var img = a.imagePrompt ? 'AI image: ' + a.imagePrompt : 'Photo: ' + ((PHOTOS[a.photo] || {}).n || 'ours');
+      return '<li><span class="adprin">' + AZ.esc(nameOf(FACTORS, a.factor)) + ' + ' + AZ.esc(nameOf(TECHS, a.technique)) + '</span>' +
+        AZ.esc(a.idea) + '<br><span class="muted small">' + AZ.esc(nameOf(LAYOUTS.map(function (l) { return { k: l.k, n: l.n }; }), a.layout)) + ' · ' + AZ.esc(img) + '</span></li>';
+    }).join('');
+    $('#abPlan').hidden = false;
+    $('#abPlan').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  var refImage = null;
+  function plan() {
+    var msg = $('#abMsg'), btn = $('#abPlanBtn');
+    var missing = FACTORS.filter(function (f) { return f.fact && B.factors.indexOf(f.k) > -1 && !(B.facts[f.k] || '').trim(); });
+    if (missing.length) { msg.textContent = missing[0].n + ' needs a real fact to be honest. Add it, or pick a different factor.'; return; }
+    if (B.techniques.indexOf('thirdvoice') > -1 && !$('#abStory').value.trim()) { msg.textContent = 'Third voice needs a real customer story. Add one, or pick a different technique.'; return; }
+    btn.disabled = true; msg.textContent = 'Planning your ads...';
+    var f = $('#abRef').files[0];
+    (f ? shrink(f, 1400) : Promise.resolve(null)).then(function (ref) {
+      refImage = ref;
+      return AZ.api('ads-write', { action: 'plan', brief: briefBody(), image: ref });
+    }).then(function (r) { showPlan(r.plan); msg.textContent = ''; })
+      .catch(function (e) { msg.textContent = e.message; })
+      .then(function () { btn.disabled = false; });
+  }
+  function write() {
+    var msg = $('#abWriteMsg'), btn = $('#abWriteBtn');
+    btn.disabled = true; msg.textContent = 'Writing and designing...';
+    AZ.api('ads-write', { action: 'write', brief: briefBody(), plan: B.plan, note: $('#abNote').value, image: refImage }).then(function (r) {
+      if (!r.hooks || !r.hooks.length) throw new Error('Nothing came back. Please try again.');
+      S.aiHooks = r.hooks.slice(0, 4); buildSets(); freshVariants();
+      S.variants.forEach(function (v, i) {
+        var hk = S.aiHooks[i % S.aiHooks.length];
+        if (hk.layout && LAYOUTS.some(function (l) { return l.k === hk.layout; })) v.layout = hk.layout;
+        if (typeof hk.photo === 'number' && hk.photo >= 0 && hk.photo < PHOTOS.length) v.photo = hk.photo;
+        v.painting = !!hk.imagePrompt;
+      });
+      buildVariants();
+      $('#adVariants').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var jobs = S.variants.map(function (v, i) { return { v: v, i: i, prompt: S.aiHooks[i % S.aiHooks.length].imagePrompt }; }).filter(function (j) { return j.prompt; });
+      msg.textContent = jobs.length ? 'Painting ' + jobs.length + (jobs.length === 1 ? ' AI image' : ' AI images') + '...' : 'Done. Edit anything on the ads below.';
+      return pool(jobs, 2, function (j) {
+        return AZ.api('ads-image', { prompt: j.prompt }).then(function (res) {
+          S.own = (S.own || []).concat([{ src: res.image, n: 'AI image', fx: 0.5, fy: 0.5 }]);
+          j.v.photo = PHOTOS.length + S.own.length - 1; j.v.painting = false;
+          buildPhotos(); refreshCard(j.i);
+        }, function (err) { j.v.painting = false; refreshCard(j.i); throw err; });
+      }).then(function () { if (jobs.length) msg.textContent = 'Done. Edit anything on the ads below.'; });
+    }).catch(function (e) { msg.textContent = e.message; })
+      .then(function () { btn.disabled = false; });
+  }
+  function refreshCard(i) {
+    var el = $('#adVariants .advar[data-i="' + i + '"]'); if (!el) return;
+    el.classList.toggle('painting', !!S.variants[i].painting);
+    draw(i);
+  }
+  function wireBrief() {
+    buildBrief();
+    $('#adStyle').innerHTML = STYLES.map(function (st) { return '<button class="chip" type="button" data-style="' + st.k + '" aria-pressed="' + (st.k === S.style) + '" title="' + AZ.esc(st.d) + '">' + AZ.esc(st.n) + '</button>'; }).join('');
+    $('.adbrief').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-v]'); if (!b) return;
+      var g = b.parentNode.id, k = b.dataset.v;
+      if (g === 'abPurpose') B.purpose = k;
+      else if (g === 'abFactors') toggle(B.factors, k, maxFactors());
+      else if (g === 'abTech') toggle(B.techniques, k, 2);
+      else if (g === 'abStage') B.stage = k;
+      else if (g === 'abMode') { B.mode = k; while (B.factors.length > maxFactors()) B.factors.shift(); }
+      else if (g === 'abImagery') B.imagery = k;
+      buildBrief();
+    });
+    $('#abFacts').addEventListener('input', function (e) { if (e.target.dataset.fact) B.facts[e.target.dataset.fact] = e.target.value; });
+    $('#abPlanBtn').addEventListener('click', plan);
+    $('#abReplanBtn').addEventListener('click', plan);
+    $('#abWriteBtn').addEventListener('click', write);
+    $('#adLook').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      S.look = b.dataset.look; $$('#adLook .chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      S.variants.forEach(function (v, i) { draw(i); });
+    });
+    $('#adStyle').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      S.style = b.dataset.style; $$('#adStyle .chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      S.variants.forEach(function (v, i) { draw(i); });
     });
   }
 

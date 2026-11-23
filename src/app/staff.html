@@ -385,7 +385,7 @@
     <!-- Products (admins) -->
     <!-- Ad studio (admins) -->
     <div id="view-ads" class="view" hidden>
-      <p class="muted small">Make on-brand ads for Facebook and Instagram. Pick a photo, pick or write your hooks, and four versions land in every size. Approve the ones you like and save them.</p>
+      <p class="muted small">Make ads for Facebook and Instagram that sell the SCP way. Fill in the brief, approve the plan, then approve the ads you like and save them.</p>
 
       <div class="adgrid">
         <article class="card adkit">
@@ -403,39 +403,89 @@
         </article>
       </div>
 
-      <article class="card">
-        <h3>2. Hooks</h3>
-        <p class="muted small">Start with ours, edit them on each ad below, or have AI write fresh ones for what you're promoting.</p>
-        <div class="filters" role="group" aria-label="Hook sets" id="adSets"></div>
-        <details class="adai" id="adAi">
-          <summary>Write with AI in the SCP language, or copy an ad you like</summary>
-          <form class="form" id="adAiForm">
-            <label>Copy an ad you like <span class="muted">(optional screenshot)</span><input type="file" name="ref" accept="image/*"></label>
-            <p class="muted small adnote">AI matches its layout, angle and feel, then rebuilds it with your photos, logo, colours and fresh words. It never copies their words, photos or logo.</p>
-            <label>What's the idea? <span class="muted">(optional with a screenshot)</span><input name="goal" placeholder="Example: Book a visit to see the Series Two before Christmas"></label>
-            <p class="muted small adnote">Every AI ad is written in your SCP language, from The Presentation and Foundations of Professional Selling. Each of the four leads with a different principle.</p>
-            <label>Any offer or detail to include? <span class="muted">(optional)</span><input name="offer" placeholder="Example: Free cover lifter with any Series Two"></label>
-            <div class="formactions"><button class="btn btn-gold" type="submit">Make 4 ads</button><span class="formmsg muted small" id="adAiMsg"></span></div>
-          </form>
+      <article class="card adbrief">
+        <h3>2. The Ad Brief</h3>
+        <p class="muted small">Say what the ad is for and which SCP tools to sell with. The AI plans the ads for you to approve, then writes and designs them.</p>
+
+        <div class="abq"><p class="abl">What's the ad for?</p>
+          <div class="filters" role="radiogroup" aria-label="Purpose" id="abPurpose"></div>
+          <div class="form abrow"><label>The idea <span class="muted">(optional)</span><input id="abIdea" maxlength="600" placeholder="Example: Winter is the best time to own a hot tub"></label>
+          <label>Offer <span class="muted">(only a real one)</span><input id="abOffer" maxlength="300" placeholder="Example: Free cover lifter with any Series Two until Dec 31"></label></div>
+        </div>
+
+        <div class="abq"><p class="abl">Impulse factors <span class="muted">Foundations, Core Skill 5</span></p>
+          <div class="filters" role="group" aria-label="Impulse factors" id="abFactors"></div>
+          <p class="muted small abhelp" id="abFactorHelp"></p>
+          <div class="form" id="abFacts"></div>
+        </div>
+
+        <div class="abq"><p class="abl">SCP technique <span class="muted">pick up to two</span></p>
+          <div class="filters" role="group" aria-label="SCP techniques" id="abTech"></div>
+          <p class="muted small abhelp" id="abTechHelp"></p>
+          <div class="form" id="abStoryBox" hidden><label>The real customer story <span class="muted">(Third voice only works if it's true)</span><textarea id="abStory" rows="2" maxlength="500" placeholder="Example: A couple in Squamish waited a year, then told us their only regret was not doing it sooner"></textarea></label></div>
+        </div>
+
+        <div class="abq"><p class="abl">Who's it for, and where are they?</p>
+          <div class="form abrow"><label>Who <span class="muted">(optional)</span><input id="abAudience" maxlength="200" placeholder="Example: Busy parents in Surrey and Langley"></label></div>
+          <div class="filters" role="radiogroup" aria-label="Emotional journey" id="abStage"></div>
+        </div>
+
+        <div class="abq"><p class="abl">The four ads</p>
+          <div class="filters" role="radiogroup" aria-label="Four ads" id="abMode"></div>
+          <p class="muted small abhelp" id="abModeHelp"></p>
+        </div>
+
+        <div class="abq"><p class="abl">Images</p>
+          <div class="filters" role="radiogroup" aria-label="Images" id="abImagery"></div>
+          <p class="muted small abhelp">AI images show settings and moments (steam on a snowy night, a quiet backyard at dusk). Your own photos show the actual hot tubs.</p>
+        </div>
+
+        <div class="abq form"><label>Copy an ad you like <span class="muted">(optional screenshot)</span><input type="file" id="abRef" accept="image/*"></label>
+          <p class="muted small abhelp">AI follows its layout, rhythm and feel with your branding and fresh words. It never copies their words, photos or logo.</p></div>
+
+        <div class="formactions"><button class="btn btn-gold" type="button" id="abPlanBtn">Plan my ads</button><span class="formmsg muted small" id="abMsg"></span></div>
+
+        <div class="abplan" id="abPlan" hidden>
+          <h3>The plan</h3>
+          <p id="abAngle"></p>
+          <ol id="abPlanAds"></ol>
+          <div class="form"><label>Change anything? <span class="muted">(optional)</span><textarea id="abNote" rows="2" maxlength="600" placeholder="Example: Make the second one funnier and use the treehouse photo"></textarea></label></div>
+          <div class="formactions"><button class="btn btn-gold" type="button" id="abWriteBtn">Make the ads</button><button class="btn btn-line" type="button" id="abReplanBtn">Plan again</button><span class="formmsg muted small" id="abWriteMsg"></span></div>
+        </div>
+
+        <details class="adai">
+          <summary>Or start from quick hooks</summary>
+          <div class="filters" role="group" aria-label="Hook sets" id="adSets"></div>
         </details>
       </article>
 
-      <div class="listhead adhead">
-        <h2>3. Your four ads</h2>
-        <div class="filters" role="group" aria-label="Still or motion" id="adMotion">
-          <button class="chip" type="button" data-motion="off" aria-pressed="true">Still</button>
-          <button class="chip" type="button" data-motion="on" aria-pressed="false">Motion</button>
+      <article class="card">
+        <h3>3. Design</h3>
+        <div class="abq"><p class="abl">Look</p>
+          <div class="filters" role="radiogroup" aria-label="Look" id="adLook">
+            <button class="chip" type="button" data-look="brand" aria-pressed="true">On brand</button>
+            <button class="chip" type="button" data-look="creative" aria-pressed="false">Creative</button>
+          </div></div>
+        <div class="abq"><p class="abl">Style</p>
+          <div class="filters" role="radiogroup" aria-label="Style" id="adStyle"></div></div>
+        <div class="abq adfmt">
+          <div class="filters" role="group" aria-label="Still or motion" id="adMotion">
+            <button class="chip" type="button" data-motion="off" aria-pressed="true">Still</button>
+            <button class="chip" type="button" data-motion="on" aria-pressed="false">Motion</button>
+          </div>
+          <div class="filters" role="group" aria-label="Ad size" id="adSizes">
+            <button class="chip" type="button" data-size="1:1" aria-pressed="false">Square</button>
+            <button class="chip" type="button" data-size="4:5" aria-pressed="true">Feed 4:5</button>
+            <button class="chip" type="button" data-size="9:16" aria-pressed="false">Stories 9:16</button>
+          </div>
         </div>
-        <div class="filters" role="group" aria-label="Ad size" id="adSizes">
-          <button class="chip" type="button" data-size="1:1" aria-pressed="false">Square</button>
-          <button class="chip" type="button" data-size="4:5" aria-pressed="true">Feed 4:5</button>
-          <button class="chip" type="button" data-size="9:16" aria-pressed="false">Stories 9:16</button>
-        </div>
-      </div>
+      </article>
+
+      <div class="listhead adhead"><h2>4. Your four ads</h2></div>
       <div class="advariants" id="adVariants"></div>
 
       <article class="card adsave">
-        <h3>4. Approve and save</h3>
+        <h3>5. Approve and save</h3>
         <p class="muted small" id="adCount">Tap Approve on the ads you like.</p>
         <div class="formactions">
           <button class="btn btn-gold" type="button" id="adSave" disabled>Save approved ads</button>

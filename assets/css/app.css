@@ -421,3 +421,19 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .adallsizes{font-size:.9rem;display:flex;gap:6px;align-items:center}
 .adnote{margin:-4px 0 0}
 .adprin{margin:0;font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--water-deep)}
+.adbrief .abq{margin:18px 0 0}
+.abl{font-weight:700;margin:0 0 8px}
+.abl .muted{font-weight:400;font-size:.82rem;margin-left:6px}
+.abq .filters{display:flex;flex-wrap:wrap;gap:8px}
+.abrow{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:10px}
+.abhelp{margin:8px 0 0}
+#abFacts{margin-top:10px}
+#abFacts:empty{display:none}
+.adbrief>.formactions{margin-top:22px}
+.abplan{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.abplan h3{margin-top:0}
+.abplan ol{padding-left:20px;display:grid;gap:12px}
+.abplan li .adprin{display:block;margin-bottom:2px}
+.adfmt{display:flex;flex-wrap:wrap;gap:14px}
+.advar.painting .adcanvas{position:relative}
+.advar.painting .adcanvas::after{content:"Painting the AI image...";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-weight:600;font-size:.9rem}
