@@ -1783,9 +1783,28 @@ async function pageToken(): Promise<string> {
   const s = await metaSettings();
   return (await graph(s.page, token, { fields: "access_token" })).access_token;
 }
-async function noahSend(psid: string, text: string, ptoken: string) {
+// Returns Meta's message id so the echo of Noah's own message can be recognised.
+async function noahSend(psid: string, text: string, ptoken: string): Promise<string | null> {
   const s = await metaSettings();
-  await graph(`${s.page}/messages`, ptoken, { recipient: { id: psid }, messaging_type: "RESPONSE", message: { text } }, "POST");
+  const r = await graph(`${s.page}/messages`, ptoken, { recipient: { id: psid }, messaging_type: "RESPONSE", message: { text } }, "POST");
+  return r?.message_id ? String(r.message_id) : null;
+}
+
+// Is this echo one of Noah's own messages? Messenger echoes carry our app ID; Instagram echoes don't,
+// so also match the message id or the same text Noah sent in the last few minutes.
+async function isNoahEcho(threadId: string, mid: string, text: string): Promise<boolean> {
+  const db = admin();
+  for (let i = 0; i < 3; i++) {
+    if (mid) {
+      const { data } = await db.from("chat_messages").select("id").eq("thread_id", threadId).eq("mid", mid).limit(1);
+      if (data?.length) return true;
+    }
+    const since = new Date(Date.now() - 5 * 60e3).toISOString();
+    const { data: recent } = await db.from("chat_messages").select("text").eq("thread_id", threadId).eq("role", "noah").gte("created_at", since);
+    if ((recent ?? []).some((r) => r.text.trim() === text.trim())) return true;
+    await new Promise((r) => setTimeout(r, 2000)); // the echo can arrive before Noah's row is saved
+  }
+  return false;
 }
 
 async function noahHandoff(threadId: string, channel: string, lead: Record<string, string>, history: { role: string; text: string }[]) {
@@ -1853,8 +1872,7 @@ async function noahIncoming(channel: string, psid: string, text: string, mid: st
   const extra = t!.handed_off_at ? "The team already has their details and will call. Keep helping warmly, and don't ask for their details again." : "";
   const j = await noahThink(history, extra);
   if (!j.reply) return;
-  await noahSend(psid, j.reply, ptoken);
-  await db.from("chat_messages").insert({ thread_id: t!.id, role: "noah", text: j.reply });
+  await db.from("chat_messages").insert({ thread_id: t!.id, role: "noah", text: j.reply, mid: await noahSend(psid, j.reply, ptoken) });
   await db.from("chat_threads").update({ last_bot_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", t!.id);
   if (j.handoff && !t!.handed_off_at) await noahHandoff(t!.id, channel, j.lead || {}, [...history, { role: "noah", text: j.reply }]);
 }
@@ -1898,6 +1916,7 @@ async function route_meta_webhook(req: Request): Promise<Response> {
             jobs.push((async () => {
               const db = admin();
               const { data: t } = await db.from("chat_threads").select("id").eq("channel", channel).eq("psid", psid).maybeSingle();
+              if (t && await isNoahEcho(t.id, String(m.mid ?? ""), String(m.text ?? ""))) return;
               if (t) {
                 await db.from("chat_threads").update({ status: "human", human_until: new Date(Date.now() + 24 * 3600e3).toISOString() }).eq("id", t.id);
                 if (m.text) await db.from("chat_messages").insert({ thread_id: t.id, role: "team", text: String(m.text).slice(0, 4000), mid: m.mid || null });
@@ -1935,8 +1954,7 @@ async function route_noah_followup(req: Request): Promise<Response> {
       const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t.id).order("created_at").limit(60);
       const j = await noahThink(msgs ?? [], "They've gone quiet. Write ONE follow-up message using a pattern interrupt: unexpected, sincere and good to receive, tied to something they actually said. Never 'just checking in', never guilt or pressure, never a fake deadline. Make it easy to reply to. Keep it to one or two sentences. Set handoff to false.");
       if (!j.reply) continue;
-      await noahSend(t.psid, j.reply, ptoken);
-      await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: j.reply });
+      await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: j.reply, mid: await noahSend(t.psid, j.reply, ptoken) });
       await db.from("chat_threads").update({ followup_at: new Date().toISOString(), last_bot_at: new Date().toISOString() }).eq("id", t.id);
       sent++;
     } catch (e) {
