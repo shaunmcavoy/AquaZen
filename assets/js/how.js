@@ -23,7 +23,7 @@
     var t = $(document, sel); if (!t) return;
     t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   };
-  $$(main, '.hz-start, .hz-progress a').forEach(function (a) {
+  $$(main, '.hz-start').forEach(function (a) {
     a.addEventListener('click', function (e) { e.preventDefault(); go(a.getAttribute('href')); });
   });
 
@@ -38,7 +38,7 @@
     var bar = $(main, '.hz-progress'), cover = $(main, '.hz-cover'), fz = $(main, '#find-your-zen');
     if (!bar || !cover || !fz) return;
     var fill = $(bar, '.hz-progress-bar span');
-    var links = $$(bar, 'a').map(function (a) { return { a: a, t: $(document, a.getAttribute('href')) }; }).filter(function (l) { return l.t; });
+    var links = $$(bar, '[data-t]').map(function (a) { return { a: a, t: $(document, a.getAttribute('data-t')) }; }).filter(function (l) { return l.t; });
     var cur = -1, ticking = false;
     function update() {
       ticking = false;
@@ -75,7 +75,7 @@
   }, true);
 
   /* ---------- What they want most ---------- */
-  var USE = { sleep: 'sleep', muscles: 'recovery', together: 'family', escape: 'unwind' };
+  var USE = { sleep: 'sleep', muscles: 'recovery', together: 'family', escape: 'unwind', all: ['unwind', 'family', 'recovery', 'sleep'] };
   var goal = '';
   try { goal = localStorage.getItem('az-goal') || ''; } catch (e) {}
   function setGoal(g) {
@@ -86,6 +86,45 @@
     try { document.dispatchEvent(new CustomEvent('az-goal', { detail: USE[goal] || '' })); } catch (e) {}
   }
   setGoal(goal);
+
+  /* ---------- What you expect, and what too many owners get: tap to flip ---------- */
+  var cards = $$(main, '.hz-pc');
+  cards.forEach(function (c) {
+    c.addEventListener('click', function () { c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); });
+  });
+  var flipAll = $(main, '.hz-flipall');
+  if (flipAll) flipAll.addEventListener('click', function () {
+    var all = cards.every(function (c) { return c.getAttribute('aria-pressed') === 'true'; });
+    cards.forEach(function (c, i) { setTimeout(function () { c.setAttribute('aria-pressed', all ? 'false' : 'true'); }, reduce ? 0 : i * 140); });
+    flipAll.textContent = all ? 'Show me all four' : 'Show me what you expect';
+  });
+
+  /* ---------- The last question: do you believe AquaZen can give you what you picked? ---------- */
+  var GOALSAY = {
+    sleep: 'better sleep', muscles: 'relief for your sore muscles', together: 'more time together',
+    escape: 'a quiet escape every night', all: 'all of it: better sleep, relief for sore muscles, time together and a quiet escape'
+  };
+  var askGoal = $(main, '.hz-ask-goal'), fzSec = $(main, '#find-your-zen');
+  function sayGoal() { if (askGoal) askGoal.textContent = GOALSAY[goal] || 'a place of peace at home'; }
+  sayGoal();
+  document.addEventListener('az-goal', sayGoal);
+  if (fzSec) {
+    fzSec.classList.add('asking');
+    $$(fzSec, '[data-ans]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var yes = b.dataset.ans === 'yes';
+        fzSec.dataset.ans = b.dataset.ans;
+        $$(fzSec, '[data-ans]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        $(fzSec, '.hz-ask-say').textContent = yes
+          ? 'Then let\u2019s find yours. A few quick questions about who\u2019s soaking, how often and where, and we\u2019ll show you the two hot tubs that fit you best, with why. Then we\u2019ll call to book a quiet visit so you can sit in the one that fits you.'
+          : 'That\u2019s honest, and it\u2019s exactly why we don\u2019t ask you to take our word for it. A few quick questions, and we\u2019ll show you the two hot tubs that fit you best. Then come sit in one and feel it for yourself.';
+        fzSec.classList.remove('asking');
+        fzSec.classList.add('answered');
+        var r = $(fzSec, '.hz-ask-reply');
+        if (r) r.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      });
+    });
+  }
   $$(document, '.hz-goal').forEach(function (b) {
     b.addEventListener('click', function () { setGoal(goal === b.dataset.goal ? '' : b.dataset.goal); });
   });

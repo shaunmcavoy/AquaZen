@@ -98,13 +98,13 @@
   })();
   // Built into the end of How we deliver Zen? Use what they picked as most important on the way through.
   var embedded = !!document.querySelector('main.hz #fzForm');
-  var GOALUSE = { sleep: 'sleep', muscles: 'recovery', together: 'family', escape: 'unwind' };
+  var GOALUSE = { sleep: 'sleep', muscles: 'recovery', together: 'family', escape: 'unwind', all: ['unwind', 'family', 'recovery', 'sleep'] };
   var touchedUse = false;
   if (embedded) {
-    try { var g0 = GOALUSE[localStorage.getItem('az-goal') || '']; if (g0 && !answers.use) answers.use = [g0]; } catch (e) {}
+    try { var g0 = GOALUSE[localStorage.getItem('az-goal') || '']; if (g0 && !answers.use) answers.use = [].concat(g0); } catch (e) {}
     document.addEventListener('az-goal', function (e) {
       if (touchedUse) return;
-      if (e.detail) answers.use = [e.detail]; else delete answers.use;
+      if (e.detail && e.detail.length) answers.use = [].concat(e.detail); else delete answers.use;
     });
   }
   var cameFrom = (function () { try { return (new URLSearchParams(location.search).get('from') || '').replace(/[^a-z]/g, '').slice(0, 20); } catch (e) { return ''; } })();
@@ -364,7 +364,14 @@
     STEPS.forEach(function (s) { if (s.showIf && !s.showIf(answers)) { delete a[s.id]; delete a[s.id + '_other']; } });
     var readable = {};
     if (fromModel) readable['Came from the model page'] = fromModel.charAt(0).toUpperCase() + fromModel.slice(1);
-    if (embedded) { a.source = 'presentation' + (cameFrom ? '_' + cameFrom : ''); readable['Came from'] = 'How we deliver Zen' + (cameFrom === 'noah' ? ', sent by Noah' : ''); }
+    if (embedded) {
+      a.source = 'presentation' + (cameFrom ? '_' + cameFrom : '');
+      readable['Came from'] = 'How we deliver Zen' + (cameFrom === 'noah' ? ', sent by Noah' : '');
+      var GW = { sleep: 'Better sleep', muscles: 'Relief for sore muscles', together: 'Time together', escape: 'A quiet escape', all: 'All of it' };
+      try { var gw = GW[localStorage.getItem('az-goal') || '']; if (gw) readable['What they want most'] = gw; } catch (e) {}
+      var sec = document.getElementById('find-your-zen');
+      if (sec && sec.dataset.ans) readable['Believes AquaZen can give them that'] = sec.dataset.ans === 'yes' ? 'Yes' : 'Not sure yet';
+    }
     visible().forEach(function (s) {
       if (s.type === 'contact') return;
       var v = a[s.id];
