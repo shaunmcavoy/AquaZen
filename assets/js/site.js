@@ -8,10 +8,11 @@
       return '<span class="w">' + w + '</span>';
     }).join(' ');
   });
-  words = document.querySelectorAll('[data-words] .w');
-
   var hero = document.querySelector('.hero');
-  var statement = document.querySelector('.statement');
+  // Each .statement lights its own words as you scroll through it
+  var statements = Array.prototype.map.call(document.querySelectorAll('.statement'), function (el) {
+    return { el: el, words: el.querySelectorAll('[data-words] .w') };
+  });
 
   function progress(el) {
     var r = el.getBoundingClientRect();
@@ -24,11 +25,13 @@
   function update() {
     ticking = false;
     if (hero) hero.style.setProperty('--p', progress(hero).toFixed(4));
-    if (statement && words.length) {
-      var p = progress(statement);
-      var lit = Math.round(p * 1.15 * words.length);
-      for (var i = 0; i < words.length; i++) words[i].classList.toggle('on', i < lit);
-    }
+    statements.forEach(function (st) {
+      if (!st.words.length) return;
+      var p = progress(st.el);
+      var lit = Math.round(p * 1.15 * st.words.length);
+      for (var i = 0; i < st.words.length; i++) st.words[i].classList.toggle('on', i < lit);
+      st.el.classList.toggle('lit', lit >= st.words.length);
+    });
   }
   if (!reduce) {
     window.addEventListener('scroll', function () {
