@@ -476,9 +476,9 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
 def build_how():
     """How we deliver Zen: the scroll presentation that sells the tub and leads to Find your Zen."""
     body = open(os.path.join(ROOT, "src", "how.html")).read()
-    page = head("How we deliver Zen | AquaZen", "You expect a luxury spa without the stress. Here's how an AquaSolus hot tub delivers it: the massage, the water flow, the double ozonator and the energy.")
+    page = head("How we deliver Zen | AquaZen", "Why AquaZen exists, how an AquaSolus hot tub delivers a luxury spa without the stress, and the two hot tubs that fit you best. A few minutes, at your own pace.")
     page = page.replace('<body class="tubs">', '<body class="tubs how">')
-    foot = FOOT.split("</main>", 1)[1].replace('<script src="/assets/js/tubs.js"></script>', '<script src="/assets/js/how.js"></script>')
+    foot = FOOT.split("</main>", 1)[1].replace('<script src="/assets/js/tubs.js"></script>', '<script src="/assets/js/how.js"></script>\n<script src="/assets/js/finder.js"></script>')
     write("how-we-deliver-zen/index.html", page + body + "\n</main>" + foot)
 
 

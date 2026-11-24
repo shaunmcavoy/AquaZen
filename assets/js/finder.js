@@ -96,6 +96,18 @@
       if (ok) answers.use = [use];
     } catch (e) {}
   })();
+  // Built into the end of How we deliver Zen? Use what they picked as most important on the way through.
+  var embedded = !!document.querySelector('main.hz #fzForm');
+  var GOALUSE = { sleep: 'sleep', muscles: 'recovery', together: 'family', escape: 'unwind' };
+  var touchedUse = false;
+  if (embedded) {
+    try { var g0 = GOALUSE[localStorage.getItem('az-goal') || '']; if (g0 && !answers.use) answers.use = [g0]; } catch (e) {}
+    document.addEventListener('az-goal', function (e) {
+      if (touchedUse) return;
+      if (e.detail) answers.use = [e.detail]; else delete answers.use;
+    });
+  }
+  var cameFrom = (function () { try { return (new URLSearchParams(location.search).get('from') || '').replace(/[^a-z]/g, '').slice(0, 20); } catch (e) { return ''; } })();
   // Came from a model page? Remember which tub caught their eye.
   var fromModel = (function () { try { return (new URLSearchParams(location.search).get('model') || '').replace(/[^a-z-]/g, '').slice(0, 30); } catch (e) { return ''; } })();
   var others = {};
@@ -123,7 +135,7 @@
     next.textContent = s.type === 'contact' ? 'Send my answers' : 'Continue';
 
     var h = '<p class="fz-count">' + (idx + 1) + ' of ' + steps.length + '</p>';
-    h += '<h1 class="fz-title" tabindex="-1">' + esc(s.title) + '</h1>';
+    h += (embedded ? '<h2' : '<h1') + ' class="fz-title" tabindex="-1">' + esc(s.title) + (embedded ? '</h2>' : '</h1>');
     if (s.sub) h += '<p class="fz-sub">' + esc(s.sub) + '</p>';
 
     if (s.type === 'single' || s.type === 'multi') {
@@ -159,7 +171,11 @@
         '</div>';
     }
     stage.innerHTML = h;
-    if (focus) { var t = stage.querySelector('.fz-title'); if (t) t.focus({ preventScroll: false }); }
+    if (focus) {
+      var t = stage.querySelector('.fz-title');
+      if (t) t.focus({ preventScroll: embedded });
+      if (embedded) { var fr = document.getElementById('finder'); if (fr && fr.getBoundingClientRect().top < 0) fr.scrollIntoView({ block: 'start' }); }
+    }
     wire(s);
   }
 
@@ -174,6 +190,7 @@
         inp.addEventListener('change', function () {
           if (s.type === 'multi') {
             answers[s.id] = Array.prototype.map.call(stage.querySelectorAll('input[name="' + s.id + '"]:checked'), function (x) { return x.value; });
+            if (s.id === 'use') touchedUse = true;
           } else {
             answers[s.id] = inp.value;
           }
@@ -348,6 +365,7 @@
     STEPS.forEach(function (s) { if (s.showIf && !s.showIf(answers)) { delete a[s.id]; delete a[s.id + '_other']; } });
     var readable = {};
     if (fromModel) readable['Came from the model page'] = fromModel.charAt(0).toUpperCase() + fromModel.slice(1);
+    if (embedded) { a.source = 'presentation' + (cameFrom ? '_' + cameFrom : ''); readable['Came from'] = 'How we deliver Zen' + (cameFrom === 'noah' ? ', sent by Noah' : ''); }
     visible().forEach(function (s) {
       if (s.type === 'contact') return;
       var v = a[s.id];
@@ -379,7 +397,7 @@
     var pk = picks(a || {});
     var h = '<div class="fz-done">' +
       '<img src="../assets/img/logo-mark.png" alt="" width="160" height="67">' +
-      '<h1 class="fz-title sunset" tabindex="-1">Thank you, ' + first + '.</h1>';
+      (embedded ? '<h2' : '<h1') + ' class="fz-title sunset" tabindex="-1">Thank you, ' + first + '.' + (embedded ? '</h2>' : '</h1>');
     if (pk) {
       var three = TUBS[pk.fit].s === 'three';
       h += '<p class="fz-sub">Here\'s where your answers point. Two hot tubs we\'d love you to sit in, because the right tub starts with how you want to live, not with what is on the floor.</p>' +
@@ -394,8 +412,8 @@
     }
     h += '<div class="fz-done-ctas"><a class="pill" href="sms:+12363044424">Text us to book a visit</a><a class="link-btn" href="../hot-tubs/">Browse every hot tub</a></div></div>';
     form.innerHTML = h;
-    form.querySelector('.fz-title').focus();
-    window.scrollTo({ top: 0 });
+    form.querySelector('.fz-title').focus({ preventScroll: true });
+    if (embedded) document.getElementById('finder').scrollIntoView({ block: 'start' }); else window.scrollTo({ top: 0 });
   }
 
   next.addEventListener('click', go);

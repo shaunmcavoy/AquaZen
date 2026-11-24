@@ -13,14 +13,60 @@
   var NS = 'http://www.w3.org/2000/svg';
   var el = function (tag, attrs, parent) { var n = document.createElementNS(NS, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
 
-  /* ---------- A warm hello for people Noah sent from Messenger or Instagram ---------- */
-  try {
-    var from = new URLSearchParams(location.search).get('from') || '';
-    var hi = $(main, '.b-welcome');
-    if (hi && /^(noah|messenger|instagram)$/.test(from)) hi.textContent = 'Noah sent you? Welcome to AquaZen. In a few minutes you\u2019ll see what makes a hot tub feel like Zen, and why so many don\u2019t. Scroll at your own pace, and at the end, Find your Zen matches you to the two hot tubs that fit you best.';
-    var fz = $(main, '.find a.pill');
-    if (fz && from === 'noah') fz.href = '/find-your-zen/?from=noah';
-  } catch (e) {}
+  /* ---------- The welcome screen: a warmer hello for people Noah sent ---------- */
+  var from = '';
+  try { from = new URLSearchParams(location.search).get('from') || ''; } catch (e) {}
+  if (/^(noah|messenger|instagram)$/.test(from)) {
+    var eye = $(main, '.hz-cover-eye'); if (eye) eye.textContent = 'Noah sent you? Welcome.';
+  }
+  var go = function (sel) {
+    var t = $(document, sel); if (!t) return;
+    t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  };
+  $$(main, '.hz-start, .hz-progress a').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); go(a.getAttribute('href')); });
+  });
+
+  /* ---------- The chapter bar: where they are in the presentation ---------- */
+  (function () {
+    var bar = $(main, '.hz-progress'), cover = $(main, '.hz-cover'), fz = $(main, '#find-your-zen');
+    if (!bar || !cover || !fz) return;
+    var fill = $(bar, '.hz-progress-bar span');
+    var links = $$(bar, 'a').map(function (a) { return { a: a, t: $(document, a.getAttribute('href')) }; }).filter(function (l) { return l.t; });
+    var cur = -1, ticking = false;
+    function update() {
+      ticking = false;
+      var y = window.scrollY, H = window.innerHeight;
+      var start = cover.offsetTop + cover.offsetHeight * 0.6, end = fz.offsetTop - H * 0.3;
+      bar.hidden = y < start;
+      fill.style.width = (clamp((y - start) / Math.max(1, end - start), 0, 1) * 100).toFixed(1) + '%';
+      var i = -1;
+      links.forEach(function (l, k) { if (l.t.getBoundingClientRect().top < H * 0.45) i = k; });
+      if (i !== cur) {
+        cur = i;
+        links.forEach(function (l, k) {
+          if (k === i) l.a.setAttribute('aria-current', 'step'); else l.a.removeAttribute('aria-current');
+          l.a.classList.toggle('done', k < i);
+        });
+        if (i > -1 && links[i].a.scrollIntoView && !bar.hidden) {
+          var ol = links[i].a.parentNode.parentNode, a = links[i].a;
+          ol.scrollTo({ left: a.offsetLeft - ol.clientWidth / 2 + a.offsetWidth / 2, behavior: reduce ? 'auto' : 'smooth' });
+        }
+      }
+    }
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+
+  /* ---------- Find your Zen is built into the end of the page ---------- */
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest && ev.target.closest('a[href*="/find-your-zen/"], a[href="#find-your-zen"]');
+    if (!a || !$(document, '#fzForm')) return;
+    try { if (new URL(a.href, location.href).searchParams.get('model')) return; } catch (e) {}
+    ev.preventDefault();
+    go('#find-your-zen');
+  }, true);
 
   /* ---------- What they want most ---------- */
   var USE = { sleep: 'sleep', muscles: 'recovery', together: 'family', escape: 'unwind' };
@@ -31,16 +77,12 @@
     if (goal) document.documentElement.setAttribute('data-goal', goal); else document.documentElement.removeAttribute('data-goal');
     $$(document, '.hz-goal').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.goal === goal ? 'true' : 'false'); });
     try { if (goal) localStorage.setItem('az-goal', goal); else localStorage.removeItem('az-goal'); } catch (e) {}
+    try { document.dispatchEvent(new CustomEvent('az-goal', { detail: USE[goal] || '' })); } catch (e) {}
   }
   setGoal(goal);
   $$(document, '.hz-goal').forEach(function (b) {
     b.addEventListener('click', function () { setGoal(goal === b.dataset.goal ? '' : b.dataset.goal); });
   });
-  document.addEventListener('click', function (ev) {
-    var a = ev.target.closest && ev.target.closest('a[href*="/find-your-zen/"]');
-    if (!a || !goal) return;
-    try { var u = new URL(a.href, location.href); u.searchParams.set('use', USE[goal]); a.href = u.pathname + u.search; } catch (e) {}
-  }, true);
 
   /* ---------- Build the backyard ---------- */
   var world = $(document, '.hz-world');
