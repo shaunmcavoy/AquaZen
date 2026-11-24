@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/assets/img/icon-512.png">
-<link rel="stylesheet" href="/assets/css/app.css?v=fa9ad067">
+<link rel="stylesheet" href="/assets/css/app.css?v=a2f7db17">
 <!-- seo --><meta name="robots" content="noindex, nofollow"><!-- /seo -->
 </head>
 <body class="app app-staff">
@@ -507,6 +507,27 @@
           <label class="adallsizes"><input type="checkbox" id="adAllSizes" checked> All three sizes</label>
         </div>
         <p class="muted small" id="adSaveNote">Each ad saves as a PNG, ready to upload to Facebook and Instagram. On a phone, choose Save Image to put them in Photos.</p>
+        <div class="admeta" id="adMeta">
+          <h3>Send to Facebook and Instagram</h3>
+          <p class="muted small" id="metaStatus">Checking the Meta connection...</p>
+          <div class="form abrow" id="metaPick" hidden>
+            <label>Facebook Page<select id="metaPage"></select></label>
+            <label>Ad account<select id="metaAct"></select></label>
+          </div>
+          <div id="metaActions" hidden>
+            <div class="abq"><p class="abl">Post it <span class="muted">a normal post on your Page and Instagram, public right away</span></p>
+              <div class="adfmt"><label class="adallsizes"><input type="checkbox" id="metaFb" checked> Facebook</label><label class="adallsizes"><input type="checkbox" id="metaIg" checked> Instagram</label></div>
+              <div class="formactions"><button class="btn btn-line" type="button" id="metaPostBtn" disabled>Post approved ads</button></div>
+            </div>
+            <div class="abq"><p class="abl">Run it as an ad <span class="muted">created paused; nothing spends until you turn it on in Ads Manager</span></p>
+              <div class="form abrow"><label>Daily budget ($)<input id="metaBudget" type="number" min="5" max="500" step="1" value="20"></label>
+              <label>Where the ad goes<select id="metaLink"><option value="visit">Book a visit page</option><option value="quiz">Find your Zen quiz</option><option value="home">aquazen.ca home page</option></select></label></div>
+              <p class="muted small abhelp">Audience to start: ages 30 to 65 within about 60 km of the Burnaby showroom. Change anything in Ads Manager before you turn it on.</p>
+              <div class="formactions"><button class="btn btn-gold" type="button" id="metaAdBtn" disabled>Create paused ads</button></div>
+            </div>
+          </div>
+          <p class="muted small" id="metaMsg" role="status"></p>
+        </div>
       </article>
     </div>
 
@@ -606,6 +627,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js?v=e9e700e1"></script>
 <script src="/assets/js/staff.js?v=3465d8bd"></script>
-<script src="/assets/js/ads.js?v=665256ff"></script>
+<script src="/assets/js/ads.js?v=cc483cdb"></script>
 </body>
 </html>

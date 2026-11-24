@@ -1506,8 +1506,182 @@ async function route_ads_image(req: Request): Promise<Response> {
   return jsonAuth(req, { image: `data:image/jpeg;base64,${b64}` });
 }
 
+// ---- Send to Meta (admins). Needs the META_TOKEN secret: a Business Manager system user token with the Page,
+// Instagram account and ad account assigned. Page, Instagram and ad account choices live in settings (meta_*). ----
+const GRAPH = () => `https://graph.facebook.com/${Deno.env.get("META_GRAPH_VERSION") || "v23.0"}`;
+
+// deno-lint-ignore no-explicit-any
+async function graph(path: string, token: string, params: Record<string, unknown> = {}, method = "GET"): Promise<any> {
+  const body = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null) body.set(k, typeof v === "string" ? v : JSON.stringify(v));
+  body.set("access_token", token);
+  const url = `${GRAPH()}/${path.replace(/^\//, "")}`;
+  const res = method === "GET" ? await fetch(`${url}?${body}`) : await fetch(url, { method, body });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || out.error) {
+    const msg = out?.error?.error_user_msg || out?.error?.message || `Meta error ${res.status}`;
+    console.error("meta", path, JSON.stringify(out).slice(0, 800));
+    throw new Error(msg);
+  }
+  return out;
+}
+
+async function metaSettings() {
+  const db = admin();
+  const { data } = await db.from("settings").select("k, v").in("k", ["meta_page_id", "meta_ig_id", "meta_ad_account"]);
+  const m: Record<string, string> = {};
+  for (const r of data ?? []) m[r.k] = r.v;
+  return { page: m.meta_page_id || "", ig: m.meta_ig_id || "", adAccount: m.meta_ad_account || "" };
+}
+
+// GET/POST {page_id?, ig_id?, ad_account?}  What's connected, and save which Page, Instagram and ad account to use.
+async function route_meta_status(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const token = Deno.env.get("META_TOKEN");
+  if (!token) return jsonAuth(req, { configured: false });
+  const b = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  const db = admin();
+  for (const [k, f] of [["meta_page_id", "page_id"], ["meta_ig_id", "ig_id"], ["meta_ad_account", "ad_account"]]) {
+    if (b[f] !== undefined) await db.from("settings").upsert({ k, v: String(b[f] ?? "").replace(/[^0-9a-z_]/gi, "").slice(0, 40) });
+  }
+  try {
+    const pages = await graph("me/accounts", token, { fields: "id,name,instagram_business_account{id,username}", limit: 50 });
+    const ads = await graph("me/adaccounts", token, { fields: "id,name,currency,account_status", limit: 50 });
+    const s = await metaSettings();
+    // deno-lint-ignore no-explicit-any
+    const pageList = (pages.data ?? []).map((p: any) => ({ id: p.id, name: p.name, ig: p.instagram_business_account ? { id: p.instagram_business_account.id, username: p.instagram_business_account.username } : null }));
+    // First time: pick the only Page / Instagram / ad account automatically.
+    if (!s.page && pageList.length === 1) {
+      s.page = pageList[0].id; await db.from("settings").upsert({ k: "meta_page_id", v: s.page });
+      if (pageList[0].ig) { s.ig = pageList[0].ig.id; await db.from("settings").upsert({ k: "meta_ig_id", v: s.ig }); }
+    }
+    // deno-lint-ignore no-explicit-any
+    const adList = (ads.data ?? []).map((a: any) => ({ id: a.id, name: a.name, currency: a.currency, active: a.account_status === 1 }));
+    if (!s.adAccount && adList.length === 1) { s.adAccount = adList[0].id; await db.from("settings").upsert({ k: "meta_ad_account", v: s.adAccount }); }
+    return jsonAuth(req, { configured: true, pages: pageList, adAccounts: adList, chosen: s });
+  } catch (e) {
+    return jsonAuth(req, { configured: true, error: `Meta said: ${(e as Error).message}` }, 502);
+  }
+}
+
+async function signedAdUrl(path: string): Promise<string> {
+  const { data, error } = await admin().storage.from("ads").createSignedUrl(path, 3600);
+  if (error || !data?.signedUrl) throw new Error("Couldn't prepare the file for Meta.");
+  return data.signedUrl;
+}
+const okPath = (p: unknown) => typeof p === "string" && /^[0-9a-f-]{36}\/[\w.-]+\.(png|jpg|mp4|webm)$/i.test(p) ? p : "";
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// POST {image, video?, caption, facebook, instagram}  Publish an approved ad as a post on the Page and/or Instagram.
+async function route_meta_post(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const token = Deno.env.get("META_TOKEN");
+  if (!token) return jsonAuth(req, { error: "Meta isn't connected yet." }, 400);
+  const b = await req.json().catch(() => ({}));
+  const image = okPath(b.image), video = okPath(b.video);
+  const caption = String(b.caption ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 2000);
+  if (!image && !video) return jsonAuth(req, { error: "No ad came through." }, 400);
+  const s = await metaSettings();
+  const done: Record<string, string> = {}, failed: Record<string, string> = {};
+  const mediaUrl = await signedAdUrl(video || image);
+
+  if (b.facebook) {
+    try {
+      if (!s.page) throw new Error("Pick your Facebook Page first.");
+      const pg = await graph(s.page, token, { fields: "access_token" });
+      const r = video
+        ? await graph(`${s.page}/videos`, pg.access_token, { file_url: mediaUrl, description: caption }, "POST")
+        : await graph(`${s.page}/photos`, pg.access_token, { url: mediaUrl, caption }, "POST");
+      done.facebook = r.post_id || r.id;
+    } catch (e) { failed.facebook = (e as Error).message; }
+  }
+  if (b.instagram) {
+    try {
+      if (!s.ig) throw new Error("Your Facebook Page doesn't have an Instagram business account linked.");
+      const c = await graph(`${s.ig}/media`, token, video ? { media_type: "REELS", video_url: mediaUrl, caption } : { image_url: mediaUrl, caption }, "POST");
+      // Videos take a moment for Instagram to process before they can be published.
+      if (video) {
+        for (let i = 0; i < 20; i++) {
+          const st = await graph(c.id, token, { fields: "status_code" });
+          if (st.status_code === "FINISHED") break;
+          if (st.status_code === "ERROR") throw new Error("Instagram couldn't process the video.");
+          await sleep(3000);
+        }
+      }
+      const p = await graph(`${s.ig}/media_publish`, token, { creation_id: c.id }, "POST");
+      done.instagram = p.id;
+    } catch (e) { failed.instagram = (e as Error).message; }
+  }
+  await admin().from("meta_sends").insert({ created_by: me.user.id, kind: "post", headline: String(b.headline ?? "").slice(0, 120), media_path: video || image, result: { done, failed } });
+  return jsonAuth(req, { done, failed });
+}
+
+// POST {image, video?, headline, caption, link, budget}  Create a complete ad in the ad account, PAUSED. Nothing spends until Shaun turns it on.
+async function route_meta_ad(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const token = Deno.env.get("META_TOKEN");
+  if (!token) return jsonAuth(req, { error: "Meta isn't connected yet." }, 400);
+  const b = await req.json().catch(() => ({}));
+  const image = okPath(b.image), video = okPath(b.video);
+  if (!image) return jsonAuth(req, { error: "No ad came through." }, 400);
+  const s = await metaSettings();
+  if (!s.adAccount || !s.page) return jsonAuth(req, { error: "Pick your Facebook Page and ad account first." }, 400);
+  const headline = String(b.headline ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 120);
+  const message = String(b.caption ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 2000);
+  const links: Record<string, string> = { visit: "https://aquazen.ca/visit/", quiz: "https://aquazen.ca/find-your-zen/" };
+  const link = links[String(b.link)] || "https://aquazen.ca/";
+  const budget = Math.max(5, Math.min(500, Math.round(Number(b.budget) || 20))); // dollars a day
+  const act = s.adAccount.startsWith("act_") ? s.adAccount : `act_${s.adAccount}`;
+  const day = new Date().toISOString().slice(0, 10);
+  const steps: Record<string, string> = {};
+  try {
+    // The image (also the video's cover).
+    const bytes = new Uint8Array(await (await admin().storage.from("ads").download(image)).data!.arrayBuffer());
+    let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const up = await graph(`${act}/adimages`, token, { bytes: btoa(bin) }, "POST");
+    // deno-lint-ignore no-explicit-any
+    const hash = (Object.values(up.images ?? {})[0] as any)?.hash;
+    if (!hash) throw new Error("Meta didn't accept the image.");
+    let videoId = "";
+    if (video) videoId = (await graph(`${act}/advideos`, token, { file_url: await signedAdUrl(video), name: headline }, "POST")).id;
+
+    const camp = await graph(`${act}/campaigns`, token, {
+      name: `AquaZen: ${headline} (${day})`, objective: "OUTCOME_TRAFFIC", status: "PAUSED",
+      special_ad_categories: [], is_adset_budget_sharing_enabled: false,
+    }, "POST");
+    steps.campaign = camp.id;
+    const set = await graph(`${act}/adsets`, token, {
+      name: `Lower Mainland, 30 to 65 (${day})`, campaign_id: camp.id, status: "PAUSED",
+      daily_budget: budget * 100, billing_event: "IMPRESSIONS", optimization_goal: "LINK_CLICKS", bid_strategy: "LOWEST_COST_WITHOUT_CAP",
+      // About 60 km around the Burnaby showroom. Shaun can change the audience in Ads Manager before turning it on.
+      targeting: { geo_locations: { custom_locations: [{ latitude: 49.2245, longitude: -122.9932, radius: 60, distance_unit: "kilometer" }] }, age_min: 30, age_max: 65, targeting_automation: { advantage_audience: 0 } },
+    }, "POST");
+    steps.adset = set.id;
+    const cta = { type: "LEARN_MORE", value: { link } };
+    const story: Record<string, unknown> = { page_id: s.page };
+    if (s.ig) story.instagram_user_id = s.ig;
+    if (videoId) story.video_data = { video_id: videoId, image_hash: hash, message, title: headline, call_to_action: cta };
+    else story.link_data = { image_hash: hash, link, message, name: headline, call_to_action: cta };
+    const cr = await graph(`${act}/adcreatives`, token, { name: `AquaZen: ${headline}`, object_story_spec: story }, "POST");
+    steps.creative = cr.id;
+    const ad = await graph(`${act}/ads`, token, { name: `AquaZen: ${headline}`, adset_id: set.id, creative: { creative_id: cr.id }, status: "PAUSED" }, "POST");
+    steps.ad = ad.id;
+    await admin().from("meta_sends").insert({ created_by: me.user.id, kind: "ad", headline, media_path: video || image, result: steps });
+    return jsonAuth(req, { ok: true, ...steps, manager: `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act.replace("act_", "")}&selected_campaign_ids=${camp.id}` });
+  } catch (e) {
+    await admin().from("meta_sends").insert({ created_by: me.user.id, kind: "ad", headline, media_path: video || image, result: { steps, error: (e as Error).message } });
+    return jsonAuth(req, { error: `Meta said: ${(e as Error).message}`, steps }, 502);
+  }
+}
+
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-post": route_meta_post, "meta-ad": route_meta_ad,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

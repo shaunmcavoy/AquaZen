@@ -366,6 +366,7 @@
     var n = S.variants.filter(function (v) { return v.approved; }).length;
     $('#adCount').textContent = n ? n + ' approved.' : 'Tap Approve on the ads you like.';
     $('#adSave').disabled = !n;
+    if ($('#metaPostBtn')) { $('#metaPostBtn').disabled = !n || !META.ok; $('#metaAdBtn').disabled = !n || !META.ok; }
   }
 
   // ---------- Motion ----------
@@ -720,6 +721,90 @@
     });
   }
 
+  // ---------- Send to Meta ----------
+  var META = { ok: false };
+  function metaLoad() {
+    var st = $('#metaStatus');
+    AZ.api('meta-status', null, 'GET').then(function (r) {
+      if (!r.configured) { st.textContent = "Not connected yet. Once the Meta app's token is saved in Supabase, you can post and create ads from here."; return; }
+      if (r.error) { st.textContent = r.error; return; }
+      META = { ok: true, pages: r.pages, acts: r.adAccounts, chosen: r.chosen };
+      $('#metaPage').innerHTML = r.pages.map(function (p) { return '<option value="' + p.id + '"' + (p.id === r.chosen.page ? ' selected' : '') + '>' + AZ.esc(p.name) + (p.ig ? ' (Instagram @' + AZ.esc(p.ig.username) + ')' : ' (no Instagram linked)') + '</option>'; }).join('') || '<option value="">No Pages found</option>';
+      $('#metaAct').innerHTML = r.adAccounts.map(function (a) { return '<option value="' + a.id + '"' + (a.id === r.chosen.adAccount ? ' selected' : '') + '>' + AZ.esc(a.name) + ' (' + AZ.esc(a.currency) + ')' + (a.active ? '' : ', not active') + '</option>'; }).join('') || '<option value="">No ad accounts found</option>';
+      var pg = r.pages.filter(function (p) { return p.id === r.chosen.page; })[0];
+      st.textContent = pg ? 'Connected to ' + pg.name + (pg.ig ? ' and Instagram @' + pg.ig.username : ', with no Instagram account linked to the Page yet') + '.' : 'Connected. Pick your Page and ad account.';
+      $('#metaPick').hidden = false; $('#metaActions').hidden = false;
+      count();
+    }).catch(function (e) { st.textContent = e.message; });
+  }
+  function metaSave() {
+    var pg = META.pages.filter(function (p) { return p.id === $('#metaPage').value; })[0];
+    AZ.api('meta-status', { page_id: $('#metaPage').value, ig_id: pg && pg.ig ? pg.ig.id : '', ad_account: $('#metaAct').value }).then(function () { metaLoad(); });
+  }
+  function uuid() { return (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, function () { return (Math.random() * 16 | 0).toString(16); })); }
+  // Upload the feed version of an ad (and its video when Motion is on) to the private "ads" bucket.
+  function uploadAd(v) {
+    var dir = uuid(), base = slug(v.hook.h);
+    return blobOf(v, '4:5').then(function (png) {
+      var img = dir + '/' + base + '.png';
+      return AZ.sb.storage.from('ads').upload(img, png, { contentType: 'image/png' }).then(function (r) {
+        if (r.error) throw new Error("Couldn't upload the ad: " + r.error.message);
+        if (!S.motion) return { image: img };
+        var type = videoType();
+        if (!type || type.indexOf('mp4') < 0) return { image: img };
+        return videoOf(v, '4:5', type).then(function (b) {
+          var vid = dir + '/' + base + '.mp4';
+          return AZ.sb.storage.from('ads').upload(vid, b, { contentType: 'video/mp4' }).then(function (r2) {
+            if (r2.error) throw new Error("Couldn't upload the video: " + r2.error.message);
+            return { image: img, video: vid };
+          });
+        });
+      });
+    });
+  }
+  var postArmed = false;
+  function metaPost() {
+    var ads = S.variants.filter(function (v) { return v.approved; }), btn = $('#metaPostBtn'), msg = $('#metaMsg');
+    var fb = $('#metaFb').checked, ig = $('#metaIg').checked;
+    if (!fb && !ig) { msg.textContent = 'Tick Facebook, Instagram or both.'; return; }
+    // Posting is public, so it takes a second tap to confirm.
+    if (!postArmed) { postArmed = true; btn.textContent = 'Tap again to post ' + ads.length + (ads.length === 1 ? ' ad' : ' ads') + ' publicly'; setTimeout(function () { postArmed = false; btn.textContent = 'Post approved ads'; }, 6000); return; }
+    postArmed = false; btn.disabled = true; btn.textContent = 'Posting...';
+    var out = [];
+    pool(ads, 1, function (v) {
+      return uploadAd(v).then(function (m) {
+        return AZ.api('meta-post', { image: m.image, video: m.video, caption: v.hook.post, headline: v.hook.h, facebook: fb, instagram: ig });
+      }).then(function (r) {
+        var bits = [];
+        if (r.done.facebook) bits.push('Facebook posted'); if (r.done.instagram) bits.push('Instagram posted');
+        Object.keys(r.failed || {}).forEach(function (k) { bits.push(k + ': ' + r.failed[k]); });
+        out.push('"' + v.hook.h + '": ' + bits.join(', '));
+      }, function (e) { out.push('"' + v.hook.h + '": ' + e.message); });
+    }).then(function () { msg.textContent = out.join(' | '); btn.textContent = 'Post approved ads'; count(); });
+  }
+  function metaAd() {
+    var ads = S.variants.filter(function (v) { return v.approved; }), btn = $('#metaAdBtn'), msg = $('#metaMsg');
+    btn.disabled = true; btn.textContent = 'Creating paused ads...';
+    var out = [], link = $('#metaLink').value, budget = +$('#metaBudget').value || 20, last = '';
+    pool(ads, 1, function (v) {
+      return uploadAd(v).then(function (m) {
+        return AZ.api('meta-ad', { image: m.image, video: m.video, headline: v.hook.h, caption: v.hook.post, link: link, budget: budget });
+      }).then(function (r) { last = r.manager; out.push('"' + v.hook.h + '": created, paused'); }, function (e) { out.push('"' + v.hook.h + '": ' + e.message); });
+    }).then(function () {
+      msg.innerHTML = AZ.esc(out.join(' | ')) + (last ? ' <a href="' + last + '" target="_blank" rel="noopener">Open Ads Manager</a>' : '');
+      btn.textContent = 'Create paused ads'; count();
+    });
+  }
+  function wireMeta() {
+    $('#metaPage').addEventListener('change', metaSave);
+    $('#metaAct').addEventListener('change', metaSave);
+    $('#metaPostBtn').addEventListener('click', metaPost);
+    $('#metaAdBtn').addEventListener('click', metaAd);
+    // Default the ad's destination to the brief's purpose.
+    $('#abPurpose').addEventListener('click', function () { $('#metaLink').value = B.purpose === 'quiz' ? 'quiz' : B.purpose === 'visit' ? 'visit' : 'home'; });
+    metaLoad();
+  }
+
   window.AZAds = {
     open: function () {
       if (S.opened) { if (S.motion) startLoop(); else S.variants.forEach(function (v, i) { draw(i); }); return; }
@@ -727,7 +812,7 @@
       logos.light = load('/assets/img/logo-full.png');
       logos.dark = load('/assets/img/logo-dark.png');
       logos.word = load('/assets/img/logo-word.png');
-      buildPhotos(); buildSets(); freshVariants(); buildVariants(); wire();
+      buildPhotos(); buildSets(); freshVariants(); buildVariants(); wire(); wireMeta();
     },
     _render: render, _state: S
   };

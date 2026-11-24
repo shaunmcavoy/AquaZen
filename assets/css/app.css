@@ -437,3 +437,6 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .adfmt{display:flex;flex-wrap:wrap;gap:14px}
 .advar.painting .adcanvas{position:relative}
 .advar.painting .adcanvas::after{content:"Painting the AI image...";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-weight:600;font-size:.9rem}
+.admeta{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+.admeta h3{margin-top:0}
+#metaMsg a{color:var(--water-deep);font-weight:600}
