@@ -27,6 +27,12 @@
     a.addEventListener('click', function (e) { e.preventDefault(); go(a.getAttribute('href')); });
   });
 
+  // Arriving with a chapter in the link (Start on the homepage goes to #why): land there once the scene has laid out.
+  if (location.hash && /^#[a-z-]+$/.test(location.hash)) {
+    var land = function () { var t = $(document, location.hash); if (t) t.scrollIntoView({ block: 'start' }); };
+    if (document.readyState === 'complete') setTimeout(land, 60); else window.addEventListener('load', function () { setTimeout(land, 60); });
+  }
+
   /* ---------- The chapter bar: where they are in the presentation ---------- */
   (function () {
     var bar = $(main, '.hz-progress'), cover = $(main, '.hz-cover'), fz = $(main, '#find-your-zen');
