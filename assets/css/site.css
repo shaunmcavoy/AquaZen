@@ -694,6 +694,7 @@ html[data-goal="together"] .w-p2{opacity:1}
 .b-c h1,.b-c h2{font-size:clamp(44px,6vw,88px)}
 .b-c p{margin-inline:auto}
 .b-c .b-eye{justify-content:center;color:var(--cream)!important}
+.b-welcome{max-width:560px;margin:0 auto 26px!important;font-size:17px!important;line-height:1.5!important;color:#d1d1d6!important}
 .b-cue{position:absolute;left:0;right:0;bottom:6vh;text-align:center;font-size:16px!important;color:#d1d1d6!important;transition:opacity .4s}
 .b-cue.off{opacity:0}
 .hz-panel{min-height:100vh;display:flex;align-items:center;padding-block:14vh}

@@ -13,6 +13,15 @@
   var NS = 'http://www.w3.org/2000/svg';
   var el = function (tag, attrs, parent) { var n = document.createElementNS(NS, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
 
+  /* ---------- A warm hello for people Noah sent from Messenger or Instagram ---------- */
+  try {
+    var from = new URLSearchParams(location.search).get('from') || '';
+    var hi = $(main, '.b-welcome');
+    if (hi && /^(noah|messenger|instagram)$/.test(from)) hi.textContent = 'Noah sent you? Welcome to AquaZen. In a few minutes you\u2019ll see what makes a hot tub feel like Zen, and why so many don\u2019t. Scroll at your own pace, and at the end, Find your Zen matches you to the two hot tubs that fit you best.';
+    var fz = $(main, '.find a.pill');
+    if (fz && from === 'noah') fz.href = '/find-your-zen/?from=noah';
+  } catch (e) {}
+
   /* ---------- What they want most ---------- */
   var USE = { sleep: 'sleep', muscles: 'recovery', together: 'family', escape: 'unwind' };
   var goal = '';
