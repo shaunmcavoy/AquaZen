@@ -448,7 +448,7 @@ a.model:hover img{transform:translateY(-4px)}
 .hz-index{list-style:none;padding:0;margin:56px 0 0;display:flex;flex-wrap:wrap;gap:12px}
 .hz-index a{display:flex;align-items:center;gap:10px;padding:12px 18px 12px 12px;border-radius:999px;background:#1c1c1e;color:var(--paper);text-decoration:none;font-weight:600;font-size:17px}
 .hz-index a:hover{background:#2c2c2e}
-.hz-index .ix>span,.hz-index span,.hz-chapter span{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--paper);color:var(--black);font-size:14px;font-weight:700}
+.hz-index span,.hz-chapter span{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--paper);color:var(--black);font-size:14px;font-weight:700}
 .hz-cue{margin-top:48px;color:var(--dim);font-size:15px}
 .hz-scene{position:relative;height:420vh;border-top:1px solid #1c1c1e}
 .hz-scene[data-scene="energy"]{height:460vh}
