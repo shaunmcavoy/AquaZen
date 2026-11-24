@@ -762,6 +762,7 @@ html[data-goal="sleep"] .g[data-g="sleep"],html[data-goal="muscles"] .g[data-g="
 .hz-progress a.done{color:#d1d1d6}
 .hz-progress a[aria-current="step"]{color:#000;background:#fff}
 .hz-why .hz-lede+.hz-lede{margin-top:18px}
+.hz-why .hz-why-turn{color:#fff;font-weight:700}
 .hz-shaun{display:flex;gap:28px;align-items:center;margin:48px 0 0;padding:26px;border-radius:var(--r-lg);background:rgba(28,28,30,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);max-width:900px}
 .hz-shaun img{width:132px;height:132px;border-radius:50%;object-fit:cover;flex:none}
 .hz-shaun blockquote{margin:0}
