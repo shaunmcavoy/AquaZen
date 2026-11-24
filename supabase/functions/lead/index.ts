@@ -157,7 +157,7 @@ ${rec ? `<div style="margin:24px 0;padding:16px 18px;background:#eef6f2;border-r
 <h1 style="font-size:24px;margin:0 0 16px">Thank you, ${esc(first)}.</h1>
 <p style="margin:0 0 14px">I've got your answers, and I'll call you${bestTime && bestTime !== "Any time" ? ` in the ${esc(bestTime.toLowerCase())}` : ""} to book a quiet visit to the showroom.</p>
 ${picksHtml}
-<p style="margin:0 0 14px">Here's why I start with questions instead of a sales pitch. People don't really want a hot tub. They want a place of peace: twenty minutes a night where the phones stay inside and you can actually breathe and talk to the people you love. The right tub is the one that fits how you'll use it, not the biggest one on the floor.</p>
+<p style="margin:0 0 14px">Here's why I start with questions instead of a sales pitch. The reason people want a hot tub is they actually want a place of peace: twenty minutes a night where the phones stay inside and you can actually breathe and talk to the people you love. The right tub is the one that fits how you'll use it, not the biggest one on the floor.</p>
 <p style="margin:0 0 14px">So I read every answer myself. When we talk, I'll tell you honestly what I'd choose for your family, even if it's the smaller tub. I'd rather you love it for years than overspend.</p>
 <p style="margin:0 0 24px">Can't wait for my call? Call or text me any time at <a href="tel:+12363044424" style="color:#347c6e">${PHONE}</a>, or just reply to this email.</p>
 <p style="margin:0">Talk soon,<br><strong>Shaun McAvoy</strong><br>AquaZen, 7049 Russell Ave, Burnaby</p>`);
