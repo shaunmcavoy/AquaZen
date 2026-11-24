@@ -80,6 +80,7 @@
    steps aside when a full Find your Zen section is already on screen. */
 (function () {
   if (/^\/find-your-zen\//.test(location.pathname)) return;
+  if (document.querySelector('main.hz #fzForm')) return; // the presentation has Find your Zen in its chapter bar and at the end
   var src = document.querySelector('.find .pill[href*="find-your-zen"]');
   var href = src ? src.getAttribute('href') : '/find-your-zen/';
   var bar = document.createElement('div');
