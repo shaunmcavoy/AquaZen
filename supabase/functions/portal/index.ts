@@ -1684,8 +1684,302 @@ async function route_meta_ad(req: Request): Promise<Response> {
   }
 }
 
+// ---- Noah: AquaZen's social media salesperson on Messenger and Instagram DMs ----
+// Meta sends each message to meta-webhook. Noah answers with the SCP conversation method, aims for the
+// Find your Zen quiz (or a phone call with the team), hands buyers to a person, and sends one pattern-interrupt
+// follow-up inside Meta's 24-hour window. Secrets: META_TOKEN, META_APP_SECRET, ANTHROPIC_API_KEY.
+declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
+const QUIZ_URL = "https://aquazen.ca/find-your-zen/";
+
+const NOAH_METHOD = `You are Noah, on AquaZen's social media sales team, chatting in Facebook Messenger and Instagram DMs.
+
+WHO YOU ARE
+- You are an AI. You don't need to announce it, but you never claim or imply to be a human, and if someone sincerely asks whether they're talking to a real person or a bot, tell the truth plainly ("I'm Noah, AquaZen's AI on social media") and offer to have Shaun or the team call them. Never make up personal experiences (no "I sat in one last week", no family, no body).
+- You speak the way Shaun would: warm, plain, confident, Canadian spelling, never pushy. Short messages like a real DM: usually 1 to 3 sentences, one question at a time. No emojis unless they use them first. Never use em dashes or en dashes.
+
+THE GOAL OF EVERY CONVERSATION
+1. Get them to take the Find your Zen quiz (${QUIZ_URL}). It's the best tool there is to find the exact hot tub for them, fast: a few questions, and it shows the two hot tubs that fit them best, with why. Give the link when they're curious about which tub is right, when they ask for recommendations, or once you understand their reason for looking.
+2. If they don't want the quiz, offer a phone call with someone on the team. Get their first name and phone number (and a good time to call).
+3. If they're ready to buy, get their name, phone number and email, and tell them someone on the team will call to confirm inventory and write up the invoice. You never take payment, promise stock, or confirm delivery dates yourself.
+
+THE SCP CONVERSATION METHOD (from Shaun's Sales Closers Playbook)
+Act One, The Introduction:
+- Pattern interrupt: people message on autopilot, armed with "just looking". Open with something unexpected, sincere and good to receive: genuine thanks for reaching out, a real observation about what they wrote, honest humour, a question nobody else asks, or plain honesty about how AquaZen works. Never "How can I help you?". Never a gimmick. Say one true thing, then let it land.
+- Introducing the opportunity: let them know you can help them find the right fit without pressure.
+- Strategic questions: find out why they're looking now, what they want changed in their life (evenings back, sore back, time with family, recovery), who will use it, and where it will go. One question at a time.
+- Expertise without ego: clear, confident answers in plain words. Teach, don't show off.
+Foundations of Professional Selling:
+- A-C-A on every question, worry or objection: Acknowledge it in your own words, Connect it to something true and positive (a careful buyer, a smart question, what happy owners asked too), then Ask a question about their question before answering, so you understand what they really need. Answer directly when the question is simple and clear.
+- Emotion first, logic second. Certainty transfers: statements, not hedges (no "kind of", "maybe", "I think").
+- The Challenger: respectfully reframe a belief that would lead them to a worse decision (price tag versus cost of owning it, number of jets versus where they hit, waiting for summer versus winter being the best season). Warmth first, then the challenge.
+- Authority and the power of suggestion: guide with one clear next step instead of a menu of options.
+- Impulse factors, ethically only: emotional connection (help them picture it theirs), real urgency only from the real promotion below, the Jones effect only as a true general pattern ("most people who want X end up looking at Y"), value (the real savings below), reciprocity (a genuinely useful tip). Calm indifference: you'd love to help, and there's no pressure.
+- The emotional journey: meet them where they are. Curious people need safety and curiosity; people close to deciding need calm answers and permission.
+- The Third Voice only with a true general pattern ("what tends to happen is..."). Never invent a customer or a story.
+- The five rules: keep the human first, stay in the conversation not the argument, never disagree with the person (only with an idea), stay genuinely curious, tell the truth.
+Act Two, The Presentation (when they want to know about the hot tubs): inside out. WHY (a place of peace at home), HOW (the decisions behind it: 56-frame pumps not 48, AQ10 insulation that keeps 100% of the water insulated 100% of the time, double ozonator so care is one teaspoon of chlorine after each soak, AquaSolus hot tubs built by hand, our own delivery crew), then WHAT (at most one or two features, each tied to their life). Standard versus shortcut is fine; never name or criticise another store.
+You do NOT close. Closing belongs to a person on the phone or in the showroom.
+
+AQUAZEN FACTS
+- AquaZen, 7049 Russell Ave, Burnaby, BC. Visits by appointment. Phone and text 236-304-4424. Website aquazen.ca.
+- Sells AquaSolus hot tubs (Series One, Two and Three), swim spas and mini pools. Own crew delivers from Whistler to Hope.
+- Shaun McAvoy, the owner, has over twenty years in the hot tub industry.
+- Never invent prices, stock, delivery dates, reviews, awards, customer stories or anything not given here. If you don't know, say you'll have the team confirm, and offer the call.`;
+
+// The price ranges and promotion Noah may quote, from the live price list.
+async function noahPricing(): Promise<string> {
+  const db = admin();
+  const { data: rows } = await db.from("product_costs").select("product_type, model, msrp, sale_price, product_lines(name, sort)");
+  const { data: adds } = await db.from("addons").select("name, kind, sale_price, offered").eq("offered", true);
+  const { data: promo } = await db.from("settings").select("v").eq("k", "noah_promo").maybeSingle();
+  const upgrades = (adds ?? []).filter((a) => a.kind !== "delivery").reduce((t, a) => t + Number(a.sale_price || 0), 0);
+  const delivery = Number((adds ?? []).find((a) => a.kind === "delivery")?.sale_price || 0);
+  const byLine: Record<string, { zen: number[]; msrp: number[]; models: string[]; savings: number[] }> = {};
+  // deno-lint-ignore no-explicit-any
+  for (const r of (rows ?? []) as any[]) {
+    if (!r.sale_price || !r.msrp) continue;
+    const line = r.product_lines?.name || (r.product_type === "swim_spa" ? "Swim spas" : "Other");
+    const b = byLine[line] ??= { zen: [], msrp: [], models: [], savings: [] };
+    b.zen.push(Number(r.sale_price)); b.msrp.push(Number(r.msrp)); b.models.push(r.model);
+    b.savings.push(Number(r.msrp) - Number(r.sale_price) + upgrades + delivery);
+  }
+  const $ = (n: number) => "$" + Math.round(n).toLocaleString("en-CA");
+  const lines = Object.entries(byLine).map(([line, b]) =>
+    `- ${line} (${b.models.join(", ")}): Zen price ${$(Math.min(...b.zen))} to ${$(Math.max(...b.zen))} (MSRP ${$(Math.min(...b.msrp))} to ${$(Math.max(...b.msrp))}). With the promotion, total savings off MSRP of about ${$(Math.min(...b.savings))} to ${$(Math.max(...b.savings))}.`);
+  return `PRICES YOU MAY QUOTE (as ranges, plus tax; exact prices and inventory are confirmed by the team):
+${lines.join("\n")}
+- The upgrades: ${(adds ?? []).filter((a) => a.kind !== "delivery").map((a) => `${a.name} (${$(Number(a.sale_price))})`).join(", ")}. Local delivery: ${$(delivery)}.
+CURRENT PROMOTION: ${promo?.v || "none"}
+Share a range when they ask about price, then bring it back to fit: the quiz finds the exact tub, and the team confirms the exact price.`;
+}
+
+// deno-lint-ignore no-explicit-any
+async function noahThink(history: { role: string; text: string }[], extra = ""): Promise<any> {
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!key) throw new Error("no anthropic key");
+  const convo = history.map((m) => `${m.role === "user" ? "THEM" : m.role === "team" ? "AQUAZEN TEAM MEMBER" : "NOAH"}: ${m.text}`).join("\n");
+  const system = `${NOAH_METHOD}\n\n${await noahPricing()}`;
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({
+      model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 1200, system,
+      messages: [{ role: "user", content: `THE CONVERSATION SO FAR:\n${convo || "(none)"}\n\n${extra || "Write Noah's next message."}
+Reply with only JSON: {"reply":"Noah's message","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":""}}
+Set handoff to true only when they've given a phone number for a call, or they're ready to buy and gave their details, or they asked for a person. Fill lead with whatever they've told you so far.` }],
+    }),
+  });
+  if (!res.ok) throw new Error(`claude ${res.status} ${await res.text().catch(() => "")}`);
+  const out = await res.json();
+  // deno-lint-ignore no-explicit-any
+  const text = (out.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("");
+  const j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+  j.reply = String(j.reply ?? "").replace(/\s*[—–]\s*/g, ", ").trim().slice(0, 1900);
+  return j;
+}
+
+async function pageToken(): Promise<string> {
+  const token = Deno.env.get("META_TOKEN")!;
+  const s = await metaSettings();
+  return (await graph(s.page, token, { fields: "access_token" })).access_token;
+}
+async function noahSend(psid: string, text: string, ptoken: string) {
+  const s = await metaSettings();
+  await graph(`${s.page}/messages`, ptoken, { recipient: { id: psid }, messaging_type: "RESPONSE", message: { text } }, "POST");
+}
+
+async function noahHandoff(threadId: string, channel: string, lead: Record<string, string>, history: { role: string; text: string }[]) {
+  const db = admin();
+  const { data: t } = await db.from("chat_threads").select("*").eq("id", threadId).single();
+  const stamp = new Date().toLocaleDateString("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "short", day: "numeric" });
+  const notes = [`Noah on ${channel === "instagram" ? "Instagram" : "Messenger"} (${stamp}):`,
+    lead.interest ? `- Interested in: ${lead.interest}` : "", lead.best_time ? `- Best time to call: ${lead.best_time}` : "",
+    lead.summary ? `- ${lead.summary}` : "", "", ...history.slice(-14).map((m) => `${m.role === "user" ? "Them" : m.role === "team" ? "Team" : "Noah"}: ${m.text}`)].filter((x) => x !== null).join("\n").slice(0, 7000);
+  let customerId = t?.customer_id;
+  const fields = { name: lead.name || t?.name || "Social media lead", cell: lead.phone || null, email: lead.email || null, heard_about: channel === "instagram" ? "Instagram: Noah" : "Messenger: Noah" };
+  if (customerId) {
+    const { data: c } = await db.from("customers").select("notes").eq("id", customerId).single();
+    await db.from("customers").update({ ...Object.fromEntries(Object.entries(fields).filter(([, v]) => v)), notes: [notes, c?.notes].filter(Boolean).join("\n\n").slice(0, 8000) }).eq("id", customerId);
+  } else {
+    const { data: c } = await db.from("customers").insert({ ...fields, notes }).select("id").single();
+    customerId = c?.id;
+  }
+  await db.from("chat_threads").update({ handed_off_at: new Date().toISOString(), customer_id: customerId, name: lead.name || t?.name }).eq("id", threadId);
+  try {
+    await sendEmail({
+      from: FROM, to: Deno.env.get("LEAD_TO") || "shaun@aquazen.ca", reply_to: REPLY_TO,
+      subject: `Noah handed you a lead: ${fields.name}${lead.phone ? ", " + lead.phone : ""}`,
+      html: emailShell({ preheader: "A social media lead is ready for a person.", body:
+        `<p>Noah passed a ${channel === "instagram" ? "Instagram" : "Messenger"} conversation to the team.</p>
+<p><b>${escapeHtml(fields.name)}</b><br>${escapeHtml(lead.phone || "no phone yet")}${lead.email ? "<br>" + escapeHtml(lead.email) : ""}${lead.best_time ? "<br>Best time: " + escapeHtml(lead.best_time) : ""}</p>
+${lead.interest ? `<p>Interested in: ${escapeHtml(lead.interest)}</p>` : ""}${lead.summary ? `<p>${escapeHtml(lead.summary)}</p>` : ""}
+<p style="color:${MUTED}">They're in the staff portal's Customers tab as a new lead, with the conversation in the notes.</p>` }),
+    });
+  } catch (e) { console.error("noah handoff email", e); }
+}
+
+// Handle one incoming message: save it, wait a moment for anything else they type, then answer.
+async function noahIncoming(channel: string, psid: string, text: string, mid: string) {
+  const db = admin();
+  const now = new Date().toISOString();
+  let { data: t } = await db.from("chat_threads").select("*").eq("channel", channel).eq("psid", psid).maybeSingle();
+  if (!t) {
+    const ins = await db.from("chat_threads").insert({ channel, psid, last_user_at: now }).select("*").single();
+    t = ins.data;
+    // Their name, if Meta shares it.
+    try {
+      const p = await graph(psid, await pageToken(), { fields: channel === "instagram" ? "name,username" : "first_name,last_name" });
+      const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || p.name || p.username;
+      if (name) await db.from("chat_threads").update({ name }).eq("id", t!.id);
+    } catch { /* fine without it */ }
+  }
+  const ins = await db.from("chat_messages").insert({ thread_id: t!.id, role: "user", text: text.slice(0, 4000), mid: mid || null });
+  if (ins.error) return; // a duplicate delivery from Meta
+  await db.from("chat_threads").update({ last_user_at: now, updated_at: now }).eq("id", t!.id);
+
+  const on = (await db.from("settings").select("v").eq("k", "noah_on").maybeSingle()).data?.v !== "off";
+  if (!on) return;
+  if (t!.status === "human" && t!.human_until && new Date(t!.human_until) > new Date()) return;
+
+  const ptoken = await pageToken();
+  try { await graph(`${(await metaSettings()).page}/messages`, ptoken, { recipient: { id: psid }, sender_action: "typing_on" }, "POST"); } catch { /* optional */ }
+  await new Promise((r) => setTimeout(r, 5000));
+  // If they sent more while Noah was waiting, the newest message answers everything.
+  const { data: last } = await db.from("chat_messages").select("role, mid").eq("thread_id", t!.id).order("created_at", { ascending: false }).limit(1).single();
+  if (last && last.role === "user" && last.mid && mid && last.mid !== mid) return;
+
+  const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t!.id).order("created_at").limit(60);
+  const history = msgs ?? [];
+  const extra = t!.handed_off_at ? "The team already has their details and will call. Keep helping warmly, and don't ask for their details again." : "";
+  const j = await noahThink(history, extra);
+  if (!j.reply) return;
+  await noahSend(psid, j.reply, ptoken);
+  await db.from("chat_messages").insert({ thread_id: t!.id, role: "noah", text: j.reply });
+  await db.from("chat_threads").update({ last_bot_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", t!.id);
+  if (j.handoff && !t!.handed_off_at) await noahHandoff(t!.id, channel, j.lead || {}, [...history, { role: "noah", text: j.reply }]);
+}
+
+async function verifyMeta(raw: string, sig: string | null): Promise<boolean> {
+  const secret = Deno.env.get("META_APP_SECRET");
+  if (!secret || !sig?.startsWith("sha256=")) return false;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(raw)));
+  const hex = Array.from(mac).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const given = sig.slice(7);
+  if (given.length !== hex.length) return false;
+  let diff = 0; for (let i = 0; i < hex.length; i++) diff |= hex.charCodeAt(i) ^ given.charCodeAt(i);
+  return diff === 0;
+}
+
+// GET: Meta's webhook check. POST: messages from Messenger and Instagram.
+async function route_meta_webhook(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  if (req.method === "GET") {
+    if (url.searchParams.get("hub.mode") === "subscribe" && url.searchParams.get("hub.verify_token") === (Deno.env.get("META_VERIFY_TOKEN") || "aquazen-noah-webhook"))
+      return new Response(url.searchParams.get("hub.challenge") ?? "", { status: 200 });
+    return new Response("Forbidden", { status: 403 });
+  }
+  const raw = await req.text();
+  if (!(await verifyMeta(raw, req.headers.get("x-hub-signature-256")))) { console.error("meta-webhook: bad or missing signature"); return new Response("Forbidden", { status: 403 }); }
+  // deno-lint-ignore no-explicit-any
+  let body: any = {};
+  try { body = JSON.parse(raw); } catch { return new Response("ok"); }
+  const channel = body.object === "instagram" ? "instagram" : body.object === "page" ? "messenger" : "";
+  const jobs: Promise<unknown>[] = [];
+  if (channel) {
+    for (const entry of body.entry ?? []) {
+      for (const ev of entry.messaging ?? []) {
+        const m = ev.message;
+        if (!m || m.is_deleted) continue;
+        if (m.is_echo) {
+          // A person on the team replied from the inbox (Noah's own messages carry our app's ID): Noah steps back for 24 hours.
+          if (String(m.app_id ?? "") !== String(Deno.env.get("META_APP_ID") || "2194629054456528")) {
+            const psid = String(ev.recipient?.id ?? "");
+            jobs.push((async () => {
+              const db = admin();
+              const { data: t } = await db.from("chat_threads").select("id").eq("channel", channel).eq("psid", psid).maybeSingle();
+              if (t) {
+                await db.from("chat_threads").update({ status: "human", human_until: new Date(Date.now() + 24 * 3600e3).toISOString() }).eq("id", t.id);
+                if (m.text) await db.from("chat_messages").insert({ thread_id: t.id, role: "team", text: String(m.text).slice(0, 4000), mid: m.mid || null });
+              }
+            })());
+          }
+          continue;
+        }
+        const text = m.text || (m.attachments?.length ? "(sent a photo or attachment)" : "");
+        if (!text) continue;
+        jobs.push(noahIncoming(channel, String(ev.sender?.id ?? ""), String(text), String(m.mid ?? "")).catch((e) => console.error("noah", e)));
+      }
+    }
+  }
+  const all = Promise.all(jobs);
+  if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(all); else await all;
+  return new Response("ok", { status: 200 });
+}
+
+// Cron, every 15 minutes: one pattern-interrupt follow-up for people who went quiet, inside Meta's 24-hour window.
+async function route_noah_followup(req: Request): Promise<Response> {
+  const db = admin();
+  const { data: ok } = await db.rpc("check_cron_secret", { s: req.headers.get("x-cron-secret") ?? "" });
+  if (!ok) return new Response("Forbidden", { status: 403 });
+  const on = (await db.from("settings").select("v").eq("k", "noah_on").maybeSingle()).data?.v !== "off";
+  if (!on || !Deno.env.get("META_TOKEN")) return new Response("off");
+  const now = Date.now();
+  const { data: threads } = await db.from("chat_threads").select("*").eq("status", "bot").is("followup_at", null).is("handed_off_at", null)
+    .lt("last_bot_at", new Date(now - 3 * 3600e3).toISOString()).gt("last_user_at", new Date(now - 22 * 3600e3).toISOString()).limit(20);
+  let sent = 0;
+  const ptoken = threads?.length ? await pageToken() : "";
+  for (const t of threads ?? []) {
+    if (!t.last_bot_at || !t.last_user_at || new Date(t.last_bot_at) < new Date(t.last_user_at)) continue; // they spoke last
+    try {
+      const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t.id).order("created_at").limit(60);
+      const j = await noahThink(msgs ?? [], "They've gone quiet. Write ONE follow-up message using a pattern interrupt: unexpected, sincere and good to receive, tied to something they actually said. Never 'just checking in', never guilt or pressure, never a fake deadline. Make it easy to reply to. Keep it to one or two sentences. Set handoff to false.");
+      if (!j.reply) continue;
+      await noahSend(t.psid, j.reply, ptoken);
+      await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: j.reply });
+      await db.from("chat_threads").update({ followup_at: new Date().toISOString(), last_bot_at: new Date().toISOString() }).eq("id", t.id);
+      sent++;
+    } catch (e) {
+      console.error("noah followup", t.id, e);
+      await db.from("chat_threads").update({ followup_at: new Date().toISOString() }).eq("id", t.id); // don't retry forever
+    }
+  }
+  return new Response(JSON.stringify({ sent }), { headers: { "Content-Type": "application/json" } });
+}
+
+// Admins: Noah's switch, the promotion, conversations, pausing a chat, and a practice chat.
+async function route_noah_admin(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const db = admin();
+  const b = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  if (b.on !== undefined) await db.from("settings").upsert({ k: "noah_on", v: b.on ? "on" : "off" });
+  if (b.promo !== undefined) await db.from("settings").upsert({ k: "noah_promo", v: String(b.promo).replace(/\s*[—–]\s*/g, ", ").slice(0, 1000) });
+  if (b.thread_id && ["bot", "human"].includes(b.status)) await db.from("chat_threads").update({ status: b.status, human_until: b.status === "human" ? new Date(Date.now() + 30 * 24 * 3600e3).toISOString() : null }).eq("id", b.thread_id);
+  if (Array.isArray(b.practice)) {
+    try {
+      // deno-lint-ignore no-explicit-any
+      const history = b.practice.slice(-30).map((m: any) => ({ role: m.role === "noah" ? "noah" : "user", text: String(m.text ?? "").slice(0, 2000) }));
+      const j = await noahThink(history);
+      return jsonAuth(req, { reply: j.reply, handoff: !!j.handoff, lead: j.lead });
+    } catch (e) { console.error("noah practice", e); return jsonAuth(req, { error: "Noah didn't answer. Please try again." }, 502); }
+  }
+  if (b.thread) {
+    const { data: msgs } = await db.from("chat_messages").select("role, text, created_at").eq("thread_id", String(b.thread)).order("created_at").limit(300);
+    return jsonAuth(req, { messages: msgs ?? [] });
+  }
+  const s = await db.from("settings").select("k, v").in("k", ["noah_on", "noah_promo"]);
+  const set = Object.fromEntries((s.data ?? []).map((r) => [r.k, r.v]));
+  const { data: threads } = await db.from("chat_threads").select("id, channel, name, status, human_until, handed_off_at, followup_at, last_user_at, last_bot_at, customer_id").order("updated_at", { ascending: false }).limit(100);
+  return jsonAuth(req, {
+    on: set.noah_on !== "off", promo: set.noah_promo || "", threads: threads ?? [],
+    ready: { token: !!Deno.env.get("META_TOKEN"), secret: !!Deno.env.get("META_APP_SECRET"), ai: !!Deno.env.get("ANTHROPIC_API_KEY") },
+  });
+}
+
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-post": route_meta_post, "meta-ad": route_meta_ad,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

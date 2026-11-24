@@ -440,3 +440,14 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .admeta{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
 .admeta h3{margin-top:0}
 #metaMsg a{color:var(--water-deep);font-weight:600}
+/* ---------- Noah ---------- */
+.noahchat{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.nb{max-width:85%;padding:9px 12px;border-radius:14px;font-size:.92rem;white-space:pre-wrap;line-height:1.4}
+.nb span{display:block;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.6;margin-bottom:2px}
+.nb-them{align-self:flex-end;background:var(--night);color:#fff}
+.nb-noah{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+.nb-team{align-self:flex-start;background:#fff6dc;border:1px solid var(--gold)}
+.noahsend{display:flex;gap:8px;margin-bottom:10px}
+.noahsend input{flex:1;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);min-width:0}
+#noahThreads tr{cursor:pointer}
+#noahThread{margin-top:18px}

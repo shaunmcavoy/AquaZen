@@ -205,7 +205,7 @@
     $$('.tabs a').forEach(function (a) { a.removeAttribute('aria-current'); });
     var tab = view === 'sale' ? (current && current.id ? 'sales' : 'new') : view === 'customer' ? 'customers' : view;
     var t = $('.tabs a[data-tab="' + tab + '"]'); if (t) t.setAttribute('aria-current', 'page');
-    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', resources: 'Documents', money: 'Financials', ads: 'Ad studio', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
+    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', resources: 'Documents', money: 'Financials', ads: 'Ad studio', noah: 'Noah', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
     window.scrollTo(0, 0);
   }
 
@@ -219,6 +219,7 @@
     else if (h === 'products' && me.profile.role === 'admin') { show('products'); loadProducts(); }
     else if (h === 'money' && me.profile.role === 'admin') { show('money'); loadMoney(); }
     else if (h === 'ads' && me.profile.role === 'admin') { show('ads'); if (window.AZAds) window.AZAds.open(); }
+    else if (h === 'noah' && me.profile.role === 'admin') { show('noah'); if (window.AZNoah) window.AZNoah.open(); }
     else if (h === 'new') { openSale(null); }
     else if (h.indexOf('new-c-') === 0) { openSale(null, h.slice(6)); }
     else if (h === 'customers') { show('customers'); loadCustomers(); }

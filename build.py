@@ -539,7 +539,7 @@ def build_app():
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js"></script>
 <script src="/assets/js/{js}.js"></script>
-{'<script src="/assets/js/ads.js"></script>' + chr(10) if slug == "staff" else ""}</body>
+{'<script src="/assets/js/ads.js"></script>' + chr(10) + '<script src="/assets/js/noah.js"></script>' + chr(10) if slug == "staff" else ""}</body>
 </html>
 """)
 
@@ -549,7 +549,7 @@ def stamp_assets():
     import hashlib
     import re
     ver = {}
-    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/how.js", "assets/js/prices.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js", "assets/js/pay.js", "assets/js/ads.js"]:
+    for rel in ["assets/css/site.css", "assets/css/app.css", "assets/js/site.js", "assets/js/menu.js", "assets/js/tubs.js", "assets/js/finder.js", "assets/js/how.js", "assets/js/prices.js", "assets/js/app.js", "assets/js/login.js", "assets/js/staff.js", "assets/js/sign.js", "assets/js/portal.js", "assets/js/pay.js", "assets/js/ads.js", "assets/js/noah.js"]:
         ver[os.path.basename(rel)] = hashlib.md5(open(os.path.join(ROOT, rel), "rb").read()).hexdigest()[:8]
     pat = re.compile(r'((?:\.\./|/)?assets/(?:css|js)/)(' + "|".join(re.escape(k) for k in ver) + r')(\?v=[0-9a-f]+)?')
     for dirpath, _, files in os.walk(ROOT):

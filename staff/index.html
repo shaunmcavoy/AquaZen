@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/assets/img/icon-512.png">
-<link rel="stylesheet" href="/assets/css/app.css?v=a2f7db17">
+<link rel="stylesheet" href="/assets/css/app.css?v=e62d4d41">
 <!-- seo --><meta name="robots" content="noindex, nofollow"><!-- /seo -->
 </head>
 <body class="app app-staff">
@@ -29,6 +29,7 @@
       <a href="#money" data-tab="money" class="admin-only" hidden>Financials</a>
       <a href="#products" data-tab="products" class="admin-only" hidden>Products</a>
       <a href="#ads" data-tab="ads" class="admin-only" hidden>Ads</a>
+      <a href="#noah" data-tab="noah" class="admin-only" hidden>Noah</a>
       <a href="#team" data-tab="team" class="admin-only" hidden>Team</a>
     </nav>
   </div>
@@ -398,6 +399,36 @@
     </div>
 
     <!-- Products (admins) -->
+    <!-- Noah (admins): the social media salesperson on Messenger and Instagram -->
+    <div id="view-noah" class="view" hidden>
+      <p class="muted small">Noah answers Facebook Messenger and Instagram DMs the SCP way, aims for the Find your Zen quiz or a phone call, and hands buyers to the team. Reply yourself from the Page inbox any time and Noah steps back on that chat for 24 hours.</p>
+      <div class="adgrid">
+        <article class="card">
+          <h3>Noah</h3>
+          <p id="noahReady" class="muted small">Checking...</p>
+          <label class="adallsizes"><input type="checkbox" id="noahOn"> Noah is answering messages</label>
+          <div class="form" style="margin-top:14px"><label>The current promotion Noah can quote<textarea id="noahPromo" rows="4" maxlength="1000"></textarea></label>
+          <div class="formactions"><button class="btn btn-gold btn-sm" type="button" id="noahSave">Save</button><span class="formmsg muted small" id="noahMsg"></span></div></div>
+        </article>
+        <article class="card">
+          <h3>Practice with Noah</h3>
+          <p class="muted small">Talk to Noah like a customer would. Nothing is sent to anyone.</p>
+          <div class="noahchat" id="noahPractice"></div>
+          <form class="noahsend" id="noahPracticeForm"><input id="noahPracticeText" placeholder="Hi, how much is a hot tub?" autocomplete="off"><button class="btn btn-gold btn-sm" type="submit">Send</button></form>
+          <button class="btn btn-line btn-sm" type="button" id="noahPracticeReset">Start over</button>
+        </article>
+      </div>
+      <article class="card">
+        <h3>Conversations</h3>
+        <div class="tablewrap"><table class="saletable"><thead><tr><th>Who</th><th>Where</th><th>Status</th><th>Last message</th></tr></thead><tbody id="noahThreads"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody></table></div>
+        <div id="noahThread" hidden>
+          <h3 id="noahThreadName"></h3>
+          <div class="noahchat" id="noahThreadMsgs"></div>
+          <div class="formactions"><button class="btn btn-line btn-sm" type="button" id="noahPause">Pause Noah on this chat</button></div>
+        </div>
+      </article>
+    </div>
+
     <!-- Ad studio (admins) -->
     <div id="view-ads" class="view" hidden>
       <p class="muted small">Make ads for Facebook and Instagram that sell the SCP way. Fill in the brief, approve the plan, then approve the ads you like and save them.</p>
@@ -626,7 +657,8 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js?v=e9e700e1"></script>
-<script src="/assets/js/staff.js?v=3465d8bd"></script>
+<script src="/assets/js/staff.js?v=144549d2"></script>
 <script src="/assets/js/ads.js?v=cc483cdb"></script>
+<script src="/assets/js/noah.js?v=9f6f4a19"></script>
 </body>
 </html>
