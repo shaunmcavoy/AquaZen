@@ -174,7 +174,6 @@
     if (focus) {
       var t = stage.querySelector('.fz-title');
       if (t) t.focus({ preventScroll: embedded });
-      if (embedded) { var fr = document.getElementById('finder'); if (fr && fr.getBoundingClientRect().top < 0) fr.scrollIntoView({ block: 'start' }); }
     }
     wire(s);
   }
@@ -246,7 +245,7 @@
     if (s.type === 'contact') return submit();
     idx++;
     render(true);
-    window.scrollTo({ top: 0 });
+    if (embedded) { var fr = document.getElementById('finder'); if (fr) fr.scrollIntoView({ block: 'start' }); } else window.scrollTo({ top: 0 });
   }
 
   // The hot tubs we can recommend. Keep in step with src/tubs.json.
