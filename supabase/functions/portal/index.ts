@@ -1516,7 +1516,7 @@ async function graph(path: string, token: string, params: Record<string, unknown
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null) body.set(k, typeof v === "string" ? v : JSON.stringify(v));
   body.set("access_token", token);
   const url = `${GRAPH()}/${path.replace(/^\//, "")}`;
-  const res = method === "GET" ? await fetch(`${url}?${body}`) : await fetch(url, { method, body });
+  const res = method === "POST" ? await fetch(url, { method, body }) : await fetch(`${url}?${body}`, { method });
   const out = await res.json().catch(() => ({}));
   if (!res.ok || out.error) {
     const msg = out?.error?.error_user_msg || out?.error?.message || `Meta error ${res.status}`;
