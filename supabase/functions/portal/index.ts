@@ -1957,6 +1957,14 @@ async function route_noah_admin(req: Request): Promise<Response> {
   if (b.on !== undefined) await db.from("settings").upsert({ k: "noah_on", v: b.on ? "on" : "off" });
   if (b.promo !== undefined) await db.from("settings").upsert({ k: "noah_promo", v: String(b.promo).replace(/\s*[—–]\s*/g, ", ").slice(0, 1000) });
   if (b.thread_id && ["bot", "human"].includes(b.status)) await db.from("chat_threads").update({ status: b.status, human_until: b.status === "human" ? new Date(Date.now() + 30 * 24 * 3600e3).toISOString() : null }).eq("id", b.thread_id);
+  if (b.subscribe) {
+    // Tell Meta to send this Page's (and its Instagram's) messages to Noah.
+    try {
+      const st = await metaSettings();
+      const r = await graph(`${st.page}/subscribed_apps`, await pageToken(), { subscribed_fields: "messages,message_echoes,messaging_postbacks" }, "POST");
+      return jsonAuth(req, { subscribed: !!r.success });
+    } catch (e) { return jsonAuth(req, { error: `Meta said: ${(e as Error).message}` }, 502); }
+  }
   if (Array.isArray(b.practice)) {
     try {
       // deno-lint-ignore no-explicit-any

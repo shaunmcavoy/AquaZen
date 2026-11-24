@@ -23,7 +23,8 @@
       if (document.activeElement !== $('#noahPromo')) $('#noahPromo').value = r.promo || '';
       var miss = [];
       if (!r.ready.token) miss.push('the Meta key'); if (!r.ready.secret) miss.push('the Meta app secret (META_APP_SECRET)'); if (!r.ready.ai) miss.push('the Anthropic key');
-      $('#noahReady').textContent = miss.length ? 'Still needs ' + miss.join(' and ') + ' before Noah can answer real messages. Practice works now.' : 'Connected to Messenger and Instagram.';
+      $('#noahReady').innerHTML = miss.length ? AZ.esc('Still needs ' + miss.join(' and ') + ' before Noah can answer real messages. Practice works now.') : 'Connected to Messenger and Instagram. <button class="btn btn-line btn-sm" type="button" id="noahSub">Reconnect the Page</button>';
+      var sub = $('#noahSub'); if (sub) sub.onclick = function () { sub.disabled = true; AZ.api('noah-admin', { subscribe: true }).then(function (x) { sub.textContent = x.subscribed ? 'Page connected' : 'Try again'; }, function (e2) { sub.textContent = e2.message; }); };
       threads = r.threads || [];
       $('#noahThreads').innerHTML = threads.map(function (t) {
         return '<tr data-id="' + t.id + '" tabindex="0"><td><b>' + AZ.esc(t.name || 'Someone') + '</b></td><td>' + (t.channel === 'instagram' ? 'Instagram' : 'Messenger') + '</td><td>' + statusOf(t) + '</td><td>' + when(t.last_user_at) + '</td></tr>';
