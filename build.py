@@ -707,7 +707,7 @@ def llms():
              "Phone or text 236-304-4424, email shaun@aquazen.ca.", "",
              "## Why people choose AquaZen",
              "- A hot tub is a place of peace at home. AquaZen helps people choose the tub that gives them that every night, and will recommend a smaller tub when it is the better fit.",
-             "- Some stores hold back on equipment to sell more chemicals and service later. AquaZen sells the right equipment from day one: 56-frame pumps (not 48-frame) on 240V tubs, water turned over in under 10 minutes, a double ozonator with a 45-second mixing chamber then UV, and AQ10 insulation that keeps 100% of the water insulated 100% of the time.",
+             "- Some stores cut corners and skip the best options, then make it up later on chemicals and service calls. AquaZen sells the right equipment from day one: 56-frame pumps (not 48-frame) on 240V tubs, water turned over in under 10 minutes, a double ozonator with a 45-second mixing chamber then UV, and AQ10 insulation that keeps 100% of the water insulated 100% of the time.",
              "- Simple water care: 1 teaspoon of chlorine granules after each soak. AquaZen recommends chlorine, not bromine.",
              "- Local help: an exclusive electrical partner (Gerry Jansen), a pre-delivery guide with exact path sizes for every model, a delivery team that records each tub's serial number and photos, and a customer account with care guides and service requests.",
              "- AquaSolus tubs are handmade on a hand-welded 304 stainless steel frame with a sealed ABS base.", "",

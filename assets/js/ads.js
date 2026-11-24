@@ -39,7 +39,7 @@
       { h: 'The massage you keep putting off.', s: 'Now it waits for you at home, every night.', cta: 'Find your Zen', post: 'You know you need it. A hot tub with the right jets in the right places means you never have to book it. Find yours at aquazen.ca.' }
     ] },
     { n: 'Built better', hooks: [
-      { h: '56-frame pumps. Not 48.', s: 'We never hold back on equipment. Your best soak starts on day one.', cta: 'Learn more', post: 'Some stores hold back on equipment. We do the opposite, because the best experience is what keeps you using your hot tub. See how we deliver Zen at aquazen.ca.' },
+      { h: '56-frame pumps. Not 48.', s: 'We never cut corners. Your best soak starts on day one.', cta: 'Learn more', post: 'Some stores cut corners and skip the best options. We do the opposite, because the best experience is what keeps you using your hot tub. See how we deliver Zen at aquazen.ca.' },
       { h: 'Built for BC winters.', s: 'AQ10 keeps 100% of the water insulated, 100% of the time.', cta: 'Learn more', post: 'Full foam leaves the pumps, heater and lines bare, so heat escapes at the weakest point. AQ10 keeps all of the water insulated, all of the time. Here is why that matters in a BC winter.' },
       { h: 'Healthy water, made simple.', s: 'A double ozonator does the work. One teaspoon after each soak.', cta: 'Learn more', post: 'Owning a hot tub shouldn\'t mean a shelf full of chemicals. A double ozonator and one teaspoon of chlorine after each soak keeps the water clean and easy.' },
       { h: 'Handmade for the massage you came for.', s: 'AquaSolus hot tubs, sold and delivered by AquaZen.', cta: 'Find your Zen', post: 'Every AquaSolus hot tub is built by hand around one idea: health through water. Find the one that fits you at aquazen.ca.' }
@@ -574,7 +574,7 @@
     { k: 'interrupt', n: 'Pattern interrupt', d: 'Act One. Breaks the scroll with something unexpected, sincere and good to receive.' },
     { k: 'why', n: 'Inside-out WHY', d: 'Our purpose meets their reason, before any product.' },
     { k: 'empathy', n: 'Empathy bridge', d: 'Reflects what they want changed, and why we care.' },
-    { k: 'story', n: 'Company story', d: 'The founding problem: stores hold back on equipment. We don\'t.' },
+    { k: 'story', n: 'Company story', d: 'The founding problem: stores cut corners. We don\'t.' },
     { k: 'howproof', n: 'HOW as proof', d: 'Anchor, decision, distinction.' },
     { k: 'shortcut', n: 'Standard vs shortcut', d: 'The easy way, then the way we chose, and what it costs us.' },
     { k: 'what', n: 'WHAT as proof', d: 'One feature tied to their life, plus a shield for a worry.' },
