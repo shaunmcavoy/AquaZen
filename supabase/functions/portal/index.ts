@@ -1675,8 +1675,12 @@ async function route_meta_ad(req: Request): Promise<Response> {
     await admin().from("meta_sends").insert({ created_by: me.user.id, kind: "ad", headline, media_path: video || image, result: steps });
     return jsonAuth(req, { ok: true, ...steps, manager: `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act.replace("act_", "")}&selected_campaign_ids=${camp.id}` });
   } catch (e) {
+    // Don't leave a half-built, empty campaign behind: deleting the campaign removes its ad set too.
+    if (steps.campaign) { try { await graph(steps.campaign, token, {}, "DELETE"); steps.removed = "campaign"; } catch { /* leave it; it's paused */ } }
     await admin().from("meta_sends").insert({ created_by: me.user.id, kind: "ad", headline, media_path: video || image, result: { steps, error: (e as Error).message } });
-    return jsonAuth(req, { error: `Meta said: ${(e as Error).message}`, steps }, 502);
+    const m = (e as Error).message;
+    const nice = /payment method/i.test(m) ? "Your ad account needs a payment method first. Add one in Meta's Billing and payments, then try again." : `Meta said: ${m}`;
+    return jsonAuth(req, { error: nice, steps }, 502);
   }
 }
 
