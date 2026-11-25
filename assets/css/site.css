@@ -867,3 +867,49 @@ html[data-goal="sleep"] .g[data-g="sleep"],html[data-goal="muscles"] .g[data-g="
 .fz-done .fz-done-ctas{justify-content:flex-start}
 @media (max-width:720px){.fz-picks{grid-template-columns:1fr}.fz-pick h2{font-size:25px}}
 .fz-done-ctas .link-btn{margin:0}
+
+/* How we deliver Zen: the story pieces (opening, what's out there, why AquaZen, first evening) */
+.w-car{opacity:var(--car);transform:translateX(calc((1 - var(--car)) * -900px))}
+.w-carbody{fill:#2b3442}.w-carwin{fill:#9fc4e8;opacity:.55}.w-wheel{fill:#0c0c0e;stroke:#3a3f45;stroke-width:6}
+.w-beam{fill:#fff4cc;opacity:calc(.22 * (1 - var(--night) * .3))}
+.w-buzz{opacity:var(--buzz)}
+.w-note rect{fill:rgba(28,28,30,.92);stroke:rgba(255,255,255,.25);stroke-width:2}
+.w-note text{fill:#fff;font:600 24px var(--font)}
+.w-dot{fill:#ff453a}
+.w-note{animation:w-buzz 2.4s ease-in-out infinite}.w-note:nth-child(2){animation-delay:-.8s}.w-note:nth-child(3){animation-delay:-1.6s}
+@keyframes w-buzz{0%,100%{transform:translateY(0)}10%{transform:translate(-4px,-6px)}20%{transform:translate(4px,-6px)}30%{transform:translateY(0)}}
+.w-doorlight{fill:#ffcf7a;opacity:var(--door)}
+.w-spill{fill:#ffcf7a;opacity:calc(var(--door) * .14)}
+.w-wreath{opacity:var(--xmas)}
+.w-van{opacity:var(--van);transform:translateX(calc((1 - var(--van)) * 700px))}
+.w-vanbody{fill:#e5e5ea}.w-vanstripe{fill:#ff9f0a}.w-vantext{fill:#1d1d1f;font:800 30px var(--font);text-anchor:middle;letter-spacing:.12em}
+.w-beacon{fill:#ff9f0a;animation:w-beacon .7s steps(2) infinite}
+@keyframes w-beacon{50%{fill:#5a3200}}
+.w-truck{opacity:var(--truck);transform:translateX(calc((1 - var(--truck)) * 1000px))}
+.w-truckbox{fill:#f5f5f7}.w-truckcab{fill:#1d1d1f}
+.w-trucktext{fill:#1d1d1f;font:700 64px var(--font);text-anchor:middle;letter-spacing:-.02em}
+.w-trucksub{fill:#6e6e73;font:600 24px var(--font);text-anchor:middle}
+.w-lifter{opacity:var(--load)}
+.w-arm{fill:none;stroke:#8e8e93;stroke-width:12;stroke-linejoin:round}
+.w-coverup{fill:#3a3a3c;stroke:#1c1c1e;stroke-width:6}
+.w-steps{opacity:var(--load);transform:translateY(calc((1 - var(--load)) * 120px))}
+.w-steps rect{fill:#5a4636;stroke:#2c2018;stroke-width:4}
+.w-bow{opacity:var(--gift)}
+.w-ribbon{fill:#f0bf33}
+.w-chem{opacity:var(--chem);transform:translateY(calc((1 - var(--chem)) * -260px))}
+.w-chemq{fill:#fff;font:800 56px var(--font);text-anchor:middle;animation:w-chemq 1.6s ease-in-out infinite}
+@keyframes w-chemq{50%{transform:translateY(-12px)}}
+.w-bill{opacity:var(--bill);transform-box:fill-box;transform-origin:center bottom;transform:scale(calc(.6 + var(--bill) * .4))}
+.w-paper{fill:#f5f5f7}.w-billhead{fill:#1d1d1f;font:800 26px var(--font);letter-spacing:.08em}
+.w-billline,.w-billline2{fill:#d1d1d6;stroke:#d1d1d6;stroke-width:3}
+.w-bar{fill:#8e8e93}.w-barhot{fill:#ff453a}
+.hz-still .w-note,.hz-still .w-beacon,.hz-still .w-chemq{animation:none}
+.b-k{font-size:17px!important;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a1a1a6!important;margin:0 0 14px!important}
+.b-out{color:#ff9f0a}
+.b-yes{color:#30d158}
+.hz-now{margin:34px auto 0;max-width:640px;padding:24px 26px;border-radius:22px;background:rgba(28,28,30,.86);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);text-align:left;border:1px solid rgba(240,191,51,.45)}
+.hz-now b{color:#fff}
+.hz-now p{margin:0 0 10px;font-size:18px;line-height:1.5;color:#e5e5ea}
+.hz-now .k{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f0bf33;margin-bottom:8px}
+.hz-now[hidden]{display:none}
+.hz-fz.asking .hz-now{display:none}

@@ -27,14 +27,50 @@
       <rect class="w-win" x="-1080" y="-360" width="120" height="150" rx="6"/><rect class="w-win" x="-900" y="-360" width="120" height="150" rx="6"/>
       <rect class="w-tv" x="-1080" y="-360" width="120" height="150" rx="6"/>
       <rect class="w-door" x="-830" y="-250" width="90" height="190" rx="6"/>
-    </g>
+
+      <rect class="w-doorlight" x="-830" y="-250" width="90" height="190" rx="6"/>
+      <path class="w-spill" d="M-830 -60 L-740 -60 L-300 40 L-560 40 Z"/>
+      <g class="w-wreath"><circle cx="-785" cy="-205" r="22" fill="none" stroke="#2f6b3a" stroke-width="10"/><path d="M-795 -186 l10 10 l10 -10 l-10 4 Z" fill="#d23b3b"/></g>
+      <g class="w-buzz"><g transform="translate(120 190)">
+        <g class="w-note"><rect x="-640" y="-430" width="230" height="56" rx="16"/><circle cx="-614" cy="-402" r="10" class="w-dot"/><text x="-594" y="-395">New email</text></g>
+        <g class="w-note"><rect x="-560" y="-350" width="250" height="56" rx="16"/><circle cx="-534" cy="-322" r="10" class="w-dot"/><text x="-514" y="-315">Reminder</text></g>
+        <g class="w-note"><rect x="-660" y="-270" width="290" height="56" rx="16"/><circle cx="-634" cy="-242" r="10" class="w-dot"/><text x="-614" y="-235">One more thing</text></g>
+      </g>
+      <g class="w-car">
+        <path class="w-carbody" d="M-1900 -60 V-110 Q-1900 -130 -1880 -134 L-1820 -142 L-1770 -190 Q-1760 -198 -1740 -198 H-1600 Q-1580 -198 -1570 -188 L-1530 -142 L-1460 -134 Q-1440 -130 -1440 -110 V-60 Z"/>
+        <path class="w-carwin" d="M-1805 -146 L-1762 -186 H-1680 V-146 Z M-1665 -146 V-186 H-1602 L-1568 -146 Z"/>
+        <circle cx="-1820" cy="-58" r="26" class="w-wheel"/><circle cx="-1520" cy="-58" r="26" class="w-wheel"/>
+        <path class="w-beam" d="M-1440 -112 L-1120 -170 L-1120 -40 Z"/>
+      </g>
+      <g class="w-van">
+        <path class="w-vanbody" d="M900 -60 V-230 Q900 -250 920 -250 H1180 Q1210 -250 1230 -220 L1290 -150 Q1300 -140 1300 -120 V-60 Z"/>
+        <path class="w-carwin" d="M1190 -232 L1270 -150 H1190 Z"/>
+        <rect x="930" y="-205" width="230" height="44" rx="6" class="w-vanstripe"/>
+        <text x="1045" y="-174" class="w-vantext">REPAIR</text>
+        <rect x="1010" y="-268" width="60" height="18" rx="6" class="w-beacon"/>
+        <circle cx="960" cy="-58" r="26" class="w-wheel"/><circle cx="1230" cy="-58" r="26" class="w-wheel"/>
+      </g>
+
+    </g></g>
     <g class="w-layer" data-depth=".8">
       <path class="w-deck" d="M-820 -40 H820 L1500 900 H-1500 Z"/>
       <path class="w-boards" d="M-820 40 H820 M-880 130 H880 M-950 230 H950 M-1030 340 H1030 M-1120 470 H1120 M-1220 620 H1220"/>
       <rect class="w-snowdeck" x="-1500" y="-40" width="3000" height="940"/>
       <g class="w-lights"><path class="w-wire" d="M-700 -470 Q-80 -300 640 -430"/><line class="w-post" x1="640" y1="-440" x2="640" y2="-40"/><g class="w-bulbs"></g></g>
+      <g class="w-truck"><g transform="translate(-450 0) translate(820 -60) scale(.75) translate(-820 60)">
+        <path class="w-truckbox" d="M820 -60 V-300 Q820 -312 832 -312 H1200 V-60 Z"/>
+        <path class="w-truckcab" d="M1200 -60 V-220 H1300 Q1318 -220 1328 -204 L1370 -140 Q1378 -128 1378 -112 V-60 Z"/>
+        <path class="w-carwin" d="M1214 -206 H1296 L1336 -146 H1214 Z"/>
+        <text x="1010" y="-196" class="w-trucktext">AquaZen</text>
+        <text x="1010" y="-156" class="w-trucksub">Your Zen is calling.</text>
+        <circle cx="900" cy="-58" r="28" class="w-wheel"/><circle cx="1110" cy="-58" r="28" class="w-wheel"/><circle cx="1310" cy="-58" r="28" class="w-wheel"/></g>
+      </g>
     </g>
     <g class="w-layer" data-depth="1">
+      <g class="w-lifter">
+        <path class="w-arm" d="M-300 220 L-300 -40 L-250 -150"/>
+        <rect class="w-coverup" x="-250" y="-250" width="500" height="150" rx="14" transform="rotate(-4 0 -175)"/>
+      </g>
       <ellipse class="w-halo" cx="0" cy="60" rx="720" ry="320" fill="url(#w-halo)"/>
       <ellipse cx="0" cy="268" rx="330" ry="34" fill="#000" opacity=".45"/>
       <path class="w-cab" d="M-262 10 H262 V242 Q262 260 244 260 H-244 Q-262 260 -262 242 Z"/>
@@ -81,6 +117,26 @@
         <g class="w-p2"><path class="w-p" d="M64 -22 Q70 -54 100 -60 Q108 -62 111 -69 L111 -76 Q95 -82 95 -100 Q95 -124 120 -124 Q145 -124 145 -100 Q145 -82 129 -76 L129 -69 Q132 -62 140 -60 Q170 -54 176 -22 Z"/></g>
         <path class="w-ripple" d="M-190 -20 Q-114 -8 -38 -20 M50 -20 Q120 -9 190 -20"/>
       </g>
+
+      <g class="w-bow"><rect x="-16" y="10" width="32" height="250" class="w-ribbon"/><rect x="-262" y="118" width="524" height="28" class="w-ribbon"/>
+        <path d="M0 -6 C-70 -70 -110 -10 -40 4 Z M0 -6 C70 -70 110 -10 40 4 Z" class="w-ribbon"/><circle cx="0" cy="-2" r="14" class="w-ribbon"/></g>
+      <g class="w-steps"><rect x="280" y="150" width="170" height="56" rx="8"/><rect x="300" y="206" width="210" height="56" rx="8"/></g>
+      <g class="w-chem">
+        <rect x="54" y="-138" width="34" height="60" rx="6" fill="#e84a5f"/><rect x="60" y="-152" width="22" height="16" rx="3" fill="#f5f5f7"/>
+        <rect x="96" y="-128" width="30" height="50" rx="6" fill="#4cc3ff"/><rect x="102" y="-140" width="18" height="14" rx="3" fill="#f5f5f7"/>
+        <rect x="134" y="-146" width="36" height="68" rx="6" fill="#ffd166"/><rect x="142" y="-160" width="20" height="16" rx="3" fill="#f5f5f7"/>
+        <rect x="178" y="-124" width="28" height="46" rx="6" fill="#7bd389"/><rect x="184" y="-136" width="16" height="14" rx="3" fill="#f5f5f7"/>
+        <rect x="214" y="-134" width="32" height="56" rx="6" fill="#b388ff"/><rect x="220" y="-148" width="20" height="16" rx="3" fill="#f5f5f7"/>
+        <g class="w-strip"><rect x="260" y="-150" width="12" height="72" rx="3" fill="#f5f5f7"/><rect x="260" y="-140" width="12" height="9" fill="#ff9f0a"/><rect x="260" y="-126" width="12" height="9" fill="#ff453a"/><rect x="260" y="-112" width="12" height="9" fill="#ffd60a"/></g>
+        <text x="150" y="-190" class="w-chemq">?</text><text x="240" y="-200" class="w-chemq">?</text>
+      </g>
+      <g class="w-bill">
+        <rect x="300" y="-470" width="250" height="300" rx="14" class="w-paper"/>
+        <text x="330" y="-428" class="w-billhead">HYDRO BILL</text>
+        <rect x="330" y="-410" width="190" height="4" class="w-billline"/>
+        <rect x="340" y="-300" width="26" height="90" class="w-bar"/><rect x="380" y="-325" width="26" height="115" class="w-bar"/><rect x="420" y="-355" width="26" height="145" class="w-bar"/><rect x="460" y="-395" width="26" height="185" class="w-bar w-barhot"/>
+        <path d="M340 -200 H510" class="w-billline2"/>
+      </g>
       <g class="w-steam"><path d="M-150 -70 q-30 -60 0 -120 t0 -120"/><path d="M-40 -70 q30 -70 0 -140 t0 -120"/><path d="M70 -70 q-30 -60 0 -120 t0 -110"/><path d="M170 -70 q30 -60 0 -120 t0 -100"/></g>
     </g>
   </svg>
@@ -89,12 +145,12 @@
   <div class="w-scrim"></div>
   <div class="w-scrimt"></div>
 </div>
-<section class="hz-panel hz-cover" id="welcome" data-s="tv:1 lights:0 person:0 night:0.05 z:0 fx:.5 scrim:0 top:.85 shade:.7" aria-labelledby="hz-welcome">
+<section class="hz-panel hz-cover" id="welcome" data-s="car:0 tv:0 lights:0 person:0 night:0.05 z:0 fx:.5 scrim:0 top:.85 shade:.7" aria-labelledby="hz-welcome">
 <div class="wrap center">
 <img class="hz-cover-mark" src="/assets/img/logo-mark.png" alt="" width="217" height="91">
-<p class="hz-cover-eye">How we deliver Zen</p>
-<h1 id="hz-welcome" class="hz-title">Welcome to AquaZen.</h1>
-<p class="hz-lede hz-cover-lede">In the next few minutes you&rsquo;ll see why we started AquaZen, what makes a hot tub feel like Zen, and why so many don&rsquo;t. At the end, Find your Zen matches you to the two hot tubs that fit you best.</p>
+<p class="hz-cover-eye">Welcome to AquaZen</p>
+<h1 id="hz-welcome" class="hz-title">Your Zen is calling.</h1>
+<p class="hz-lede hz-cover-lede">This is the story of the evening you&rsquo;ve been missing, why so many hot tubs never give it to you, and how ours do. At the end, Find your Zen matches you to the two hot tubs that fit you best.</p>
 <ol class="hz-cover-steps">
 <li><b>Why</b><span>A place of peace at home</span></li>
 <li><b>How</b><span>Four things that make it work</span></li>
@@ -112,29 +168,30 @@
 <li><span data-t="#massage">Massage</span></li>
 <li><span data-t="#flow">Clean water</span></li>
 <li><span data-t="#insulation">Heat control</span></li>
+<li><span data-t="#aquazen">AquaZen</span></li>
 <li><span data-t="#find-your-zen">Find your Zen</span></li>
 </ol>
 </nav>
 <section class="hz-story" id="why" aria-labelledby="ev-0">
-<div class="b b-c" data-s="tv:1 lights:0 person:0 night:0.05 z:0 fx:.5 scrim:0 top:.85 shade:.04"><div class="b-in"><h2 id="ev-0">Think about the end of your day.</h2><p>The drive home. The dishes. One more email. Then the couch and a screen until it&rsquo;s time for bed.</p></div></div>
-<div class="b b-c" data-s="tv:1 lights:0 person:0 night:0.2 z:0.15 fx:.5 scrim:0 top:.85 shade:.04"><div class="b-in"><h2>Most evenings just happen.</h2><p>Nobody really chooses them. They fill themselves, and then they&rsquo;re gone.</p></div></div>
-<div class="b b-c" data-s="tv:0 lights:1 person:0 night:0.35 z:0.45 fx:.5 scrim:0 top:.85 shade:.04"><div class="b-in"><h2>Now picture choosing a different one.</h2><p>The screen goes dark. You step outside. The air is cool, the water is warm and the lights are low.</p></div></div>
-<div class="b b-c" data-s="tv:0 lights:1 person:1 night:0.5 z:0.75 fx:.5 scrim:0 top:.85 shade:.04"><div class="b-in"><h2>Nobody needs anything from you out here.</h2><p>Your shoulders drop. Your breathing slows. For a little while it&rsquo;s just you, the water and the sky.</p></div></div>
-<div class="b b-c" data-s="tv:0 lights:1 person:1 night:0.6 z:1 fx:.5 scrim:0 top:.85 shade:.04"><div class="b-in"><h2>That&rsquo;s Zen Time.</h2><p>A place of peace, right at home. It&rsquo;s the reason AquaZen exists, and the reason everything on this page was built the way it was.</p></div></div>
+<div class="b b-c" data-s="car:1 tv:0 buzz:0 lights:0 person:0 night:0.05 z:0 cx:-1500 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2 id="ev-0">Think about the end of your day.</h2><p>The drive home. You pull in, and the day isn&rsquo;t done with you yet.</p></div></div>
+<div class="b b-c" data-s="car:1 tv:0 buzz:1 lights:0 person:0 night:0.12 z:0.15 cx:-1350 cy:-150 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>The phone doesn&rsquo;t stop.</h2><p>One more email. A reminder. One more thing that can&rsquo;t wait. Then the dishes, the couch and a screen until it&rsquo;s time for bed.</p></div></div>
+<div class="b b-c" data-s="car:1 tv:1 buzz:.6 lights:0 person:0 night:0.22 z:0.25 cx:-1250 cy:-120 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>Most evenings just happen.</h2><p>Nobody really chooses them. They fill themselves, and then they&rsquo;re gone.</p></div></div>
+<div class="b b-c" data-s="car:1 tv:0 buzz:0 door:1 lights:1 person:0 night:0.38 z:0.25 cx:-650 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>Now picture choosing a different one.</h2><p>The screen goes dark. The phone stays on the counter. You open the back door and step out. The air is cool, the water is warm and the lights are low.</p></div></div>
+<div class="b b-c" data-s="car:1 door:.4 lights:1 person:1 night:0.52 z:0.75 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>Nobody needs anything from you out here.</h2><p>Your shoulders drop. Your breathing slows. For a little while it&rsquo;s just you, the water and the sky.</p></div></div>
+<div class="b b-c" data-s="car:1 lights:1 person:1 snow:1 xmas:1 night:0.85 z:0.35 cx:-450 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>Now picture it this winter.</h2><p>Snow on the deck. Steam rolling off the water. Lights on the fence and a wreath on the door. Christmas week, in your own backyard.</p></div></div>
+<div class="b b-c" data-s="car:1 lights:1 person:1 snow:.4 xmas:.4 night:0.65 z:1 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>That&rsquo;s Zen Time.</h2><p>A place of peace, right at home. It&rsquo;s the reason AquaZen exists, and the reason everything that follows was built the way it was.</p></div></div>
 </section>
-<section class="hz-panel hz-why" data-s="night:.62 shade:.62" aria-labelledby="hw">
+<section class="hz-story" id="out" aria-labelledby="hw">
+<div class="b b-c" data-s="night:.62 lights:.6 person:0 z:.8 scrim:0 top:.85 fx:.5 shade:.3"><div class="b-in"><h2 id="hw">So why doesn&rsquo;t every hot tub give you that?</h2><p>Here&rsquo;s what you expect when you buy a hot tub, and what&rsquo;s actually out there.</p></div></div>
+<div class="b" data-s="van:1 cx:1300 z:.1 night:.6 lights:.7 person:0 z:1 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>Quality.</h2><p><b class="b-out">What&rsquo;s out there:</b> too many hot tubs built to a price. Their owners end up spending more evenings with the repair tech than in the water.</p></div></div>
+<div class="b" data-s="bill:1 snow:.7 cy:-180 cx:250 night:.6 lights:.7 person:0 z:1 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>A hydro bill that stays low.</h2><p><b class="b-out">What&rsquo;s out there:</b> tubs that let the heat slip away all winter and run nonstop to stay warm. A hydro bill that&rsquo;s annoyingly high, every single month.</p></div></div>
+<div class="b" data-s="chem:1 night:.6 lights:.7 person:0 z:1 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>Healthy water that&rsquo;s easy to manage.</h2><p><b class="b-out">What&rsquo;s out there:</b> so many bottles and test strips you feel like a part-time chemist. Test it, adjust it, test it again.</p></div></div>
+<div class="b" data-s="cut:1 jet:0 pw:0 prick:1 knots:1 press:.6 person:1 night:.6 lights:.7 z:1.9 cy:110 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>A massage that feels good and works.</h2><p><b class="b-out">What&rsquo;s out there:</b> thin, high-pressure jets that itch and sting on a sore spot. The massage you paid for becomes the part you skip.</p></div></div>
+<div class="b b-c" data-s="night:.75 lights:.3 person:0 z:.6 scrim:0 top:.85 fx:.5 shade:.3"><div class="b-in"><h2>Why does this keep happening?</h2><p>Some stores cut corners and skip the best options, then make it up on chemicals and service calls. You pay for it every month you own it.</p></div></div>
+<div class="b b-c" data-s="night:.62 lights:1 person:1 z:1 scrim:0 top:.85 fx:.5 shade:.1"><div class="b-in"><h2>We started AquaZen to change that.</h2><p>To give you everything you expect when you buy a hot tub, and then some.</p></div></div>
+</section>
+<section class="hz-panel hz-why" data-s="night:.62 shade:.62" aria-label="Why Shaun started AquaZen">
 <div class="wrap">
-<h2 id="hw" class="hz-title">Most hot tubs don&rsquo;t live up to the promise.</h2>
-<p class="hz-lede">Here&rsquo;s what you expect when you buy a hot tub. Tap each one to see what too many owners end up with.</p>
-<div class="hz-promise" role="group" aria-label="What you expect, and what too many owners get">
-<button type="button" class="hz-pc" aria-pressed="false"><span class="pc-face pc-front"><span class="pc-k">You expect</span><b>Real luxury</b><span class="pc-tap">Tap to flip</span></span><span class="pc-face pc-back"><span class="pc-k">Too often</span><b>Parts that fail too often</b></span></button>
-<button type="button" class="hz-pc" aria-pressed="false"><span class="pc-face pc-front"><span class="pc-k">You expect</span><b>Healthy water that looks after itself</b><span class="pc-tap">Tap to flip</span></span><span class="pc-face pc-back"><span class="pc-k">Too often</span><b>More chemicals than you should ever need</b></span></button>
-<button type="button" class="hz-pc" aria-pressed="false"><span class="pc-face pc-front"><span class="pc-k">You expect</span><b>A hydro bill that stays low</b><span class="pc-tap">Tap to flip</span></span><span class="pc-face pc-back"><span class="pc-k">Too often</span><b>A hydro bill that bugs you every month</b></span></button>
-<button type="button" class="hz-pc" aria-pressed="false"><span class="pc-face pc-front"><span class="pc-k">You expect</span><b>A massage that lets the tension go</b><span class="pc-tap">Tap to flip</span></span><span class="pc-face pc-back"><span class="pc-k">Too often</span><b>One more thing to stress about, until you stop using it</b></span></button>
-</div>
-<button type="button" class="link-btn hz-flipall">Show me all four</button>
-<p class="hz-lede hz-promise-why">Why? A lot of hot tubs are sold to keep earning after you buy them. Corners get cut and the best options get skipped, and you pay for it every month you own it.</p>
-<p class="hz-lede hz-why-turn">We started AquaZen to give you what you deserve when you buy a hot tub.</p>
 <figure class="hz-shaun">
 <img src="/assets/img/shaun.jpg" alt="Shaun McAvoy, founder of AquaZen" width="1254" height="1254" loading="lazy">
 <blockquote><p>The reason people want a hot tub is they actually want a place of peace. Twenty minutes a night where nobody&rsquo;s on their phone, where they can breathe and actually talk to their family. My job is to help you find that, and the tub that gives it to you every night. I&rsquo;d rather you love it than overspend.</p>
@@ -160,7 +217,7 @@
 <section class="hz-panel" data-s="night:.68 shade:.45" aria-labelledby="ex">
   <div class="wrap">
     <h2 id="ex" class="hz-title">Here&rsquo;s how we deliver it.</h2>
-    <p class="hz-lede">Four things decide whether a hot tub lives up to the promise. We&rsquo;ll go through them in order, because each one leads to the next. It all starts with the pumps.</p>
+    <p class="hz-lede">Four things decide whether a hot tub lives up to the promise. Each one leads to the next, and it all starts with the part nobody shows you: the pumps. Hold on to it. It&rsquo;s the reason everything after it feels different.</p>
     <ol class="hz-index">
       <li><div class="ix"><span>1</span>Efficiency<small>A hydro bill you don&rsquo;t dread</small></div></li>
       <li><div class="ix"><span>2</span>The massage<small>Lets go of the tension you carry</small></div></li>
@@ -185,6 +242,7 @@
 <div class="b" data-s="night:.72 cut:1 z:3.0 cx:-190 cy:112 warm:1"><div class="b-in"><h2>So we take the thumb off the hose.</h2><p>This is why the hot tubs we sell use those big 56-frame pumps: so they can use bigger plumbing and send four to five times more water through every jet.</p></div></div>
 <div class="b" data-s="night:.72 cut:1 z:2.4 cx:-150 cy:110 warm:1"><div class="b-in"><h2>Now it actually feels amazing.</h2><p>A big, warm volume of water works over a larger area of your back. It gets the blood and oxygen moving through tight muscles, and the comfortable pressure of all that water reaches deep to release the tension.</p></div></div>
 <div class="b b-you" data-s="night:.72 z:1.9 cx:-114 cy:-40 warm:1"><div class="b-in"><p class="b-tag">What this means for you</p><h2><span class="g g-def">Sit back and the tension actually leaves. Not an itch you put up with, a massage you look forward to.</span><span class="g" data-g="sleep">You climb out loose and warm, with nothing left in your shoulders to keep you up.</span><span class="g" data-g="muscles">A deep, warm volume of water that works the whole sore area, night after night.</span><span class="g" data-g="together">Every seat feels good, so nobody&rsquo;s in a hurry to get out.</span><span class="g" data-g="escape">A few quiet minutes and the day is gone from your shoulders.</span></h2></div></div>
+<div class="b b-c" data-s="night:.72 z:1.3 person:1 warm:1 scrim:0 top:.85 fx:.5 shade:.2"><div class="b-in"><h2>Hold on to that feeling.</h2><p>At the end, Find your Zen matches you to the two hot tubs that give it to you, every night.</p></div></div>
 </section>
 <section class="hz-story hz-chap" id="flow" aria-label="Clean, easy water">
 <div class="b" data-s="night:.76 z:1.8 cx:0 cy:-30"><div class="b-in"><p class="b-eye"><span class="b-num">3</span>Clean, easy water</p><h2>Lift the cover. See the seats.</h2><p>You want water so clear you can see right to the bottom, that feels soft on your skin and doesn&rsquo;t smell like chemicals. And you don&rsquo;t want to spend your evenings testing it.</p></div></div>
@@ -227,22 +285,28 @@
   </div>
 </section>
 
-<section class="hz-panel hz-close" data-s="night:.95 shade:.55" aria-labelledby="rc">
-  <div class="wrap">
-    <h2 id="rc" class="hz-title">This is how we exceed what you expect.</h2>
-    <ul class="hz-recap">
-      <li><b>Efficient and eco friendly.</b> 56-frame pumps and bigger plumbing that run for less and last longer.</li>
-      <li><b>A massage that releases tension.</b> Four to five times more water to every jet.</li>
-      <li><b>Healthy water that&rsquo;s easy to look after.</b> Cleaned in under 10 minutes, where a typical hot tub takes about 45, through a double ozonator with a 45-second mixing chamber, then UV.</li>
-      <li><b>Warm on the coldest night.</b> AQ10 insulation keeps 100% of the water insulated, 100% of the time, sealed on all six sides.</li>
-    </ul>
-  </div>
+<section class="hz-story hz-chap" id="aquazen" aria-label="Why AquaZen">
+<div class="b" data-s="person:0 truck:0 lights:1 night:.7 z:.3 cx:250 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-eye"><span class="b-num">5</span>Why AquaZen</p><h2>We&rsquo;re a new store. That&rsquo;s good news for you.</h2><p>AquaZen is new, and we&rsquo;re the only place in the area where you can own an AquaSolus. Our first owners are the people who&rsquo;ll tell everyone else about us, so we&rsquo;re making it worth their while.</p></div></div>
+<div class="b" data-s="gift:1 person:0 lights:1 night:.7 z:1 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><h2>Every hot tub, fully loaded.</h2><p>As a new AquaSolus dealer, every available upgrade for your model comes to us at no charge. We pass every one of them on to you.</p></div></div>
+<div class="b" data-s="gift:.3 load:1 truck:1 person:0 lights:1 night:.7 z:.2 cx:420 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><h2>Steps, a cover lifter and delivery, on us.</h2><p>Our way of saying thank you for being one of our first owners. That&rsquo;s $1,498 of extras, included.</p></div></div>
+<div class="b" data-s="load:1 truck:.4 person:0 lights:1 night:.7 z:.6 cx:200 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><h2>Only ten. {{FOUNDING_LEFT_WORD}} are left.</h2><p>This is for our first ten owners only, and {{FOUNDING_TAKEN_WORD}} are already spoken for. When they&rsquo;re gone, they&rsquo;re gone.</p></div></div>
+<div class="b" data-s="load:1 person:1 lights:1 night:.7 z:1 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><h2>The right tub, not the biggest one.</h2><p>Over twenty years in this industry taught me that people love the tub that fits them. Find your Zen matches you, then you come sit in it on a quiet visit. No pressure, just the water.</p></div></div>
+<div class="b" data-s="load:1 truck:1 person:0 lights:1 night:.7 z:.2 cx:420 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><h2>Looked after long after delivery.</h2><p>Gerry Jansen, our electrician, connects it. Your pre-delivery guide and owner&rsquo;s manual come with it, the water care is made for our soft Lower Mainland water, and your own account is where your service requests and answers live.</p></div></div>
+</section>
+
+<section class="hz-story" id="recap" aria-labelledby="rc">
+<div class="b b-c" data-s="night:.9 lights:1 person:1 load:1 z:1 scrim:0 top:.85 fx:.5 shade:.25"><div class="b-in"><h2 id="rc">This is how we exceed what you expect.</h2><p>Remember what&rsquo;s out there? Here&rsquo;s what you get instead.</p></div></div>
+<div class="b" data-s="night:.9 lights:1 person:0 load:1 lights:1 night:.7 z:1 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>Quality.</h2><p><b class="b-yes">With AquaZen:</b> 56-frame pumps, not 48-frame, bigger plumbing, a 304 stainless steel frame and every available upgrade for your model. Built to last, so your evenings go to soaking, not service calls.</p></div></div>
+<div class="b" data-s="night:.95 lights:1 person:0 snow:1 cut:1 aq:1 z:1.9 cy:110 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>A hydro bill that stays low.</h2><p><b class="b-yes">With AquaZen:</b> pumps that aren&rsquo;t fighting pressure, and AQ10 keeping 100% of the water insulated 100% of the time. On the coldest night the tub gets to rest.</p></div></div>
+<div class="b" data-s="night:.9 lights:1 person:0 cut:1 flow:1 speed:2.2 uv:1 bub:1 z:1.9 cy:110 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>Healthy water that&rsquo;s easy to manage.</h2><p><b class="b-yes">With AquaZen:</b> all the water through the filter and the double ozonator in under 10 minutes. A teaspoon of chlorine granules after a soak does the rest. No chemistry set.</p></div></div>
+<div class="b" data-s="night:.9 lights:1 person:1 cut:1 jet:1 pw:1 warm:1 flow:1 z:1.9 cy:110 fx:.66 scrim:1 top:0 shade:.12"><div class="b-in"><p class="b-k">You expect</p><h2>A massage that feels good and works.</h2><p><b class="b-yes">With AquaZen:</b> four to five times more water to every jet. A big, warm volume that works the whole sore area and lets the tension go.</p></div></div>
 </section>
 
 <section class="hz-story" aria-labelledby="fe-0">
-<div class="b b-c" data-s="night:.92 fx:.5 scrim:0 top:.85 shade:.04 z:1.1"><div class="b-in"><h2 id="fe-0">Picture your first evening.</h2><p>The delivery is done. The water is warm. Everyone else has gone to bed.</p></div></div>
-<div class="b b-c" data-s="night:.92 fx:.5 scrim:0 top:.85 shade:.04 z:1.5"><div class="b-in"><h2>You lift the cover and the steam rolls off.</h2><p>Your phone stays inside. You sit back, the jets find that spot, and the day lets go.</p></div></div>
-<div class="b b-c" data-s="night:.92 fx:.5 scrim:0 top:.85 shade:.04 z:1.9 warm:1"><div class="b-in"><h2>Every night after that is yours to choose.</h2><p><span class="g g-def">Better evenings, on purpose. That&rsquo;s Zen.</span><span class="g" data-g="sleep">A warm soak, a quiet sky, then bed. That&rsquo;s Zen.</span><span class="g" data-g="muscles">The tension gone before it ever settles in. That&rsquo;s Zen.</span><span class="g" data-g="together">The people you love, talking, with nothing else in the way. That&rsquo;s Zen.</span><span class="g" data-g="escape">Your own quiet place, waiting every night. That&rsquo;s Zen.</span></p></div></div>
+<div class="b b-c" data-s="night:.85 truck:1 load:1 lights:1 person:0 z:.2 cx:300 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2 id="fe-0">Picture your first evening.</h2><p>The truck pulls away. Gerry&rsquo;s connected it. The water is warm, and everyone else has gone to bed.</p></div></div>
+<div class="b b-c" data-s="night:.92 truck:0 load:1 lights:1 person:1 z:1.5 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>The cover lifts with one hand.</h2><p>The steam rolls off. Your phone stays inside. You sit back, the jets find that spot, and the day lets go.</p></div></div>
+<div class="b b-c" data-s="night:.95 load:1 lights:1 person:1 snow:1 xmas:1 z:1.2 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>Then Christmas week.</h2><p>Snow on the deck, lights on the fence, the people you love across the water.<span class="hz-xmas"> Decide by December 1 and that&rsquo;s this year, not next.</span></p></div></div>
+<div class="b b-c" data-s="night:.92 load:1 lights:1 person:1 snow:.5 z:1.9 warm:1 scrim:0 top:.85 fx:.5 shade:.04"><div class="b-in"><h2>Every night after that is yours to choose.</h2><p><span class="g g-def">Better evenings, on purpose. That&rsquo;s Zen.</span><span class="g" data-g="sleep">A warm soak, a quiet sky, then bed. That&rsquo;s Zen.</span><span class="g" data-g="muscles">The tension gone before it ever settles in. That&rsquo;s Zen.</span><span class="g" data-g="together">The people you love, talking, with nothing else in the way. That&rsquo;s Zen.</span><span class="g" data-g="escape">Your own quiet place, waiting every night. That&rsquo;s Zen.</span></p></div></div>
 </section>
 <section class="find hz-fz" id="find-your-zen" data-s="night:.92 shade:.92" aria-labelledby="hz-cta">
 <div class="wrap center hz-fz-head">
@@ -254,6 +318,11 @@
 <button type="button" class="pill hz-ask-unsure" data-ans="unsure">I&rsquo;m not sure yet</button>
 </div>
 <div class="hz-ask-reply">
+<div class="hz-now" data-founding>
+<p class="k">Why now</p>
+<p><b>Our first ten owners get every available upgrade for their model, plus steps, a cover lifter and delivery included.</b> {{FOUNDING_LEFT_WORD}} of ten are left.</p>
+<p class="hz-xmas">Decide by December 1 and your hot tub is in before Christmas.</p>
+</div>
 <img class="find-mark" src="/assets/img/logo-mark.png" alt="" width="217" height="91">
 <p class="display sunset hz-fz-title">Find your Zen.</p>
 <p class="lede hz-ask-say">A few quick questions about who&rsquo;s soaking, how often and where, and we&rsquo;ll show you the two hot tubs that fit you best, with why. Then we&rsquo;ll call to book a quiet visit, so you can sit in the one that fits you.</p>
