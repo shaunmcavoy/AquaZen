@@ -869,9 +869,10 @@ html[data-goal="sleep"] .g[data-g="sleep"],html[data-goal="muscles"] .g[data-g="
 .fz-done-ctas .link-btn{margin:0}
 
 /* How we deliver Zen: the story pieces (opening, what's out there, why AquaZen, first evening) */
-.w-car{opacity:var(--car);transform:translateX(calc((1 - var(--car)) * -900px))}
-.w-carbody{fill:#2b3442}.w-carwin{fill:#9fc4e8;opacity:.55}.w-wheel{fill:#0c0c0e;stroke:#3a3f45;stroke-width:6}
-.w-beam{fill:#fff4cc;opacity:calc(.22 * (1 - var(--night) * .3))}
+.w-car{opacity:var(--car);transform:translateX(calc((1 - var(--car)) * -500px))}
+.w-carbody{fill:#5a5148}.w-carwin{fill:#9fc4e8;opacity:.55}.w-wheel{fill:#0c0c0e;stroke:#3a3f45;stroke-width:6}
+.w-lamp{fill:#ffe2a8;opacity:.8}.w-lampglow{opacity:.45}
+.w-homeglow{opacity:calc(.25 + var(--car) * .35)}
 .w-buzz{opacity:var(--buzz)}
 .w-note rect{fill:rgba(28,28,30,.92);stroke:rgba(255,255,255,.25);stroke-width:2}
 .w-note text{fill:#fff;font:600 24px var(--font)}
