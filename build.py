@@ -473,9 +473,18 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
     write(base.strip("/") + f"/{k}/index.html", page)
 
 
+# Founding owners: the first ten get every available upgrade, plus steps, a cover lifter and delivery.
+# Update FOUNDING_LEFT as they sell, then run python3 build.py.
+FOUNDING_TOTAL = 10
+FOUNDING_LEFT = 8
+WORDS = ["None", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"]
+
+
 def build_how():
     """How we deliver Zen: the scroll presentation that sells the tub and leads to Find your Zen."""
     body = open(os.path.join(ROOT, "src", "how.html")).read()
+    body = (body.replace("{{FOUNDING_LEFT_WORD}}", WORDS[FOUNDING_LEFT])
+                .replace("{{FOUNDING_TAKEN_WORD}}", WORDS[FOUNDING_TOTAL - FOUNDING_LEFT].lower()))
     page = head("How we deliver Zen | AquaZen", "Why AquaZen exists, how an AquaSolus hot tub delivers a luxury spa without the stress, and the two hot tubs that fit you best. A few minutes, at your own pace.")
     page = page.replace('<body class="tubs">', '<body class="tubs how">')
     foot = FOOT.split("</main>", 1)[1].replace('<script src="/assets/js/tubs.js"></script>', '<script src="/assets/js/how.js"></script>\n<script src="/assets/js/finder.js"></script>')

@@ -87,17 +87,8 @@
   }
   setGoal(goal);
 
-  /* ---------- What you expect, and what too many owners get: tap to flip ---------- */
-  var cards = $$(main, '.hz-pc');
-  cards.forEach(function (c) {
-    c.addEventListener('click', function () { c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); });
-  });
-  var flipAll = $(main, '.hz-flipall');
-  if (flipAll) flipAll.addEventListener('click', function () {
-    var all = cards.every(function (c) { return c.getAttribute('aria-pressed') === 'true'; });
-    cards.forEach(function (c, i) { setTimeout(function () { c.setAttribute('aria-pressed', all ? 'false' : 'true'); }, reduce ? 0 : i * 140); });
-    flipAll.textContent = all ? 'Show me all four' : 'Show me what you expect';
-  });
+  /* ---------- Christmas: the December 1 cutoff disappears once it has passed ---------- */
+  if (Date.now() > Date.parse('2026-12-02T08:00:00Z')) $$(document, '.hz-xmas').forEach(function (n) { n.remove(); });
 
   /* ---------- The last question: do you believe AquaZen can give you what you picked? ---------- */
   var GOALSAY = {
@@ -156,7 +147,7 @@
   var pipes = $$(world, '.w-pipe'), jet = $(world, '.w-jet'), jlines = $$(world, '.w-jl'), wet = $(world, '.w-wet'), motor = $(world, '.w-motor'), pump = $(world, '.w-pump');
 
   /* ---------- Scenes ---------- */
-  var DEF = { night: .7, tv: 0, lights: 1, person: 1, snow: 0, shade: .12, scrim: 1, top: 0, z: 1.1, cx: 0, cy: 0, fx: .68, cut: 0, pw: 1, jet: 1, knots: 0, prick: 0, warm: 0, labels: 0, flow: 0, speed: 1, murk: 0, bub: 0, specks: 0, uv: 0, big: 1, press: 0, hot: 0, foam: 0, leak: 0, cold: 0, aq: 0, heat: 0, six: 0 };
+  var DEF = { night: .7, tv: 0, lights: 1, person: 1, snow: 0, shade: .12, scrim: 1, top: 0, z: 1.1, cx: 0, cy: 0, fx: .68, cut: 0, pw: 1, jet: 1, knots: 0, prick: 0, warm: 0, labels: 0, flow: 0, speed: 1, murk: 0, bub: 0, specks: 0, uv: 0, big: 1, press: 0, hot: 0, foam: 0, leak: 0, cold: 0, aq: 0, heat: 0, six: 0, car: 0, buzz: 0, door: 0, xmas: 0, van: 0, truck: 0, load: 0, gift: 0, chem: 0, bill: 0 };
   var beats = $$(main, '[data-s]').map(function (n) {
     var s = Object.assign({}, DEF);
     n.dataset.s.split(/\s+/).forEach(function (kv) { var p = kv.split(':'); if (p.length === 2) s[p[0]] = parseFloat(p[1]); });
@@ -166,7 +157,7 @@
   var DUSK = { sky1: [30, 42, 79], sky2: [138, 74, 106], sky3: [243, 154, 74], m1: [58, 51, 80], m2: [42, 36, 56], tree: [26, 26, 34], ground: [28, 26, 28], house: [36, 30, 34], deck: [58, 44, 36], cab: [43, 34, 28], shell: [205, 200, 192] };
   var NIGHT = { sky1: [2, 4, 11], sky2: [10, 20, 38], sky3: [24, 40, 62], m1: [18, 26, 42], m2: [11, 18, 32], tree: [7, 10, 16], ground: [10, 12, 16], house: [14, 15, 20], deck: [24, 19, 16], cab: [22, 18, 15], shell: [120, 140, 150] };
   var mixc = function (a, b, t) { return 'rgb(' + a.map(function (v, i) { return Math.round(lerp(v, b[i], t)); }).join(',') + ')'; };
-  var VARS = ['night', 'tv', 'lights', 'person', 'snow', 'shade', 'cut', 'knots', 'prick', 'warm', 'labels', 'flow', 'murk', 'bub', 'specks', 'uv', 'press', 'hot', 'foam', 'leak', 'cold', 'aq', 'heat', 'six'];
+  var VARS = ['night', 'tv', 'lights', 'person', 'snow', 'shade', 'cut', 'knots', 'prick', 'warm', 'labels', 'flow', 'murk', 'bub', 'specks', 'uv', 'press', 'hot', 'foam', 'leak', 'cold', 'aq', 'heat', 'six', 'car', 'buzz', 'door', 'xmas', 'van', 'truck', 'load', 'gift', 'chem', 'bill'];
 
   // Where we are: blend the two blocks either side of the middle of the screen.
   function state() {
