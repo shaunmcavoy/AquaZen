@@ -76,7 +76,7 @@
     // The big answer first.
     var h = '<div class="card adoverall"><div><span class="muted">How your ads are doing ' + esc(RANGE_NAME[d.range]) + '</span>' +
       '<div class="adoverall-word ' + overall.tone + '">' + (overall.n ? dots(overall.n) : '') + esc(overall.word) + '</div><p>' + esc(overall.say) + '</p></div>' +
-      '<div class="adfund-left ' + (f.left < 0 ? 'neg' : '') + '"><span>Ad money left</span><b>' + money(f.left, true) + '</b></div></div>';
+      '<div class="adfund-left ' + (f.left < 0 ? 'neg' : '') + '"><span>Ad budget left</span><b>' + money(f.left, true) + '</b></div></div>';
 
     h += '<div class="adtiles">' +
       tile('Money spent', money(t.spend, true), esc(RANGE_NAME[d.range])) +
@@ -103,8 +103,9 @@
     }
 
     // Ad fund
-    h += '<div class="card adfund"><h3>Ad fund</h3><p class="muted">' + money(f.perTub) + ' from every tub sold since ' + esc(AZ.date(f.start + 'T12:00:00')) + ', minus what we\'ve spent on ads since then.</p>' +
-      '<p class="adfund-line">' + int(f.tubs) + ' tub' + (f.tubs === 1 ? '' : 's') + ' sold = ' + money(f.earned) + ' in · ' + money(f.spent, true) + ' spent · <b>' + money(f.left, true) + ' left</b></p>' +
+    h += '<div class="card adfund"><h3>Ad budget</h3><p class="muted">' + money(f.perTub) + ' from every tub sold since ' + esc(AZ.date(f.start + 'T12:00:00')) + ', plus anything added below, minus what we\'ve spent on ads since then.</p>' +
+      '<p class="adfund-line">' + int(f.tubs) + ' tub' + (f.tubs === 1 ? '' : 's') + ' sold = ' + money(f.earned) + (f.added ? ' · ' + money(f.added) + ' added' : '') + ' · ' + money(f.spent, true) + ' spent · <b>' + money(f.left, true) + ' left</b></p>' +
+      (f.canEdit ? '<div class="adfund-add"><label>Add to budget<span class="adfund-amt">$<input id="adrAdd" type="number" min="1" step="10" placeholder="100" inputmode="decimal"></span></label><button class="btn btn-gold btn-sm" type="button" id="adrAddBtn">Add</button></div>' : '') +
       (f.canEdit ? '<details class="adfund-edit"><summary>Change the ad fund</summary><div class="form inline"><label>Per tub sold<input id="adrPer" type="number" min="0" step="50" value="' + f.perTub + '"></label><label>Starting from<input id="adrStart" type="date" value="' + esc(f.start) + '"></label><button class="btn btn-line btn-sm" type="button" id="adrFundSave">Save</button></div></details>' : '') +
       '</div>';
 
@@ -192,6 +193,12 @@
         if (!(n >= 5 && n <= 500)) { AZ.toast('Choose between $5 and $500 a day.'); return; }
         if (!confirm('Change the daily budget to $' + n + ' a day? Meta starts spending at the new rate right away.')) return;
         AZ.api('ads-control', { kind: 'adset', id: g.dataset.budget, budget: n }).then(function () { AZ.toast('Budget is now $' + n + ' a day'); load(); }).catch(function (err) { AZ.toast(err.message); });
+        return;
+      }
+      if (e.target.id === 'adrAddBtn') {
+        var amt = Number($('#adrAdd').value);
+        if (!amt) { AZ.toast('Enter an amount, like 100.'); return; }
+        AZ.api('ads-control', { add_budget: amt }).then(function () { AZ.toast(money(amt) + ' added to the ad budget'); load(); }).catch(function (err) { AZ.toast(err.message); });
         return;
       }
       if (e.target.id === 'adrFundSave') {

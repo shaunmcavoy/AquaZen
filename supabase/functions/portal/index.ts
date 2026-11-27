@@ -1683,7 +1683,7 @@ async function route_ads_stats(req: Request): Promise<Response> {
     const soldEmails = new Set(sold.map((x: any) => String(x.customers?.email || "").toLowerCase()));
 
     // The ad fund: a set amount from every tub sold since the fund started, minus everything spent on ads since then.
-    const { data: fs } = await db.from("settings").select("k, v").in("k", ["ad_fund_per_tub", "ad_fund_start"]);
+    const { data: fs } = await db.from("settings").select("k, v").in("k", ["ad_fund_per_tub", "ad_fund_start", "ad_fund_added"]);
     const f: Record<string, string> = {}; for (const r of fs ?? []) f[r.k] = r.v;
     const perTub = Number(f.ad_fund_per_tub || 1500), start = f.ad_fund_start || "2026-11-27";
     const { count: tubs } = await db.from("sales").select("id", { count: "exact", head: true }).gte("customer_signed_at", start + "T00:00:00-08:00").not("status", "in", "(draft,cancelled)");
@@ -1698,7 +1698,8 @@ async function route_ads_stats(req: Request): Promise<Response> {
       ours: { leads: adLeads.length, sales: sold.length, revenue: sold.reduce((n: number, x: any) => n + Number(x.total || 0), 0),
         // deno-lint-ignore no-explicit-any
         list: adLeads.slice(0, 50).map((l: any) => ({ name: [l.first_name, l.last_name].filter(Boolean).join(" "), when: l.created_at, bought: soldEmails.has(String(l.email || "").toLowerCase()), where: String(l.answers?.source ?? "") })) },
-      fund: { perTub, start, tubs: tubs ?? 0, earned: (tubs ?? 0) * perTub, spent: spentSince, left: (tubs ?? 0) * perTub - spentSince, canEdit: me.profile.role === "admin" },
+      fund: { perTub, start, tubs: tubs ?? 0, earned: (tubs ?? 0) * perTub, added: Number(f.ad_fund_added || 0), spent: spentSince,
+        left: (tubs ?? 0) * perTub + Number(f.ad_fund_added || 0) - spentSince, canEdit: me.profile.role === "admin" },
       campaigns,
       // deno-lint-ignore no-explicit-any
       platforms: (plat.data ?? []).map((r: any) => ({ platform: r.publisher_platform, ...stat(r) })).filter((r: any) => r.impressions > 0),
@@ -1717,6 +1718,14 @@ async function route_ads_control(req: Request): Promise<Response> {
   if (!me) return jsonAuth(req, { error: "You don't have the Ad results menu." }, 403);
   const b = await req.json().catch(() => ({}));
   const db = admin();
+  if (b.add_budget !== undefined) {
+    if (me.profile.role !== "admin") return jsonAuth(req, { error: "Only an admin can add to the ad budget." }, 403);
+    const amt = Math.round(Number(b.add_budget) * 100) / 100;
+    if (!amt || Math.abs(amt) > 50000) return jsonAuth(req, { error: "Enter an amount, like 100." }, 400);
+    const cur = Number((await db.from("settings").select("v").eq("k", "ad_fund_added").maybeSingle()).data?.v || 0);
+    await db.from("settings").upsert({ k: "ad_fund_added", v: String(Math.round((cur + amt) * 100) / 100) });
+    return jsonAuth(req, { ok: true, added: cur + amt });
+  }
   if (b.fund) {
     if (me.profile.role !== "admin") return jsonAuth(req, { error: "Only an admin can change the ad fund." }, 403);
     const per = Math.max(0, Math.min(20000, Math.round(Number(b.fund.per_tub) || 0)));

@@ -548,3 +548,7 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .adone-say{margin:0;font-size:.94rem}
 .adhelp{margin:16px 0 4px;font-size:.9rem}
 .adhelp summary{cursor:pointer;font-weight:600}
+.adfund-add{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:12px}
+.adfund-add label{display:grid;gap:4px;font-weight:600;font-size:.88rem}
+.adfund-amt{display:flex;align-items:center;gap:4px;font-size:1rem}
+.adfund-amt input{width:120px}
