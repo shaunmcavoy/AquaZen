@@ -2419,7 +2419,7 @@ WHEN THEY SAY YES
 WHEN THEY WANT A CALL: get first name, phone and best time, set handoff to true, and say Shaun will call them.`;
 
 // deno-lint-ignore no-explicit-any
-async function noahThink(history: { role: string; text: string }[], extra = ""): Promise<any> {
+async function noahThink(history: { role: string; text: string }[], extra = "", retry = false): Promise<any> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("no anthropic key");
   const convo = history.map((m) => `${m.role === "user" ? "THEM" : m.role === "team" ? "AQUAZEN TEAM MEMBER" : "NOAH"}: ${m.text}`).join("\n");
@@ -2428,9 +2428,9 @@ async function noahThink(history: { role: string; text: string }[], extra = ""):
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
-      model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 1200, system,
+      model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 2000, system,
       messages: [{ role: "user", content: `THE CONVERSATION SO FAR:\n${convo || "(none)"}\n\n${extra || "Write Noah's next message."}
-Reply with only JSON: {"reply":"Noah's message","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0}}}
+${retry ? "IMPORTANT: your last answer was not valid JSON. Answer with the JSON object only, nothing before or after it.\n" : ""}Reply with only JSON: {"reply":"Noah's message","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0}}}
 Fill lead.deal ONLY when they have said yes to buying a specific hot tub: model (exact model name), shell_colour (Sterling Silver or Odyssey, or "" if not chosen), extra_discount (dollars of extra discount you agreed, 0 if none). Otherwise leave model "".
 Set handoff to true only when they've given a phone number for a call, or they're ready to buy and gave their details, or they asked for a person. Fill lead with whatever they've told you so far.` }],
     }),
@@ -2439,7 +2439,15 @@ Set handoff to true only when they've given a phone number for a call, or they'r
   const out = await res.json();
   // deno-lint-ignore no-explicit-any
   const text = (out.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("");
-  const j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+  // deno-lint-ignore no-explicit-any
+  let j: any;
+  try { j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); } catch {
+    // Claude sometimes answers in plain words (or runs long). Try once more, then use its words as the reply.
+    console.error("noah json", out.stop_reason, text.slice(0, 300));
+    if (!retry) return noahThink(history, extra, true);
+    if (!text.trim()) throw new Error("empty reply");
+    j = { reply: text.replace(/```(json)?/g, "").trim(), handoff: false, lead: {} };
+  }
   j.reply = String(j.reply ?? "").replace(/\s*[—–]\s*/g, ", ").trim().slice(0, 1900);
   return j;
 }
