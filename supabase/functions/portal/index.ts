@@ -1623,16 +1623,13 @@ function sinceFor(range: string) {
   return new Date(d.getTime() + (now.getTime() - new Date(now.toLocaleString("en-US", { timeZone: "America/Vancouver" })).getTime()));
 }
 
-// GET ?range=today|7d|30d|max
-async function route_ads_stats(req: Request): Promise<Response> {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await menuOnly(req, "adresults");
-  if (!me) return jsonAuth(req, { error: "You don't have the Ad results menu." }, 403);
+// The numbers behind Ad results and the daily email.
+// deno-lint-ignore no-explicit-any
+async function adStats(range: string, canEdit: boolean): Promise<any> {
   const token = Deno.env.get("META_TOKEN");
   const s = await metaSettings();
-  if (!token || !s.adAccount) return jsonAuth(req, { configured: false });
+  if (!token || !s.adAccount) return { configured: false };
   const act = s.adAccount.startsWith("act_") ? s.adAccount : `act_${s.adAccount}`;
-  const range = AD_RANGES[new URL(req.url).searchParams.get("range") || "7d"] ? new URL(req.url).searchParams.get("range") || "7d" : "7d";
   const db = admin();
   try {
     const fields = "campaign_id,campaign_name,adset_id,ad_id,ad_name,spend,reach,impressions,frequency,inline_link_clicks,ctr,actions";
@@ -1692,7 +1689,7 @@ async function route_ads_stats(req: Request): Promise<Response> {
 
     const t = total.data?.[0];
     const lastAdvice = (await db.from("settings").select("v").eq("k", "ads_advice_last").maybeSingle()).data?.v;
-    return jsonAuth(req, {
+    return {
       configured: true, range, account: act, advice: lastAdvice ? JSON.parse(lastAdvice) : null,
       totals: { ...stat(t), lifetime: Number(life.data?.[0]?.spend || 0) },
       // deno-lint-ignore no-explicit-any
@@ -1700,15 +1697,25 @@ async function route_ads_stats(req: Request): Promise<Response> {
         // deno-lint-ignore no-explicit-any
         list: adLeads.slice(0, 50).map((l: any) => ({ name: [l.first_name, l.last_name].filter(Boolean).join(" "), when: l.created_at, bought: soldEmails.has(String(l.email || "").toLowerCase()), where: String(l.answers?.source ?? "") })) },
       fund: { perTub, start, tubs: tubs ?? 0, earned: (tubs ?? 0) * perTub, added: Number(f.ad_fund_added || 0), spent: spentSince,
-        left: (tubs ?? 0) * perTub + Number(f.ad_fund_added || 0) - spentSince, canEdit: me.profile.role === "admin" },
+        left: (tubs ?? 0) * perTub + Number(f.ad_fund_added || 0) - spentSince, canEdit },
       campaigns,
       // deno-lint-ignore no-explicit-any
       platforms: (plat.data ?? []).map((r: any) => ({ platform: r.publisher_platform, ...stat(r) })).filter((r: any) => r.impressions > 0),
       manager: `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act.replace("act_", "")}`,
-    });
+    };
   } catch (e) {
-    return jsonAuth(req, { configured: true, error: `Meta said: ${(e as Error).message}` }, 502);
+    return { configured: true, error: `Meta said: ${(e as Error).message}` };
   }
+}
+
+// GET ?range=today|7d|30d|max
+async function route_ads_stats(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await menuOnly(req, "adresults");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ad results menu." }, 403);
+  const q = new URL(req.url).searchParams.get("range") || "7d";
+  const out = await adStats(AD_RANGES[q] ? q : "7d", me.profile.role === "admin");
+  return jsonAuth(req, out, out.error ? 502 : 200);
 }
 
 // POST {kind: 'campaign'|'adset'|'ad', id, action: 'pause'|'resume'} or {kind:'adset', id, budget}
@@ -1781,7 +1788,13 @@ async function route_ads_advice(req: Request): Promise<Response> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) return jsonAuth(req, { error: "AI advice isn't switched on yet. Add an ANTHROPIC_API_KEY secret in Supabase." }, 400);
   const b = await req.json().catch(() => ({}));
-  const d = b.data ?? {};
+  try { return jsonAuth(req, await adviceFor(key, b.data ?? {})); }
+  catch { return jsonAuth(req, { error: "The advice didn't come through. Please try again." }, 502); }
+}
+
+// Claude reads the ad results and suggests up to 5 changes. Saved as the latest advice for Ad results.
+// deno-lint-ignore no-explicit-any
+async function adviceFor(key: string, d: any) {
   // deno-lint-ignore no-explicit-any
   const camps = (d.campaigns ?? []).filter((c: any) => !["ARCHIVED", "DELETED"].includes(c.effective)).slice(0, 12).map((c: any) => ({
     campaign: c.name, campaign_id: c.id, status: c.effective,
@@ -1807,18 +1820,14 @@ RULES
 
 Answer with JSON only:
 {"grade":"great|good|okay|poor|too_early","headline":"one short sentence: how the ads are doing overall","summary":"two or three plain sentences","recommendations":[{"type":"budget|pause|resume|copy","target_id":"id","target_name":"name","why":"plain reason","new_budget":0,"new_headline":"","new_text":""}]}`;
-  try {
-    const out = await adsClaude(key, [{ type: "text", text: prompt }], 3000);
+  const out = await adsClaude(key, [{ type: "text", text: prompt }], 3000);
+  // deno-lint-ignore no-explicit-any
+  const recs = (Array.isArray(out.recommendations) ? out.recommendations : []).slice(0, 5).filter((r: any) => ["budget", "pause", "resume", "copy"].includes(r.type) && /^\d+$/.test(String(r.target_id)))
     // deno-lint-ignore no-explicit-any
-    const recs = (Array.isArray(out.recommendations) ? out.recommendations : []).slice(0, 5).filter((r: any) => ["budget", "pause", "resume", "copy"].includes(r.type) && /^\d+$/.test(String(r.target_id)))
-      // deno-lint-ignore no-explicit-any
-      .map((r: any) => ({ ...r, new_headline: String(r.new_headline || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").slice(0, 80), new_text: String(r.new_text || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").slice(0, 600), why: String(r.why || "").replace(/\s*[\u2014\u2013]\s*/g, ", ") }));
-    const advice = { grade: String(out.grade || "too_early"), headline: String(out.headline || ""), summary: String(out.summary || ""), recommendations: recs, at: new Date().toISOString(), range: d.range };
-    await admin().from("settings").upsert({ k: "ads_advice_last", v: JSON.stringify(advice) });
-    return jsonAuth(req, advice);
-  } catch {
-    return jsonAuth(req, { error: "The advice didn't come through. Please try again." }, 502);
-  }
+    .map((r: any) => ({ ...r, new_headline: String(r.new_headline || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").slice(0, 80), new_text: String(r.new_text || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").slice(0, 600), why: String(r.why || "").replace(/\s*[\u2014\u2013]\s*/g, ", ") }));
+  const advice = { grade: String(out.grade || "too_early"), headline: String(out.headline || "").replace(/\s*[\u2014\u2013]\s*/g, ", "), summary: String(out.summary || "").replace(/\s*[\u2014\u2013]\s*/g, ", "), recommendations: recs, at: new Date().toISOString(), range: d.range };
+  await admin().from("settings").upsert({ k: "ads_advice_last", v: JSON.stringify(advice) });
+  return advice;
 }
 
 // POST {rec}  Apply one recommendation. Budgets and pauses go through the same checks as ads-control.
@@ -1930,6 +1939,182 @@ async function route_meta_geo(req: Request): Promise<Response> {
     return jsonAuth(req, { places: (r.data ?? []).map((p: any) => ({ key: String(p.key), name: [p.name, p.region].filter(Boolean).join(", ") })) });
   } catch (e) {
     return jsonAuth(req, { error: `Meta said: ${(e as Error).message}` }, 502);
+  }
+}
+
+
+// ---- Daily ad report: a branded email at 7:30 pm Vancouver time ----
+// pg_cron calls ads-daily at 02:30 and 03:30 UTC; only the call that lands at 7 pm local sends (works through
+// daylight saving), once a day. An admin can also send it now from Ad results ({now: true}).
+// Same rule of thumb as rate() in assets/js/adresults.js. Keep them in step.
+// deno-lint-ignore no-explicit-any
+function rateAd(x: any, ourLeads?: number) {
+  const views = x.impressions || 0, taps = x.clicks || 0, spend = x.spend || 0, leads = ourLeads ?? (x.leads || 0);
+  if (views < 1000 && spend < 10) return { n: 0, word: "Too early", tone: "wait", say: "Not enough people have seen it yet to judge." };
+  const tapRate = views ? taps / views * 100 : 0, cost = taps ? spend / taps : null;
+  let n = tapRate >= 1.5 ? 4 : tapRate >= 0.9 ? 3 : tapRate >= 0.5 ? 2 : 1;
+  if (cost != null && cost <= 1) n++;
+  if (cost != null && cost > 3) n--;
+  if (leads > 0) n++;
+  if (x.frequency > 3.5) n--;
+  n = Math.max(1, Math.min(5, n));
+  const words = ["", "Not working", "Weak", "Good", "Great", "Excellent"];
+  const say = n >= 4 ? "People who see it want to know more." : n === 3 ? "Doing its job. Fresh wording could make it better." : n === 2 ? "Most people scroll past it." : "Very few people tap it.";
+  return { n, word: words[n], tone: n >= 3 ? "ok" : n === 2 ? "wait" : "bad", say: say + (x.frequency > 3.5 ? ` People have seen it ${x.frequency.toFixed(1)} times, so it's getting tired.` : "") };
+}
+
+const AZ_COLORS = ["#ca3432", "#f78800", "#f0bf33", "#c5cf99", "#6eaa8f", "#347c6e"];
+const TONE: Record<string, [string, string]> = { ok: ["#e3f1ea", "#347c6e"], wait: ["#fdf3d6", "#8a6100"], bad: ["#fbe3e1", "#ca3432"] };
+const PLATFORM_NAME: Record<string, string> = { facebook: "Facebook", instagram: "Instagram", audience_network: "Other apps", messenger: "Messenger", threads: "Threads" };
+const cad = (n: number, cents = false) => "$" + Number(n || 0).toLocaleString("en-CA", { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+const pill = (word: string, tone: string, n = 0) => {
+  const [bg, fg] = TONE[tone] ?? TONE.wait;
+  const dots = n ? `<span style="letter-spacing:1px">${"&#9679;".repeat(n)}<span style="opacity:.25">${"&#9679;".repeat(5 - n)}</span></span>&nbsp; ` : "";
+  return `<span style="display:inline-block;background:${bg};color:${fg};font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px;white-space:nowrap">${dots}${escapeHtml(word)}</span>`;
+};
+const tileCell = (label: string, value: string, note: string) =>
+  `<td width="33%" valign="top" style="padding:6px"><div style="background:#f5f5f7;border-radius:14px;padding:14px 12px">
+  <div style="font-size:12px;color:#6e6e73;font-weight:600">${label}</div><div style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-top:2px">${value}</div>
+  <div style="font-size:12px;color:#6e6e73;margin-top:2px">${note}</div></div></td>`;
+
+// deno-lint-ignore no-explicit-any
+async function buildAdReport(): Promise<{ subject: string; html: string; preheader: string } | null> {
+  const day = await adStats("today", true);
+  if (day.configured === false) return null;
+  if (day.error) throw new Error(day.error);
+  const week = await adStats("7d", true).catch(() => null);
+  const db = admin();
+  const since = new Date(Date.now() - 24 * 3600e3).toISOString();
+  // Noah: Messenger and Instagram chats in the last 24 hours.
+  const { data: chats } = await db.from("chat_threads").select("id, channel, name, created_at, last_user_at, handed_off_at").gte("last_user_at", since).limit(200);
+  // deno-lint-ignore no-explicit-any
+  const newChats = (chats ?? []).filter((c: any) => c.created_at >= since).length;
+  // deno-lint-ignore no-explicit-any
+  const handed = (chats ?? []).filter((c: any) => c.handed_off_at && c.handed_off_at >= since);
+
+  const t = day.totals, o = day.ours, f = day.fund;
+  const overall = rateAd(t, o.leads);
+  // deno-lint-ignore no-explicit-any
+  const live = (day.campaigns ?? []).filter((c: any) => c.status === "ACTIVE");
+  // deno-lint-ignore no-explicit-any
+  const ads = live.flatMap((c: any) => (c.ads ?? []).filter((a: any) => a.status === "ACTIVE").map((a: any) => ({ ...a, campaign: c.name })));
+
+  // Advice from the last 7 days (one day is too little to judge), saved so Apply works in Ad results.
+  // deno-lint-ignore no-explicit-any
+  let advice: any = null;
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (key && week && !week.error && ads.length) advice = await adviceFor(key, week).catch(() => null);
+
+  const stripe = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>${AZ_COLORS.map((c) => `<td height="6" style="background:${c};font-size:0;line-height:0">&nbsp;</td>`).join("")}</tr></table>`;
+  const dateStr = new Date().toLocaleDateString("en-CA", { timeZone: "America/Vancouver", weekday: "long", month: "long", day: "numeric" });
+  const section = (title: string) => `<p style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ca3432;margin:28px 0 8px">${title}</p>`;
+
+  let html = stripe + `<p style="font-size:13px;color:#6e6e73;margin:18px 0 2px">${escapeHtml(dateStr)}</p>
+<p style="font-size:26px;font-weight:700;letter-spacing:-0.02em;margin:0 0 14px">Your ads today</p>
+<div style="border:1px solid #e8e8ed;border-radius:16px;padding:16px 18px">
+  <div>${pill(overall.word, overall.tone, overall.n)}</div>
+  <p style="margin:10px 0 0;font-size:16px">${escapeHtml(ads.length ? overall.say : "No ads are running right now.")}</p>
+</div>`;
+
+  html += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px"><tr>
+${tileCell("Spent today", cad(t.spend, true), week && !week.error ? `${cad(week.totals.spend, true)} this week` : "")}
+${tileCell("People who saw them", t.reach.toLocaleString("en-CA"), `${t.clicks.toLocaleString("en-CA")} tapped through`)}
+${tileCell("Each tap cost", t.clicks ? cad(t.spend / t.clicks, true) : "-", "Lower is better")}
+</tr><tr>
+${tileCell("New leads", String(o.leads), o.leads ? `${cad(t.spend / o.leads, true)} each` : "Find your Zen forms")}
+${tileCell("Chats with Noah", String((chats ?? []).length), newChats ? `${newChats} new today` : "Messenger and Instagram")}
+${tileCell("Ad budget left", cad(f.left), `${cad(f.spent, true)} spent so far`)}
+</tr></table>`;
+
+  // What to do
+  html += section("What to do");
+  if (advice && advice.recommendations?.length) {
+    html += `<p style="margin:0 0 10px">${escapeHtml(advice.summary)}</p>`;
+    const label: Record<string, string> = { budget: "Change the budget", pause: "Pause", resume: "Turn on", copy: "Try new wording" };
+    // deno-lint-ignore no-explicit-any
+    html += advice.recommendations.map((r: any, i: number) => `<div style="background:#f5f5f7;border-radius:12px;padding:12px 14px;margin:0 0 8px">
+  <div style="font-size:12px;font-weight:700;color:#347c6e;text-transform:uppercase;letter-spacing:.06em">${i + 1}. ${label[r.type] ?? r.type}</div>
+  <div style="font-weight:600;margin:2px 0 4px">${escapeHtml(r.target_name)}${r.type === "budget" ? ` &rarr; ${cad(r.new_budget)} a day` : ""}</div>
+  <div style="font-size:15px">${escapeHtml(r.why)}</div>${r.type === "copy" ? `<div style="font-size:14px;color:#6e6e73;margin-top:6px">New headline: <b style="color:#1d1d1f">${escapeHtml(r.new_headline)}</b></div>` : ""}</div>`).join("");
+    html += `<p style="margin:16px 0"><a href="${SITE_URL}/staff/#adresults" style="background:#ca3432;color:#ffffff;text-decoration:none;font-weight:600;padding:13px 24px;border-radius:999px;display:inline-block">Review and apply in Ad results</a></p>
+<p style="font-size:13px;color:#6e6e73;margin:0">Nothing changes until you tap Apply. These look at the last 7 days, because one day is too little to judge.</p>`;
+  } else if (advice) {
+    html += `<p style="margin:0">${escapeHtml(advice.summary || "No changes needed right now.")}</p><p style="margin:8px 0 0"><b>No changes needed right now.</b></p>`;
+  } else {
+    html += `<p style="margin:0">${ads.length ? "Nothing to change yet. Let the ads run." : "Turn an ad on in Ad results, or make one in Ad studio."}</p>`;
+  }
+
+  // Each running ad
+  if (ads.length) {
+    html += section("Each ad");
+    // deno-lint-ignore no-explicit-any
+    html += ads.map((a: any) => {
+      const r = rateAd(a);
+      return `<div style="border:1px solid #e8e8ed;border-radius:12px;padding:12px 14px;margin:0 0 8px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-weight:600">${escapeHtml(a.headline || a.name)}${/Messenger/.test(a.campaign) ? ' <span style="color:#6e6e73;font-weight:400">(Messenger)</span>' : ""}</td><td align="right">${pill(r.word, r.tone, r.n)}</td></tr></table>
+  <div style="font-size:14px;color:#6e6e73;margin-top:6px">${cad(a.spend, true)} spent &middot; ${a.reach.toLocaleString("en-CA")} people saw it &middot; ${a.clicks} taps${a.clicks ? ` at ${cad(a.spend / a.clicks, true)} each` : ""}</div>
+  <div style="font-size:15px;margin-top:4px">${escapeHtml(r.say)}</div></div>`;
+    }).join("");
+  }
+
+  // Facebook vs Instagram (this week)
+  // deno-lint-ignore no-explicit-any
+  const plats = (week && !week.error ? week.platforms : day.platforms ?? []).filter((p: any) => p.spend > 0).sort((a: any, b: any) => b.spend - a.spend);
+  if (plats.length) {
+    html += section("Facebook or Instagram (this week)");
+    // deno-lint-ignore no-explicit-any
+    const max = Math.max(...plats.map((p: any) => p.spend)) || 1;
+    // deno-lint-ignore no-explicit-any
+    html += plats.map((p: any, i: number) => `<div style="margin:0 0 10px"><div style="font-weight:600">${PLATFORM_NAME[p.platform] ?? p.platform} <span style="color:#6e6e73;font-weight:400">${cad(p.spend, true)} &middot; ${p.clicks} taps${p.clicks ? ` at ${cad(p.spend / p.clicks, true)}` : ""}</span></div>
+  <div style="background:#f5f5f7;border-radius:999px;height:10px;margin-top:4px"><div style="background:${AZ_COLORS[[0, 4, 2, 5][i % 4]]};border-radius:999px;height:10px;width:${Math.max(3, Math.round(p.spend / max * 100))}%"></div></div></div>`).join("");
+  }
+
+  // People
+  if (o.list.length || handed.length) {
+    html += section("People to follow up with");
+    // deno-lint-ignore no-explicit-any
+    const leadsToday = o.list.filter((l: any) => l.when >= since);
+    // deno-lint-ignore no-explicit-any
+    html += leadsToday.map((l: any) => `<p style="margin:0 0 6px">&#9679; <b>${escapeHtml(l.name || "Someone")}</b> filled out Find your Zen${l.bought ? " and bought" : ""}.</p>`).join("");
+    // deno-lint-ignore no-explicit-any
+    html += handed.map((c: any) => `<p style="margin:0 0 6px">&#9679; <b>${escapeHtml(c.name || "Someone")}</b> was handed to you by Noah on ${c.channel === "instagram" ? "Instagram" : "Messenger"}.</p>`).join("");
+    if (!leadsToday.length && !handed.length) html += `<p style="margin:0;color:#6e6e73">No one new today.</p>`;
+    html += `<p style="margin:12px 0 0"><a href="${SITE_URL}/staff/#customers" style="color:#ca3432;font-weight:600">Open Customers</a></p>`;
+  }
+
+  html += `<p style="font-size:13px;color:#6e6e73;margin:28px 0 0">"Today" means since midnight. Ratings are our own rule of thumb: how often people tap, what a tap costs, leads, and whether people have seen an ad too often. Leads and sales count most.</p>`;
+
+  const subject = `Your ads today: ${overall.word}, ${cad(t.spend, true)} spent, ${o.leads} lead${o.leads === 1 ? "" : "s"}`;
+  return { subject, html, preheader: `${cad(t.spend, true)} spent, ${t.clicks} taps, ${o.leads} leads, ${(chats ?? []).length} chats with Noah.` };
+}
+
+// POST from pg_cron (x-cron-secret), or {now: true} from an admin in Ad results.
+async function route_ads_daily(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const db = admin();
+  const me = await caller(req).catch(() => null);
+  const manual = !!me && me.profile.role === "admin";
+  if (!manual) {
+    const { data: ok } = await db.rpc("check_cron_secret", { s: req.headers.get("x-cron-secret") ?? "" });
+    if (!ok) return new Response("Forbidden", { status: 403 });
+    const now = new Date(), hour = Number(now.toLocaleString("en-CA", { timeZone: "America/Vancouver", hour: "numeric", hour12: false }));
+    const today = now.toLocaleDateString("en-CA", { timeZone: "America/Vancouver" });
+    if (hour !== 19) return new Response("not 7 pm here");
+    const { data: last } = await db.from("settings").select("v").eq("k", "ads_report_last").maybeSingle();
+    if (last?.v === today) return new Response("already sent");
+    const { data: off } = await db.from("settings").select("v").eq("k", "ads_report_on").maybeSingle();
+    if (off?.v === "off") return new Response("off");
+    await db.from("settings").upsert({ k: "ads_report_last", v: today });
+  }
+  try {
+    const rep = await buildAdReport();
+    if (!rep) return manual ? jsonAuth(req, { error: "Meta isn't connected yet." }, 400) : new Response("not connected");
+    const to = (await db.from("settings").select("v").eq("k", "ads_report_to").maybeSingle()).data?.v || "shaun@aquazen.ca";
+    await sendEmail({ from: FROM, to, subject: rep.subject, html: emailShell({ preheader: rep.preheader, body: rep.html }) });
+    return manual ? jsonAuth(req, { ok: true, to }) : new Response("sent");
+  } catch (e) {
+    console.error("ads-daily", e);
+    return manual ? jsonAuth(req, { error: `The report didn't send: ${(e as Error).message}` }, 502) : new Response("error", { status: 500 });
   }
 }
 
@@ -2403,7 +2588,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
 }
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "ads-daily": route_ads_daily, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

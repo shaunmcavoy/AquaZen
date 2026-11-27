@@ -136,6 +136,7 @@
       return '<li><b>' + esc(l.name || 'Someone') + '</b><span>' + esc(AZ.dateTime(l.when)) + ' · ' + (l.where.indexOf('presentation') === 0 ? 'watched the presentation' : 'filled out Find your Zen') + '</span>' + (l.bought ? '<span class="adstate ok">Bought</span>' : '') + '</li>';
     }).join('') + '</ul>' : '<p class="muted">Nobody yet ' + esc(RANGE_NAME[d.range]) + '. When someone fills out Find your Zen after tapping an ad, they show up here.</p>';
     h += '</div><details class="adhelp"><summary>How the ratings work</summary><p>Every ad gets 1 to 5 dots from our own rule of thumb: how often people who see it tap it, what each tap costs, whether it brings leads, and whether people have seen it too many times. Under 1,000 views it says "Too early". It\'s a quick guide, not a law. Leads and sales always win.</p></details>' +
+      (f.canEdit ? '<div class="card adreport"><div><h3>Daily email</h3><p class="muted">A summary of the day lands in your inbox every evening at 7:30.</p></div><button class="btn btn-line btn-sm" type="button" id="adrEmail">Email me today\'s report now</button></div>' : '') +
       '<p class="muted adnote"><a href="' + esc(d.manager) + '" target="_blank" rel="noopener">Open Ads Manager</a> for anything not here.</p>';
     box.innerHTML = h;
   }
@@ -193,6 +194,12 @@
         if (!(n >= 5 && n <= 500)) { AZ.toast('Choose between $5 and $500 a day.'); return; }
         if (!confirm('Change the daily budget to $' + n + ' a day? Meta starts spending at the new rate right away.')) return;
         AZ.api('ads-control', { kind: 'adset', id: g.dataset.budget, budget: n }).then(function () { AZ.toast('Budget is now $' + n + ' a day'); load(); }).catch(function (err) { AZ.toast(err.message); });
+        return;
+      }
+      if (e.target.id === 'adrEmail') {
+        var eb = e.target; eb.disabled = true; eb.textContent = 'Writing your report...';
+        AZ.api('ads-daily', { now: true }).then(function (r) { AZ.toast('Sent to ' + r.to); eb.textContent = 'Sent'; })
+          .catch(function (err) { AZ.toast(err.message); eb.disabled = false; eb.textContent = 'Email me today\'s report now'; });
         return;
       }
       if (e.target.id === 'adrAddBtn') {

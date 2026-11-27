@@ -564,3 +564,4 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .audresults{display:flex;flex-wrap:wrap;gap:6px}
 .audnot{background:#fde2e0;color:#b3261e}
 .audsub{margin-top:6px}
+.adreport{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0}
