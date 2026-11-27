@@ -2383,6 +2383,7 @@ async function pageToken(): Promise<string> {
 // Returns Meta's message id so the echo of Noah's own message can be recognised.
 async function noahSend(psid: string, text: string, ptoken: string): Promise<string | null> {
   const s = await metaSettings();
+  text = await personalLinks(psid, text);
   const r = await graph(`${s.page}/messages`, ptoken, { recipient: { id: psid }, messaging_type: "RESPONSE", message: { text } }, "POST");
   return r?.message_id ? String(r.message_id) : null;
 }
@@ -2562,6 +2563,120 @@ async function route_noah_followup(req: Request): Promise<Response> {
   return new Response(JSON.stringify({ sent }), { headers: { "Content-Type": "application/json" } });
 }
 
+
+// ---- Noah's private links and the "they left the presentation" follow-up ----
+// Each chat gets a short code. Links Noah sends to aquazen.ca carry ?from=noah&c=CODE, so the presentation can report
+// (route noah-track) how far that person got, and noah-nudge (pg_cron every minute) can send one curious question
+// about a minute after they leave without filling out Find your Zen. Inside Meta's 24-hour window only.
+const CHAPTERS = ["why", "energy", "massage", "flow", "insulation", "aquazen", "find-your-zen"];
+const CHAPTER_NAME: Record<string, string> = { why: "the opening story (why AquaZen exists)", energy: "Efficiency (the pumps)", massage: "The massage", flow: "Clean, easy water", insulation: "Heat control", aquazen: "Why AquaZen", "find-your-zen": "Find your Zen, the form at the end" };
+async function threadCode(threadId: string): Promise<string> {
+  const db = admin();
+  const { data: t } = await db.from("chat_threads").select("link_code").eq("id", threadId).maybeSingle();
+  if (t?.link_code) return t.link_code;
+  for (let i = 0; i < 5; i++) {
+    const code = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("");
+    const { error } = await db.from("chat_threads").update({ link_code: code }).eq("id", threadId).is("link_code", null);
+    if (!error) return code;
+  }
+  return "";
+}
+async function personalLinks(psid: string, text: string): Promise<string> {
+  if (!/aquazen\.ca/.test(text)) return text;
+  try {
+    const { data: t } = await admin().from("chat_threads").select("id").eq("psid", psid).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    if (!t) return text;
+    const code = await threadCode(t.id);
+    if (!code) return text;
+    return text.replace(/https?:\/\/(www\.)?aquazen\.ca\/(how-we-deliver-zen|find-your-zen|visit)\/(\?[^\s)]*)?/g, (_m, _w, page, q) => {
+      const u = new URL(`https://aquazen.ca/${page}/${q || ""}`);
+      u.searchParams.set("from", "noah"); u.searchParams.set("c", code);
+      return u.toString();
+    });
+  } catch { return text; }
+}
+
+// Public. POST {c, e: open|beat|away|back|form, ch?, page?, s?}  From the presentation and Find your Zen (sendBeacon too).
+async function route_noah_track(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
+  const b = await req.text().then((t) => { try { return JSON.parse(t); } catch { return {}; } });
+  const code = String(b.c ?? "").replace(/[^a-z0-9]/g, "").slice(0, 12), e = String(b.e ?? "");
+  if (!code || !["open", "beat", "away", "back", "form"].includes(e)) return json(req, { ok: false });
+  const db = admin();
+  const { data: t } = await db.from("chat_threads").select("id").eq("link_code", code).maybeSingle();
+  if (!t) return json(req, { ok: false });
+  const now = new Date();
+  const page = b.page === "quiz" ? "quiz" : "presentation";
+  // The current visit: the latest one in the last 30 minutes that Noah hasn't followed up on yet.
+  const { data: v } = await db.from("page_visits").select("*").eq("thread_id", t.id).is("nudged_at", null)
+    .gte("last_seen", new Date(now.getTime() - 30 * 60e3).toISOString()).order("started_at", { ascending: false }).limit(1).maybeSingle();
+  const ch = CHAPTERS.includes(String(b.ch)) ? String(b.ch) : null;
+  if (!v) {
+    if (e === "away" || e === "back") return json(req, { ok: true });
+    await db.from("page_visits").insert({ thread_id: t.id, page, chapter: ch, furthest: ch, furthest_i: ch ? CHAPTERS.indexOf(ch) : -1, form_sent: e === "form" });
+    return json(req, { ok: true });
+  }
+  const patch: Record<string, unknown> = { last_seen: now.toISOString() };
+  if (e === "beat" || e === "open") patch.seconds = Math.min(4 * 3600, Math.max(v.seconds, Math.round(Number(b.s) || 0)));
+  if (ch) { patch.chapter = ch; if (CHAPTERS.indexOf(ch) > v.furthest_i) { patch.furthest = ch; patch.furthest_i = CHAPTERS.indexOf(ch); } }
+  if (e === "away") patch.away_at = now.toISOString();
+  if (e === "back" || e === "beat" || e === "open") patch.away_at = null;
+  if (e === "form") patch.form_sent = true;
+  if (page === "quiz" && v.page !== "quiz") patch.page = "quiz";
+  await db.from("page_visits").update(patch).eq("id", v.id);
+  return json(req, { ok: true });
+}
+
+// pg_cron, every minute.
+async function route_noah_nudge(req: Request): Promise<Response> {
+  const db = admin();
+  const { data: ok } = await db.rpc("check_cron_secret", { s: req.headers.get("x-cron-secret") ?? "" });
+  if (!ok) return new Response("Forbidden", { status: 403 });
+  const on = (await db.from("settings").select("v").eq("k", "noah_on").maybeSingle()).data?.v !== "off";
+  const nudgeOn = (await db.from("settings").select("v").eq("k", "noah_nudge").maybeSingle()).data?.v !== "off";
+  if (!on || !nudgeOn || !Deno.env.get("META_TOKEN")) return new Response("off");
+  const now = Date.now();
+  // Gone for a minute: no heartbeat for 60 seconds (closed the page, or switched apps and didn't come back).
+  const { data: visits } = await db.from("page_visits").select("*, chat_threads(*)").is("nudged_at", null).eq("form_sent", false)
+    .lt("last_seen", new Date(now - 60e3).toISOString()).gt("last_seen", new Date(now - 20 * 60e3).toISOString()).limit(10);
+  let sent = 0;
+  const ptoken = visits?.length ? await pageToken() : "";
+  for (const v of visits ?? []) {
+    const t = v.chat_threads;
+    const mark = (why: string) => db.from("page_visits").update({ nudged_at: new Date().toISOString(), nudge_text: why }).eq("id", v.id);
+    // Only when Noah has the chat, inside Meta's 24-hour window, they haven't written since opening the link,
+    // the team isn't on it, and Noah hasn't already done this for them today.
+    if (!t || (t.status === "human" && t.human_until && new Date(t.human_until).getTime() > now)) { await mark("(skipped: team has the chat)"); continue; }
+    if (t.handed_off_at) { await mark("(skipped: already with the team)"); continue; }
+    if (!t.last_user_at || new Date(t.last_user_at).getTime() < now - 23 * 3600e3) { await mark("(skipped: outside Meta's 24-hour window)"); continue; }
+    if (new Date(t.last_user_at) > new Date(v.started_at)) { await mark("(skipped: they wrote to Noah after opening it)"); continue; }
+    const { count } = await db.from("page_visits").select("id", { count: "exact", head: true }).eq("thread_id", t.id).gte("nudged_at", new Date(now - 24 * 3600e3).toISOString()).not("nudge_text", "like", "(skipped%");
+    if ((count ?? 0) > 0) { await mark("(skipped: already followed up today)"); continue; }
+    if (v.seconds < 8) { await mark("(skipped: only opened it for a moment)"); continue; }
+    try {
+      const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t.id).order("created_at").limit(60);
+      const mins = Math.max(1, Math.round(v.seconds / 60));
+      const far = v.furthest ? CHAPTER_NAME[v.furthest] : "the very start";
+      const finished = v.furthest_i >= CHAPTERS.indexOf("aquazen");
+      const extra = `PRIVATE CONTEXT, NEVER MENTION IT: they opened the ${v.page === "quiz" ? "Find your Zen form" : "How we deliver Zen presentation"} you sent, spent about ${mins} minute${mins === 1 ? "" : "s"}, got as far as ${far}${finished ? " (nearly all of it)" : ""}, and then left without filling out Find your Zen.
+Write ONE short follow-up message, like a curious salesperson checking in naturally a little after sending a link. Ask one inquiry question that invites them to share, for example what stood out, what they learned, or whether it answered what they wondered about. ${finished ? "They saw most of it, so you can ask what stood out and gently mention the Find your Zen form at the end gets them a personal recommendation." : mins <= 2 ? "They didn't get far, so keep it light: ask what they're most curious about, or whether there's one question you can answer for them right here." : "Ask what they've thought of it so far."}
+Never say or hint that you saw them leave, saw which part they read, or know how long they stayed. No "I noticed", no "still there?", no pressure. One or two sentences, one question. Don't resend the link. Set handoff to false.`;
+      const j = await noahThink(msgs ?? [], extra);
+      if (!j.reply) { await mark("(skipped: nothing to say)"); continue; }
+      const mid = await noahSend(t.psid, j.reply, ptoken);
+      await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: j.reply, mid });
+      // This counts as Noah's one follow-up, so the 3-hour follow-up doesn't send a second message on top.
+      await db.from("chat_threads").update({ last_bot_at: new Date().toISOString(), followup_at: new Date().toISOString() }).eq("id", t.id);
+      await mark(j.reply);
+      sent++;
+    } catch (e) {
+      console.error("noah nudge", v.id, e);
+      await mark("(skipped: error)");
+    }
+  }
+  return new Response(JSON.stringify({ sent }), { headers: { "Content-Type": "application/json" } });
+}
+
 // Admins: Noah's switch, the promotion, conversations, pausing a chat, and a practice chat.
 async function route_noah_admin(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
@@ -2570,6 +2685,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
   const db = admin();
   const b = req.method === "POST" ? await req.json().catch(() => ({})) : {};
   if (b.on !== undefined) await db.from("settings").upsert({ k: "noah_on", v: b.on ? "on" : "off" });
+  if (b.nudge !== undefined) await db.from("settings").upsert({ k: "noah_nudge", v: b.nudge ? "on" : "off" });
   if (b.promo !== undefined) await db.from("settings").upsert({ k: "noah_promo", v: String(b.promo).replace(/\s*[—–]\s*/g, ", ").slice(0, 1000) });
   if (b.thread_id && ["bot", "human"].includes(b.status)) await db.from("chat_threads").update({ status: b.status, human_until: b.status === "human" ? new Date(Date.now() + 30 * 24 * 3600e3).toISOString() : null }).eq("id", b.thread_id);
   if (b.subscribe) {
@@ -2590,19 +2706,21 @@ async function route_noah_admin(req: Request): Promise<Response> {
   }
   if (b.thread) {
     const { data: msgs } = await db.from("chat_messages").select("role, text, created_at").eq("thread_id", String(b.thread)).order("created_at").limit(300);
-    return jsonAuth(req, { messages: msgs ?? [] });
+    const { data: visits } = await db.from("page_visits").select("page, started_at, last_seen, seconds, furthest, form_sent, nudged_at, nudge_text").eq("thread_id", String(b.thread)).order("started_at").limit(50);
+    // deno-lint-ignore no-explicit-any
+    return jsonAuth(req, { messages: msgs ?? [], visits: (visits ?? []).map((v: any) => ({ ...v, furthest_name: v.furthest ? CHAPTER_NAME[v.furthest] : null })) });
   }
-  const s = await db.from("settings").select("k, v").in("k", ["noah_on", "noah_promo"]);
+  const s = await db.from("settings").select("k, v").in("k", ["noah_on", "noah_promo", "noah_nudge"]);
   const set = Object.fromEntries((s.data ?? []).map((r) => [r.k, r.v]));
   const { data: threads } = await db.from("chat_threads").select("id, channel, name, status, human_until, handed_off_at, followup_at, last_user_at, last_bot_at, customer_id").order("updated_at", { ascending: false }).limit(100);
   return jsonAuth(req, {
-    on: set.noah_on !== "off", promo: set.noah_promo || "", threads: threads ?? [],
+    on: set.noah_on !== "off", nudge: set.noah_nudge !== "off", promo: set.noah_promo || "", threads: threads ?? [],
     ready: { token: !!Deno.env.get("META_TOKEN"), secret: !!Deno.env.get("META_APP_SECRET"), ai: !!Deno.env.get("ANTHROPIC_API_KEY") },
   });
 }
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "ads-daily": route_ads_daily, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "ads-daily": route_ads_daily, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-track": route_noah_track, "noah-nudge": route_noah_nudge, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

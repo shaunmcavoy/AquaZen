@@ -10,6 +10,9 @@ We follow Canada's Personal Information Protection and Electronic Documents Act 
 - **When you buy from us:** your name, address, city and postal code, phone, email, how you heard about us, what you bought, the price, deposit and balance, the delivery window you choose, and your signature. We use it to prepare and keep your sales agreement, order and deliver your hot tub, register your warranty, and look after you as a customer.
 - **When you sign an agreement online:** the date and time you signed, the name you typed, your drawn signature, and the internet address and browser you signed from. We keep this as proof of the agreement, the same way we'd keep a paper copy.
 - **When you use the customer portal:** your sign-in email and the details of your purchase, so you can see your agreement, your delivery and where things stand.
+- **When you message us on Facebook or Instagram:** your messages and the name Meta shares with us. Noah, our AI on social media, answers with the help of Anthropic's Claude, and a person on our team can read the conversation and take over.
+- **When you open a link Noah sent you:** that link is private to your conversation. While you're on the presentation or Find your Zen, the page tells us how far you've got and when you leave, so Noah can follow up with a helpful question. We don't track anything else you do online.
+- **Website visits:** our site uses the Meta Pixel to count visits and Find your Zen forms, so we can tell which ads are worth running. You can limit this in your Facebook ad settings or by blocking cookies.
 - **Staff:** name, email and phone for the people who sell for us, plus the sales they made.
 
 We don't sell your information, and we don't use it for anything you wouldn't expect from your hot tub store.
@@ -22,6 +25,8 @@ We use a small number of trusted service providers. Each only gets what it needs
 - **Resend** sends our emails. It may process your email address and the email content in the United States.
 - **QuickBooks Online (Intuit)** handles our invoices and payments. It receives your name, email, phone, address and the invoice amount when we bill you.
 - **GitHub Pages** hosts the public website, which doesn't store your personal information.
+- **Meta (Facebook and Instagram)** carries our messages with you and receives website visit information from the Meta Pixel.
+- **Anthropic** provides the AI that helps Noah write his replies. It receives the conversation, in the United States.
 
 Some of these providers may store or process information outside Canada, where it may be subject to the laws of that country.
 

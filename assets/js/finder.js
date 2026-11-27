@@ -388,7 +388,7 @@
     };
     fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'send failed'); return j; }); })
-      .then(function () { try { if (window.fbq) fbq('track', 'Lead', { content_name: 'Find your Zen' }); } catch (e) {} done(a); })
+      .then(function () { try { if (window.fbq) fbq('track', 'Lead', { content_name: 'Find your Zen' }); } catch (e) {} try { if (window.AZVisit) window.AZVisit.form(); } catch (e) {} done(a); })
       .catch(function () {
         sending = false;
         next.disabled = false;
@@ -431,4 +431,46 @@
   });
 
   render(false);
+})();
+
+
+/* Noah's private links (?from=noah&c=CODE). While someone from a Noah chat is on the presentation or Find your Zen,
+   tell the portal how far they've got every 15 seconds and when they leave, so Noah can follow up with one curious
+   question about a minute after they go. Only for visitors who came from Noah's link; nothing else is tracked. */
+(function () {
+  var URL_T = 'https://zfqzajshbjfmflbttabq.supabase.co/functions/v1/portal/noah-track';
+  var code = '';
+  try {
+    var q = new URLSearchParams(location.search);
+    code = (q.get('c') || '').replace(/[^a-z0-9]/g, '').slice(0, 12);
+    if (code && q.get('from') === 'noah') sessionStorage.setItem('az-nc', code); else code = sessionStorage.getItem('az-nc') || '';
+  } catch (e) { return; }
+  if (!code) return;
+  var page = document.querySelector('main.hz') ? 'presentation' : (document.querySelector('#fzForm') ? 'quiz' : '');
+  if (!page) return;
+  var shown = 0, lastShow = document.visibilityState === 'visible' ? Date.now() : 0;
+  function seconds() { return Math.round((shown + (lastShow ? Date.now() - lastShow : 0)) / 1000); }
+  function chapter() {
+    var cur = '';
+    Array.prototype.forEach.call(document.querySelectorAll('.hz-progress [data-t]'), function (a) {
+      var el = document.querySelector(a.getAttribute('data-t'));
+      if (el && el.getBoundingClientRect().top < window.innerHeight * 0.45) cur = a.getAttribute('data-t').slice(1);
+    });
+    return cur;
+  }
+  function send(e, beacon) {
+    var body = JSON.stringify({ c: code, e: e, ch: chapter(), page: page, s: seconds() });
+    try {
+      if (beacon && navigator.sendBeacon) { navigator.sendBeacon(URL_T, new Blob([body], { type: 'text/plain' })); return; }
+      fetch(URL_T, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body, keepalive: true }).catch(function () {});
+    } catch (err) {}
+  }
+  send('open');
+  setInterval(function () { if (document.visibilityState === 'visible') send('beat'); }, 15000);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') { if (lastShow) { shown += Date.now() - lastShow; lastShow = 0; } send('away', true); }
+    else { lastShow = Date.now(); send('back'); }
+  });
+  window.addEventListener('pagehide', function () { send('away', true); });
+  window.AZVisit = { form: function () { send('form', true); } };
 })();

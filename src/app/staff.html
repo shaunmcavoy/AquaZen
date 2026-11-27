@@ -382,6 +382,8 @@
           <h3>Noah</h3>
           <p id="noahReady" class="muted small">Checking...</p>
           <label class="adallsizes"><input type="checkbox" id="noahOn"> Noah is answering messages</label>
+          <label class="adallsizes"><input type="checkbox" id="noahNudge"> Follow up about a minute after someone leaves the presentation</label>
+          <p class="muted small">Noah's links are private to each chat. When someone leaves the presentation or Find your Zen without sending the form, Noah asks one curious question, like what stood out. Once per person a day, only while Noah has the chat, and never saying he saw them leave.</p>
           <div class="form" style="margin-top:14px"><label>The current promotion Noah can quote<textarea id="noahPromo" rows="4" maxlength="1000"></textarea></label>
           <div class="formactions"><button class="btn btn-gold btn-sm" type="button" id="noahSave">Save</button><span class="formmsg muted small" id="noahMsg"></span></div></div>
         </article>
@@ -398,6 +400,7 @@
         <div class="tablewrap"><table class="saletable"><thead><tr><th>Who</th><th>Where</th><th>Status</th><th>Last message</th></tr></thead><tbody id="noahThreads"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody></table></div>
         <div id="noahThread" hidden>
           <h3 id="noahThreadName"></h3>
+          <div class="noahvisits" id="noahThreadVisits"></div>
           <div class="noahchat" id="noahThreadMsgs"></div>
           <div class="formactions"><button class="btn btn-line btn-sm" type="button" id="noahPause">Pause Noah on this chat</button></div>
         </div>
