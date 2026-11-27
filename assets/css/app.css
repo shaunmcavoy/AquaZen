@@ -566,3 +566,17 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .audsub{margin-top:6px}
 .adreport{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0}
 .noahvisits ul{margin:4px 0 12px;padding-left:18px;font-size:.92rem;display:grid;gap:4px}
+
+/* Noah learning */
+.nbmove { font-style: normal; font-weight: 500; opacity: .65; margin-left: 6px; text-transform: none; letter-spacing: 0; }
+.noahlessons ul, .noahhist ul { margin: 6px 0 12px; padding-left: 18px; }
+.noahlessons li, .noahhist li { margin: 4px 0; font-size: 14px; line-height: 1.45; }
+.noahlessons li.keep b, .noahhist li.keep b { color: #1f8a4c; }
+.noahlessons li.change b, .noahhist li.change b { color: #c2410c; }
+.noahfunnel { margin: 14px 0 8px; }
+.noahfunnel .nf { display: grid; grid-template-columns: minmax(120px, 190px) 1fr 34px; align-items: center; gap: 8px; font-size: 13px; margin: 3px 0; }
+.noahfunnel .nf i { display: block; height: 10px; border-radius: 6px; background: linear-gradient(90deg, #f5a623, #ca3432); }
+.noahfunnel .nf b { text-align: right; }
+.noahhist { margin-top: 10px; }
+.noahhist summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.noahhist .lh { border-top: 1px solid rgba(0,0,0,.08); padding-top: 8px; margin-top: 8px; }

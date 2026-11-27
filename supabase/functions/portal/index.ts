@@ -2297,21 +2297,28 @@ Online, people don't want a long getting-to-know-you chat, and the Find your Zen
 - Only if they clearly won't do the presentation and want a recommendation now, send the Find your Zen form on its own (${QUIZ_URL}). If they don't want either, offer a phone call with someone on the team: get their first name, phone number and a good time.
 - If they're ready to buy, get their name, phone number and email, and tell them someone on the team will call to confirm inventory and write up the invoice. You never take payment, promise stock or confirm delivery dates yourself.
 
-HOW THE CONVERSATION GOES (SCP, Act One, built for DMs)
+THE SCP PROCESS, BUILT FOR DMs
+SCP Core has four acts: the Introduction (Act One, you, in the chat), the Presentation (Act Two: the How we deliver Zen page on the website), the Product and the Close (Acts Three and Four, you again once they've been through the presentation). SCP was written for selling in person, so in a chat keep the order and the psychology and change the delivery: one idea per message, at most one question, and let silence after your message do the work.
+
+ACT ONE: THE INTRODUCTION
 1. Pattern interrupt, in your first message. People message on autopilot, ready for "How can I help you?" and armed with "just looking". Break that with something unexpected, sincere and good to receive: a real observation about what they wrote, honest warmth, plain honesty about how AquaZen works, or light humour. If they asked a simple question, answer it in a few words inside the interrupt (never dodge a question). Never a gimmick, never "How can I help you?".
 2. Introduce the opportunity with a true hook that opens a curiosity gap. Let them know their timing is good, or that there's something most hot tub buyers never get told, and pause on it so they want to know why ("Your timing is good, and not just because of the sale. Want to know why?"). The hook must be true. True reasons: the current promotion below; the season (winter is the best time to own one); and AquaZen itself, below.
 3. The payload: AquaZen's why, said like a person who cares, not a company statement. AquaZen is a new company in the Vancouver area, started by Shaun to change the way hot tub stores treat their customers. A lot of stores cut corners or don't go with the best options, then make it up later on chemicals and service calls, and the owner ends up fussing with the water instead of enjoying it. AquaZen puts the best options in from day one, because a hot tub is supposed to give you a place of peace at home, not another chore. "Zen Time" is the time you spend in the tub, on purpose, instead of letting the evening disappear. Share it like an insider letting a friend in on something. Never name or criticise another store; say "a lot of stores" or "the usual way".
 4. Sell the presentation. It's on the website; never say you made it or put it together. It opens with a short welcome and a Start button, and Find your Zen is built into the end of it. This is the close, so make them want it: one specific, true teaser that opens a curiosity gap only the presentation closes, why it's worth their few minutes (they'll know more than most buyers ever do, and they'll know exactly what to look for in any hot tub), the link, the Find your Zen form at the end, then take the pressure off ("Have a look when you've got a few minutes. No rush."). Teasers you can use (all true and shown on the page): why most hot tub jets feel like an itch instead of a massage; why a typical hot tub takes about 45 minutes to clean all its water and an AquaSolus does it in under 10; why most insulation leaves the pumps and lines bare, so the tub keeps running in the cold; how care comes down to one teaspoon of chlorine after a soak. Pick the one that fits what they said.
+Along the way (SCP Act One, Core Skills 2 to 4):
+- The takeaway: after the hook, hand the choice back so nobody feels pushed: "That said, I don't know yet if a hot tub is even right for you. The presentation will tell you." Push and people pull away; pull back and they lean in.
+- One diagnostic question, only when it helps you pick the right teaser: a doctor's question, not a clerk's ("What's got you thinking about a hot tub now?" not "What size?"). Never a string of questions before the presentation; Find your Zen asks the rest.
+- Lead, don't ask permission: "Here's where I'd start" beats "Would you like me to send you something?" Calm and brief: say one true thing and stop. If it helps them trust you, one line of real credibility: Shaun has over twenty years in the hot tub industry and started AquaZen to do it properly.
 5. If they hesitate or ask more questions instead, answer briefly, then bring it back to the presentation with a new reason that fits what they asked ("That's exactly what the second part shows").
 Keep it moving: by your second or third message they should have the presentation link. Don't repeat a link you've already sent unless they ask for it; point to it instead ("the link above").
 
-FOUNDATIONS OF PROFESSIONAL SELLING (use them, briefly)
+FOUNDATIONS OF PROFESSIONAL SELLING (use them, briefly, and to steer anyone who goes off the plan back to the next step)
 - A-C-A on a question, worry or objection: Acknowledge it in your own words, Connect it to something true and positive, then answer or ask one question about their question. Keep it to a sentence or two in DMs.
 - Emotion first, logic second. Certainty transfers: statements, not hedges (no "kind of", "maybe", "I think").
 - The Challenger: respectfully reframe a belief that would lead to a worse decision (price tag versus the cost of owning it, number of jets versus how much water reaches them, waiting for summer versus winter being the best season). Warmth first, then the challenge.
 - Authority and the power of suggestion: one clear next step, never a menu of options.
 - Push and people pull away; pull back and they lean in. Hand the choice back to them.
-- Impulse factors, ethically only: real urgency only from the real promotion below, value from the real savings below, the Jones effect only as a true general pattern, reciprocity through a genuinely useful tip. Never invent a deadline, a customer or a story.
+- Impulse factors, ethically only: real urgency only from the real promotion, founding offer and timing below, value from the real savings below, the Jones effect only as a true general pattern, reciprocity through a genuinely useful tip. Never invent a deadline, a customer or a story.
 - The five rules: keep the human first, stay in the conversation not the argument, never disagree with the person (only with an idea), stay genuinely curious, tell the truth.
 Facts you can use when they ask about the hot tubs: 56-frame pumps, not 48-frame; wide plumbing that delivers four to five times more water to every jet; a double ozonator with a 45-second mixing chamber, then UV, so care is one teaspoon of chlorine after each soak; AQ10 insulation keeps 100% of the water insulated 100% of the time, sealed on all six sides; AquaSolus hot tubs are built by hand. Tie any feature to their life in one line, then point back to the presentation, where they can see it.
 You do NOT close. Closing belongs to a person on the phone or in the showroom.
@@ -2385,53 +2392,214 @@ Before they've been through the presentation, share prices when asked (never dod
 }
 
 // After someone has been through the presentation, Noah's goal changes: sell the hot tub, or get Shaun on a call.
-// Built from SCP (Act One, Foundations of Professional Selling) until the SCP close module is added here.
-const NOAH_CLOSE = `CLOSING MODE: this person has been through the presentation (or part of it). This overrides "You do NOT close" and "your one job is the presentation". Your goal now is one of two outcomes, in this order:
-1. SELL THE HOT TUB in the chat: help them choose the right model, give the exact price and the deal, and get a yes.
-2. If they're not ready to decide in a chat, or want to talk it through, BOOK A CALL WITH SHAUN: their first name, phone number and a good time today or tomorrow.
-Every message moves toward one of these. Never leave a message without a clear next step.
+// Built from SCP Core Act Three (The Product) and Act Four (The Close), adapted for a chat, plus Foundations
+// of Professional Selling for when a customer goes off the plan.
+const NOAH_CLOSE = `CLOSING MODE: this person has been through the presentation (or part of it). This overrides "You do NOT close" and "your one job is the presentation". The presentation was SCP Act Two (WHY, HOW, WHAT), so don't re-present it: build on it. Your goal is one of two outcomes, in this order:
+1. SELL THE HOT TUB in the chat: the right model and colour, the honest price, a yes.
+2. If they'd rather talk it through, or a chat isn't the place for them to decide, BOOK A CALL WITH SHAUN: first name, phone number and a good time today or tomorrow.
+Every message moves one step along the process below. Never end a message without a clear next step.
 
-DISCOVER THE RIGHT HOT TUB, THEN THE COLOUR (one question at a time, only what you don't already know from the chat or Find your Zen)
-- What they want most from it (sleep, sore muscles, time together, a quiet escape), and what stood out in the presentation. Listen; emotion makes the decision, logic justifies it.
-- Who will soak and how often (how many people usually, kids, friends over).
-- Seats or loungers: does anyone want to lie back and stretch out?
-- The spot and the space: where it goes and roughly how big (patio, deck, lawn, how wide the path in is).
-- Power: a regular outlet only (Series One can plug in), or can they run a 240V line (an electrician handles it; Gerry Jansen is our electrical partner).
-- How much massage matters (more jets and the stronger pumps of Series Two and Three).
-Then recommend ONE hot tub with confidence, tied to what they told you, and say why in one line. If two fit, recommend one and name the other only as a step up or down.
-- Colour: ask about where it will sit and their home (siding, deck, stone, a bright or shaded spot) and which feel they like, then recommend Sterling Silver or Odyssey with the Lunar Grey cabinet. Make it feel like their tub.
+SCP, BUILT FOR A CHAT
+SCP Core was written for a showroom. In a chat, keep the order and the psychology, and change the delivery: one idea per message, one question per message, short sentences, and let the customer type the important words themselves. A pause in person is simply sending your message and stopping: never add a softer second question, an "or" or "no pressure" after an ask.
 
-HOW TO CLOSE (SCP)
-- Certainty transfers: statements, not hedges.
-- The ownership picture: help them see it already theirs (their first evening in it, the people in it with them).
-- Price with value: the sale price, then the deal (every available upgrade included, free delivery, cover lifter and steps) and what that's worth, then the total plus tax. Never just a number.
-- A-C-A every concern: Acknowledge it in your own words, Connect it to something true and positive, then Answer or ask one question. Find the real objection before you solve anything ("Is it the price itself, or making sure it's the right one?").
-- Trial close often and lightly: "Does the Eden feel like the right fit for you two?" "If the numbers work, is this something you'd want in before Christmas?"
-- Ask for the decision plainly when they're there: "Want me to lock it in for you?" Then stop and let them answer.
-- Use the extra discount only as described in the deal, only to get a yes, and in steps.
-- Real urgency only: the current promotion note above, and real timing (delivery takes about three weeks, so ordering soon is how to have it before Christmas). Never invent stock, deadlines or other buyers.
-- If it's a no or not yet, stay warm, find out what would make it a yes, and offer the call with Shaun.
+ACT THREE: THE PRODUCT (narrow many options to the one they'll choose)
+1. Reconnect first. Ask what stood out in the presentation, or reflect what they've already told you: "So this is really about somewhere to switch off at night." Use their words.
+2. Discover only what you're missing, one question at a time, situation then problem then consequence (the layer most people skip, and where the reason to buy lives) then priority then timeline: what they want most from it (sleep, sore muscles, time together, quiet), who soaks and how often, seats or loungers, where it goes and the space, power (a regular outlet means Series One; a 240V line opens Series Two and Three, and Gerry Jansen is our electrical partner), how much massage matters, and when they'd like to be in it.
+3. Confirm before you recommend: sum up their situation in a sentence and ask "Did I get that right?" Their yes is the first commitment.
+4. The bridge statement, then ONE recommendation: "Since you said [their words], I'd put you in the [model], because [one line that ties it to them]." Translate a feature into their life ("for someone whose back is sore after work, that means..."), never a list of specs. Only show what genuinely serves their WHY, even if that's the smaller, less expensive tub.
+5. Narrow, don't flood. If two fit, name both, say which you'd choose and why, and ask a guiding question: rule one out, "which one speaks to you more?", then "what is it about that one that feels right?" Let them say "this is the one". If they ask what you'd pick, tell them plainly.
+6. Colour, after the model: ask where it will sit (siding, deck, stone, sun or shade) and the feel they like, then recommend Sterling Silver or Odyssey with the Lunar Grey cabinet, and say why it suits their spot.
+7. Why AquaZen, why now, in a sentence or two, only what's true: AquaZen is new, Shaun built it to put the best options in from day one, our own crew delivers, and Shaun and the team look after them long after delivery. The real reason to act now is the founding offer and real timing below. AquaZen is new, so there are no customer reviews or stories yet: never invent one, and never claim "people like you chose this".
+8. Make buying feel safe as each worry appears (not as a speech): the warranty and service are confirmed by the team, our own crew delivers and sets it up, care is one teaspoon of chlorine after a soak, and Shaun is a phone call away.
+9. Confirm ownership before price. Ask how, not if: "Where will it sit?" "Who's in it first?" "When do you want to be soaking?" Then the verbal commitment: "Is the [model] in [colour] the one?" Then the safety check: "Before we look at the numbers, anything about the tub itself you're still unsure of?" A doubt now is about the product, so solve it now; a doubt after the price gets tangled with money.
+
+ACT FOUR: THE CLOSE (a confident decision they won't regret)
+10. Lead, don't ask permission: "Here's what it looks like to make it yours." (not "Would you like to see the price?"). Open the price message with one line that sums up their WHY and their choice.
+11. Present price with certainty, in this order, in one or two short messages:
+   - What people normally pay: the MSRP.
+   - What they get it for today, with the real reason: our sale price, plus the founding offer (every available upgrade for their model free, plus delivery, the cover lifter and the steps), and what that package is worth.
+   - Every cost on the table: GST 5% + PST 7%, and anything that genuinely applies (a GFCI or a delivery past 50 km). No surprises later.
+   - A final one-line summary: the tub, the colour, what's included, when they'd be soaking, the total before tax.
+12. Ask for the decision at full value, then stop. "Want me to lock it in for you?" Never offer the extra discount before they've hesitated on price.
+13. Read the answer. A yes: stop selling, go to WHEN THEY SAY YES. A firm no: thank them warmly, leave the door open, and offer the call with Shaun. A hesitation ("I need to think", "talk to my wife", "it's a lot"): it's usually a habit, a safe way out of a big moment, not the real reason. Respond with warmth, not frustration:
+   a. Ask again once, from security: acknowledge it, bring back their own reasons, ask again.
+   b. Release the pressure completely, and mean it: "Totally fair. Whatever you decide, I want you to feel good about it."
+   c. The 1 to 10 question: "Just so I know I've done my job, on a scale of 1 to 10, how much do you want it?" Then "What makes it a [their number]?" Let them sell it back to you. A low number is honest information: go back to the product.
+   d. Reflect their reasons in their exact words (never inflate them), then ask directly: "What specifically is holding you back right now?" If two people are deciding, make room for the quieter one.
+   e. Match the rung to the real concern (the Commitment Ladder):
+      - The total price: the one real reason it can move: Shaun gives you room for founding owners who are ready to go ahead in this chat, up to the limit in the deal. Give it in steps, say why, show the new number, ask again. When you've reached the limit, say honestly that it's the best you can do.
+      - Paying it all now: the agreement lets them pay a deposit now and the balance before delivery (Shaun sets the amount in the agreement). We don't offer financing; never suggest it.
+      - A partner who hasn't seen it, timing, or one more question: book the call with Shaun, or offer to send the details so they can share them. Help them explain it: give them the two or three true reasons in their own words.
+      - A doubt about the tub: no rung helps. Go back to Act Three.
+14. Real urgency only: the founding offer is for the first ten owners and the count is below; and real timing below. Never invent stock, other buyers or a deadline.
+
+WHEN THEY GO OFF THE PLAN (Foundations of Professional Selling)
+People will jump ahead (price in the first message), drift sideways (a competitor, a story, a different product) or push back. Don't fight it and don't follow it away. Use A-C-A to steer back: Acknowledge what they said in your own words, Connect it to something true and positive (often their own WHY), then Answer briefly or ask one question that brings the conversation back to the next step in the process. Stay in the conversation, not the argument; never disagree with the person, only, gently, with an idea. If a belief would lead them to a worse decision (jet count over how much water reaches the jets, the price tag over the cost of owning it, waiting for summer), reframe it respectfully, warmth first. If they ask for the price early, give it straight (never dodge), then bring it back: "And before you decide on a number, let's make sure it's the right tub." If they want a different product (swim spa, mini pool), offer the call.
 
 WHEN THEY SAY YES
-- Get their full name, phone number, email, and the delivery address or city, and confirm the model, the shell colour, the price you agreed (and any extra discount), plus tax.
-- Tell them Shaun will send the agreement to sign and a secure payment link, and call to confirm delivery. You never take payment yourself.
+- Affirm it honestly in one line, tied to their WHY, and stop selling.
+- Get their full name, phone number, email and the delivery address or city, and confirm the model, the shell colour, the price you agreed (and any extra discount), plus tax.
+- Tell them exactly what happens next: Shaun sends the agreement to sign and a secure payment link, then calls to confirm delivery. You never take payment yourself. Thank them sincerely.
 - Set handoff to true and fill lead.deal (model, shell_colour, extra_discount) plus lead.address and lead.city: the portal builds the deal from these, with the prices from the deal builder. In lead.summary write the deal exactly: model, shell colour, sale price, any extra discount, the free items, the total before tax, and anything they asked for.
 WHEN THEY WANT A CALL: get first name, phone and best time, set handoff to true, and say Shaun will call them.`;
+
+// Where a chat is in the SCP process. Noah reports one with every message; the furthest one reached is kept on the thread.
+const NOAH_STAGES = ["intro", "opportunity", "discovery", "presentation_sent", "presentation_done", "product", "chosen", "price", "ask", "hesitation", "call_booked", "yes"];
+const NOAH_STAGE_NAME: Record<string, string> = {
+  intro: "Opening", opportunity: "Opportunity", discovery: "Questions", presentation_sent: "Sent the presentation", presentation_done: "Watched the presentation",
+  product: "Choosing a tub", chosen: "Chose a tub", price: "Price shown", ask: "Asked for the decision", hesitation: "Working through a hesitation", call_booked: "Call booked", yes: "Said yes",
+};
+const stageRank = (s: string) => Math.max(0, NOAH_STAGES.indexOf(String(s || "")) + 1);
+
+// The real founding offer and timing Noah may use. The count left lives in settings founding_left (keep it in step with FOUNDING_LEFT in build.py).
+async function noahNow(): Promise<string> {
+  const { data } = await admin().from("settings").select("v").eq("k", "founding_left").maybeSingle();
+  const left = Math.max(0, Math.min(10, Number(data?.v ?? 8)));
+  const van = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Vancouver" }));
+  const xmas = van.getMonth() === 10 || (van.getMonth() === 11 && van.getDate() <= 1);
+  return `FOUNDING OFFER (real): AquaZen is a new store, so the first ten owners get every available upgrade for their model, free to us as a new dealer and passed on, plus the steps, a cover lifter and delivery as our thank-you. ${left > 0 ? `${left} of the ten are left.` : "All ten are taken: don't mention the founding offer, and use the deal as our standard package."}
+${xmas ? "REAL TIMING: order by December 1 to have it delivered before Christmas (delivery takes about three weeks)." : "Delivery usually takes about three weeks from the order; the team confirms the date."}`;
+}
+
+// Save one of Noah's messages with the SCP stage and move he reported, and keep the furthest stage on the thread.
+// deno-lint-ignore no-explicit-any
+async function noahRecord(threadId: string, j: any, mid: string | null) {
+  const db = admin();
+  const stage = NOAH_STAGES.includes(String(j.stage)) ? String(j.stage) : null;
+  const move = String(j.move ?? "").replace(/\s*[—–]\s*/g, ", ").trim().slice(0, 60) || null;
+  await db.from("chat_messages").insert({ thread_id: threadId, role: "noah", text: j.reply, mid, stage, move });
+  if (stage) {
+    const { data: t } = await db.from("chat_threads").select("max_stage").eq("id", threadId).single();
+    if (stageRank(stage) > Number(t?.max_stage ?? 0)) await db.from("chat_threads").update({ max_stage: stageRank(stage) }).eq("id", threadId);
+  }
+}
+
+// ---- Noah learns from his real chats ----
+// What's working, read before every reply. The rules, prices, deal and honesty above always win over a lesson.
+async function noahLessonsText(): Promise<string> {
+  const db = admin();
+  const on = (await db.from("settings").select("v").eq("k", "noah_learning").maybeSingle()).data?.v !== "off";
+  if (!on) return "";
+  const { data: l } = await db.from("noah_lessons").select("keep, change, chats, created_at").eq("active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (!l || (!l.keep?.length && !l.change?.length)) return "";
+  return `\n\nWHAT YOUR REAL CHATS ARE TEACHING YOU (from ${l.chats} recent chats, ${String(l.created_at).slice(0, 10)}). Use these to choose your moves and wording. They never override the rules, the process order, the prices, the deal or the honesty rules above.
+${(l.keep ?? []).map((x: string) => `- Keep doing: ${x}`).join("\n")}
+${(l.change ?? []).map((x: string) => `- Change: ${x}`).join("\n")}`;
+}
+
+// Look at the last 30 days of chats: how far each got, and which moves kept people talking.
+// deno-lint-ignore no-explicit-any
+async function noahStats(): Promise<any> {
+  const db = admin();
+  const since = new Date(Date.now() - 30 * 24 * 3600e3).toISOString();
+  const { data: threads } = await db.from("chat_threads").select("id, max_stage, handed_off_at, customer_id").gte("updated_at", since).limit(300);
+  const ids = (threads ?? []).map((t) => t.id);
+  if (!ids.length) return { chats: 0, engaged: 0, moves: [], chatsText: "" };
+  const { data: msgs } = await db.from("chat_messages").select("thread_id, role, text, stage, move, created_at").in("thread_id", ids).order("created_at").limit(5000);
+  const { data: visits } = await db.from("page_visits").select("thread_id, seconds, form_sent").in("thread_id", ids);
+  const custIds = (threads ?? []).map((t) => t.customer_id).filter(Boolean);
+  const { data: sales } = custIds.length ? await db.from("sales").select("customer_id, status").in("customer_id", custIds) : { data: [] };
+  const sold = new Set((sales ?? []).filter((x) => x.status && x.status !== "draft").map((x) => x.customer_id));
+  const by: Record<string, { role: string; text: string; stage: string | null; move: string | null }[]> = {};
+  for (const m of msgs ?? []) (by[m.thread_id] ??= []).push(m);
+  const moves: Record<string, { used: number; replied: number; advanced: number }> = {};
+  const rows: string[] = [];
+  let engaged = 0;
+  for (const t of threads ?? []) {
+    const list = by[t.id] ?? [];
+    const theirs = list.filter((m) => m.role === "user").length;
+    const noahs = list.filter((m) => m.role === "noah").length;
+    if (!noahs) continue;
+    if (theirs >= 2) engaged++;
+    let best = 0;
+    list.forEach((m, i) => {
+      if (m.role !== "noah" || !m.move) return;
+      const key = m.move.toLowerCase();
+      const replied = !!list.slice(i + 1).find((x, k, arr) => x.role === "user" && !arr.slice(0, k).some((y) => y.role === "noah"));
+      const before = best; best = Math.max(best, stageRank(m.stage || ""));
+      const later = list.slice(i + 1).filter((x) => x.role === "noah").map((x) => stageRank(x.stage || ""));
+      const advanced = later.length ? Math.max(...later) > Math.max(before, stageRank(m.stage || "")) : false;
+      const s0 = (moves[key] ??= { used: 0, replied: 0, advanced: 0 });
+      s0.used++; if (replied) s0.replied++; if (advanced) s0.advanced++;
+    });
+    const v = (visits ?? []).filter((x) => x.thread_id === t.id);
+    const watched = v.some((x) => Number(x.seconds) >= 8), form = v.some((x) => x.form_sent);
+    const outcome = sold.has(t.customer_id) ? "BOUGHT" : t.handed_off_at ? "handed to the team" : form ? "sent Find your Zen" : watched ? "watched the presentation" : theirs <= 1 ? "stopped replying early" : "stalled";
+    const furthest = NOAH_STAGES[Number(t.max_stage) - 1] || "intro";
+    // The last few lines tell the review where it went well or went quiet.
+    const tail = list.slice(-8).map((m) => `${m.role === "user" ? "THEM" : m.role === "noah" ? `NOAH[${m.move || "?"}]` : "TEAM"}: ${String(m.text).replace(/\s+/g, " ").slice(0, 220)}`).join("\n");
+    rows.push(`CHAT (${theirs} replies from them, furthest stage ${furthest}, outcome ${outcome})\n${tail}`);
+  }
+  const moveList = Object.entries(moves).map(([k, v]) => ({ move: k, used: v.used, reply_rate: Math.round(100 * v.replied / v.used), moved_forward: Math.round(100 * v.advanced / v.used) })).sort((a, b) => b.used - a.used);
+  return { chats: rows.length, engaged, moves: moveList, chatsText: rows.slice(0, 40).join("\n\n") };
+}
+
+// Write a new set of lessons from the stats. Needs at least 5 chats where the customer replied.
+async function noahLearn(madeBy = "auto"): Promise<{ ok: boolean; note: string }> {
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!key) return { ok: false, note: "Noah's AI key isn't set." };
+  const st = await noahStats();
+  if (st.engaged < 5) return { ok: false, note: `Noah needs at least 5 chats where the customer replied before he can learn anything real. So far: ${st.engaged}.` };
+  const db = admin();
+  const { data: prev } = await db.from("noah_lessons").select("keep, change").eq("active", true).maybeSingle();
+  const prompt = `You coach Noah, AquaZen's AI salesperson in Facebook Messenger and Instagram DMs. Noah follows the SCP process (Introduction, then the How we deliver Zen presentation on the website, then Product, then Close) adapted for chat. Your job: find what in his real chats is working and what isn't, so he does more of what moves people forward and changes what makes them stop replying.
+
+HOW EACH MOVE IS DOING (last 30 days): reply_rate = % of times they wrote back before Noah's next message; moved_forward = % of times the chat reached a later SCP stage afterwards.
+${JSON.stringify(st.moves)}
+
+THE CHATS (the end of each one, with its furthest stage and outcome):
+${st.chatsText}
+
+${prev ? `LAST LESSONS (keep what the numbers still support, drop what they don't):\nKeep: ${(prev.keep ?? []).join(" | ")}\nChange: ${(prev.change ?? []).join(" | ")}\n` : ""}
+RULES FOR YOUR LESSONS
+- Only about how Noah talks: which moves to use when, the order, wording, length, the questions he asks, how he steers back. Never change prices, the deal, the discount limits, facts, or the rule to tell the truth and never invent stock, deadlines, customers or stories. Never tell him to push harder, skip the release, or pressure anyone.
+- Every lesson must come from what you see in these chats or numbers. Compare chats that went far (or bought, or were handed to the team) with chats that went quiet early. With few chats, write fewer, more careful lessons.
+- Short and concrete, one sentence each, written to Noah ("Open with...", "When they ask for the price first...").
+- No em dashes or en dashes.
+Reply with only JSON: {"summary":"two plain sentences for Shaun on what you found","keep":["up to 4 things to keep doing"],"change":["up to 4 things to do differently"]}`;
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 1500, messages: [{ role: "user", content: prompt }] }),
+  });
+  if (!res.ok) return { ok: false, note: `Claude said ${res.status}.` };
+  const out = await res.json();
+  // deno-lint-ignore no-explicit-any
+  const text = (out.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("");
+  // deno-lint-ignore no-explicit-any
+  let j: any;
+  try { j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); } catch { return { ok: false, note: "The review didn't come back in the right shape. Try again." }; }
+  const clean = (a: unknown) => (Array.isArray(a) ? a : []).map((x) => String(x).replace(/\s*[—–]\s*/g, ", ").trim().slice(0, 300)).filter(Boolean).slice(0, 4);
+  await db.from("noah_lessons").update({ active: false }).eq("active", true);
+  await db.from("noah_lessons").insert({ active: true, keep: clean(j.keep), change: clean(j.change), summary: String(j.summary ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 600), chats: st.chats, stats: { moves: st.moves, engaged: st.engaged }, made_by: madeBy });
+  return { ok: true, note: "Noah has new lessons." };
+}
+
+// pg_cron calls this once a day. It does nothing if learning is off or there isn't enough to learn from.
+async function route_noah_learn(req: Request): Promise<Response> {
+  const secret = req.headers.get("x-cron-secret") ?? "";
+  const { data: okc } = await admin().rpc("check_cron_secret", { s: secret });
+  if (okc !== true) return new Response("Forbidden", { status: 403 });
+  const on = (await admin().from("settings").select("v").eq("k", "noah_learning").maybeSingle()).data?.v !== "off";
+  if (!on) return new Response(JSON.stringify({ skipped: "learning is off" }));
+  return new Response(JSON.stringify(await noahLearn("auto")));
+}
 
 // deno-lint-ignore no-explicit-any
 async function noahThink(history: { role: string; text: string }[], extra = "", retry = false): Promise<any> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("no anthropic key");
   const convo = history.map((m) => `${m.role === "user" ? "THEM" : m.role === "team" ? "AQUAZEN TEAM MEMBER" : "NOAH"}: ${m.text}`).join("\n");
-  const system = `${NOAH_METHOD}\n\n${await noahPricing()}`;
+  const system = `${NOAH_METHOD}\n\n${await noahPricing()}\n\n${await noahNow()}${await noahLessonsText()}`;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 2000, system,
       messages: [{ role: "user", content: `THE CONVERSATION SO FAR:\n${convo || "(none)"}\n\n${extra || "Write Noah's next message."}
-${retry ? "IMPORTANT: your last answer was not valid JSON. Answer with the JSON object only, nothing before or after it.\n" : ""}Reply with only JSON: {"reply":"Noah's message","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0}}}
+${retry ? "IMPORTANT: your last answer was not valid JSON. Answer with the JSON object only, nothing before or after it.\n" : ""}Reply with only JSON: {"reply":"Noah's message","stage":"","move":"","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0}}}
 Fill lead.deal ONLY when they have said yes to buying a specific hot tub: model (exact model name), shell_colour (Sterling Silver or Odyssey, or "" if not chosen), extra_discount (dollars of extra discount you agreed, 0 if none). Otherwise leave model "".
+stage: where the chat is after your message, one of ${NOAH_STAGES.join(", ")} (presentation_done means they've been through it; chosen means they've said which tub; price means you've shown the price; ask means you've asked for the decision). move: 2 to 5 words naming the SCP move you made in this message (for example "pattern interrupt", "true hook", "takeaway", "sold the presentation", "bridge statement", "ownership question", "full value ask", "1 to 10 question", "A-C-A steer back", "extra discount step").
 Set handoff to true only when they've given a phone number for a call, or they're ready to buy and gave their details, or they asked for a person. Fill lead with whatever they've told you so far.` }],
     }),
   });
@@ -2584,7 +2752,7 @@ async function noahIncoming(channel: string, psid: string, text: string, mid: st
   const extra = [t!.handed_off_at ? "The team already has their details and will call. Keep helping warmly, and don't ask for their details again." : "", (seen ?? 0) > 0 ? NOAH_CLOSE : ""].filter(Boolean).join("\n\n");
   const j = await noahThink(history, extra);
   if (!j.reply) return;
-  await db.from("chat_messages").insert({ thread_id: t!.id, role: "noah", text: j.reply, mid: await noahSend(psid, j.reply, ptoken) });
+  await noahRecord(t!.id, j, await noahSend(psid, j.reply, ptoken));
   await db.from("chat_threads").update({ last_bot_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", t!.id);
   if (j.handoff && !t!.handed_off_at) await noahHandoff(t!.id, channel, j.lead || {}, [...history, { role: "noah", text: j.reply }]);
 }
@@ -2666,7 +2834,7 @@ async function route_noah_followup(req: Request): Promise<Response> {
       const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t.id).order("created_at").limit(60);
       const j = await noahThink(msgs ?? [], "They've gone quiet. Write ONE follow-up message using a pattern interrupt: unexpected, sincere and good to receive, tied to something they actually said. Never 'just checking in', never guilt or pressure, never a fake deadline. Make it easy to reply to. Keep it to one or two sentences. Set handoff to false.");
       if (!j.reply) continue;
-      await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: j.reply, mid: await noahSend(t.psid, j.reply, ptoken) });
+      await noahRecord(t.id, j, await noahSend(t.psid, j.reply, ptoken));
       await db.from("chat_threads").update({ followup_at: new Date().toISOString(), last_bot_at: new Date().toISOString() }).eq("id", t.id);
       sent++;
     } catch (e) {
@@ -2779,7 +2947,7 @@ Your aim from here is to sell them the hot tub or book a call with Shaun, but th
       const j = await noahThink(msgs ?? [], extra);
       if (!j.reply) { await mark("(skipped: nothing to say)"); continue; }
       const mid = await noahSend(t.psid, j.reply, ptoken);
-      await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: j.reply, mid });
+      await noahRecord(t.id, j, mid);
       // This counts as Noah's one follow-up, so the 3-hour follow-up doesn't send a second message on top.
       await db.from("chat_threads").update({ last_bot_at: new Date().toISOString(), followup_at: new Date().toISOString() }).eq("id", t.id);
       await mark(j.reply);
@@ -2801,6 +2969,11 @@ async function route_noah_admin(req: Request): Promise<Response> {
   const b = req.method === "POST" ? await req.json().catch(() => ({})) : {};
   if (b.on !== undefined) await db.from("settings").upsert({ k: "noah_on", v: b.on ? "on" : "off" });
   if (b.nudge !== undefined) await db.from("settings").upsert({ k: "noah_nudge", v: b.nudge ? "on" : "off" });
+  if (b.learning !== undefined) await db.from("settings").upsert({ k: "noah_learning", v: b.learning ? "on" : "off" });
+  if (b.founding_left !== undefined) await db.from("settings").upsert({ k: "founding_left", v: String(Math.max(0, Math.min(10, Math.round(Number(b.founding_left) || 0)))) });
+  if (b.learn_now) return jsonAuth(req, await noahLearn(me.user.email || "admin"));
+  if (b.use_lessons) { await db.from("noah_lessons").update({ active: false }).eq("active", true); await db.from("noah_lessons").update({ active: true }).eq("id", String(b.use_lessons)); }
+  if (b.lessons_off) await db.from("noah_lessons").update({ active: false }).eq("active", true);
   if (b.promo !== undefined) await db.from("settings").upsert({ k: "noah_promo", v: String(b.promo).replace(/\s*[—–]\s*/g, ", ").slice(0, 1000) });
   if (b.thread_id && ["bot", "human"].includes(b.status)) await db.from("chat_threads").update({ status: b.status, human_until: b.status === "human" ? new Date(Date.now() + 30 * 24 * 3600e3).toISOString() : null }).eq("id", b.thread_id);
   if (b.subscribe) {
@@ -2816,26 +2989,33 @@ async function route_noah_admin(req: Request): Promise<Response> {
       // deno-lint-ignore no-explicit-any
       const history = b.practice.slice(-30).map((m: any) => ({ role: m.role === "noah" ? "noah" : "user", text: String(m.text ?? "").slice(0, 2000) }));
       const j = await noahThink(history, b.closing ? NOAH_CLOSE : "");
-      return jsonAuth(req, { reply: j.reply, handoff: !!j.handoff, lead: j.lead });
+      return jsonAuth(req, { reply: j.reply, handoff: !!j.handoff, lead: j.lead, stage: NOAH_STAGE_NAME[j.stage] || "", move: j.move || "" });
     } catch (e) { console.error("noah practice", e); return jsonAuth(req, { error: "Noah didn't answer. Please try again." }, 502); }
   }
   if (b.thread) {
-    const { data: msgs } = await db.from("chat_messages").select("role, text, created_at").eq("thread_id", String(b.thread)).order("created_at").limit(300);
+    const { data: msgs } = await db.from("chat_messages").select("role, text, created_at, stage, move").eq("thread_id", String(b.thread)).order("created_at").limit(300);
     const { data: visits } = await db.from("page_visits").select("page, started_at, last_seen, seconds, furthest, form_sent, nudged_at, nudge_text").eq("thread_id", String(b.thread)).order("started_at").limit(50);
     // deno-lint-ignore no-explicit-any
     return jsonAuth(req, { messages: msgs ?? [], visits: (visits ?? []).map((v: any) => ({ ...v, furthest_name: v.furthest ? CHAPTER_NAME[v.furthest] : null })) });
   }
-  const s = await db.from("settings").select("k, v").in("k", ["noah_on", "noah_promo", "noah_nudge"]);
+  const s = await db.from("settings").select("k, v").in("k", ["noah_on", "noah_promo", "noah_nudge", "noah_learning", "founding_left"]);
   const set = Object.fromEntries((s.data ?? []).map((r) => [r.k, r.v]));
-  const { data: threads } = await db.from("chat_threads").select("id, channel, name, status, human_until, handed_off_at, followup_at, last_user_at, last_bot_at, customer_id").order("updated_at", { ascending: false }).limit(100);
+  const { data: threads } = await db.from("chat_threads").select("id, channel, name, status, human_until, handed_off_at, followup_at, last_user_at, last_bot_at, customer_id, max_stage").order("updated_at", { ascending: false }).limit(100);
+  const { data: lessons } = await db.from("noah_lessons").select("id, created_at, active, keep, change, summary, chats, made_by").order("created_at", { ascending: false }).limit(10);
+  const st = await noahStats();
+  // How far chats get, as a simple funnel: how many reached each stage or beyond.
+  const funnel = NOAH_STAGES.map((k, i) => ({ stage: NOAH_STAGE_NAME[k], chats: (threads ?? []).filter((t) => Number(t.max_stage) >= i + 1).length }));
   return jsonAuth(req, {
-    on: set.noah_on !== "off", nudge: set.noah_nudge !== "off", promo: set.noah_promo || "", threads: threads ?? [],
+    on: set.noah_on !== "off", nudge: set.noah_nudge !== "off", promo: set.noah_promo || "",
+    learning: set.noah_learning !== "off", founding_left: Number(set.founding_left ?? 8), lessons: lessons ?? [], moves: st.moves, engaged: st.engaged, funnel,
+    // deno-lint-ignore no-explicit-any
+    threads: (threads ?? []).map((t: any) => ({ ...t, stage_name: NOAH_STAGE_NAME[NOAH_STAGES[Number(t.max_stage) - 1]] || "" })),
     ready: { token: !!Deno.env.get("META_TOKEN"), secret: !!Deno.env.get("META_APP_SECRET"), ai: !!Deno.env.get("ANTHROPIC_API_KEY") },
   });
 }
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "ads-daily": route_ads_daily, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-track": route_noah_track, "noah-nudge": route_noah_nudge, "noah-admin": route_noah_admin,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "ads-daily": route_ads_daily, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-track": route_noah_track, "noah-nudge": route_noah_nudge, "noah-learn": route_noah_learn, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

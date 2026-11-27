@@ -397,8 +397,20 @@
         </article>
       </div>
       <article class="card">
+        <h3>What Noah is learning</h3>
+        <p class="muted small">Every message Noah sends is tagged with where the chat is in the SCP process and the move he made. Once a day he compares the chats that went far with the ones that went quiet, keeps what worked and changes what didn't. Lessons only change how he talks: never the prices, the deal or the honesty rules.</p>
+        <label class="adallsizes"><input type="checkbox" id="noahLearning"> Noah learns from his chats every day</label>
+        <div id="noahLessons" class="noahlessons"><p class="muted small">Loading...</p></div>
+        <div class="formactions"><button class="btn btn-line btn-sm" type="button" id="noahLearnNow">Learn from the chats now</button><button class="btn btn-line btn-sm" type="button" id="noahLessonsOff">Turn the current lessons off</button><span class="formmsg muted small" id="noahLearnMsg"></span></div>
+        <div class="noahfunnel" id="noahFunnel"></div>
+        <div id="noahMoves"></div>
+        <details class="noahhist"><summary>Earlier lessons</summary><div id="noahLessonHist"></div></details>
+        <div class="form" style="margin-top:14px"><label>Founding owner spots left (of 10)<input type="number" id="noahFounding" min="0" max="10" step="1" style="max-width:90px"></label>
+        <p class="muted small">Noah tells people how many are left. Keep it the same as FOUNDING_LEFT on the website.</p></div>
+      </article>
+      <article class="card">
         <h3>Conversations</h3>
-        <div class="tablewrap"><table class="saletable"><thead><tr><th>Who</th><th>Where</th><th>Status</th><th>Last message</th></tr></thead><tbody id="noahThreads"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody></table></div>
+        <div class="tablewrap"><table class="saletable"><thead><tr><th>Who</th><th>Where</th><th>Status</th><th>Got to</th><th>Last message</th></tr></thead><tbody id="noahThreads"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div>
         <div id="noahThread" hidden>
           <h3 id="noahThreadName"></h3>
           <div class="noahvisits" id="noahThreadVisits"></div>
