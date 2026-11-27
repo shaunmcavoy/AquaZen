@@ -1745,6 +1745,14 @@ async function route_ads_control(req: Request): Promise<Response> {
     // Only touch things that belong to our ad account.
     const obj = await graph(id, token, { fields: "account_id,name" });
     if (`act_${obj.account_id}` !== act) return jsonAuth(req, { error: "That isn't in the AquaZen ad account." }, 403);
+    if (b.audience !== undefined) {
+      if (kind !== "adset") return jsonAuth(req, { error: "The audience is set on the ad set." }, 400);
+      const aud = cleanAudience(b.audience);
+      if (typeof aud === "string") return jsonAuth(req, { error: aud }, 400);
+      await graph(id, token, { targeting: aud.targeting, name: aud.label }, "POST");
+      await db.from("meta_sends").insert({ created_by: me.user.id, kind: "audience", headline: obj.name, result: { id, audience: aud.saved } }).then(() => {}, () => {});
+      return jsonAuth(req, { ok: true, label: aud.label });
+    }
     if (b.budget !== undefined) {
       if (kind !== "adset") return jsonAuth(req, { error: "Budgets are set on the ad set." }, 400);
       const dollars = Math.round(Number(b.budget));
@@ -1881,7 +1889,7 @@ async function route_ads_apply(req: Request): Promise<Response> {
 const WEB_CTAS = ["LEARN_MORE", "SHOP_NOW", "BOOK_TRAVEL", "GET_QUOTE", "CONTACT_US", "SIGN_UP", "GET_OFFER", "APPLY_NOW", "SUBSCRIBE"];
 const MSG_CTAS = ["MESSAGE_PAGE", "LEARN_MORE", "SHOP_NOW"];
 const SHOWROOM = { latitude: 49.2245, longitude: -122.9932 };
-const DEFAULT_AUDIENCE = { age_min: 30, age_max: 65, showroom_km: 60, cities: [] as { key: string; name: string; radius: number }[] };
+const DEFAULT_AUDIENCE = { age_min: 30, age_max: 65, showroom_km: 60, cities: [] as { key: string; name: string; radius: number }[], exclude: [] as { key: string; name: string }[] };
 // deno-lint-ignore no-explicit-any
 function cleanAudience(a: any) {
   const x = a && typeof a === "object" ? a : DEFAULT_AUDIENCE;
@@ -1891,14 +1899,20 @@ function cleanAudience(a: any) {
   // deno-lint-ignore no-explicit-any
   const cities = (Array.isArray(x.cities) ? x.cities : []).slice(0, 25).map((c: any) => ({ key: String(c.key ?? "").replace(/\D/g, ""), name: String(c.name ?? "").slice(0, 80), radius: Math.max(17, Math.min(80, Math.round(Number(c.radius) || 25))) })).filter((c: { key: string }) => c.key);
   if (!showroom_km && !cities.length) return "Choose at least one place: the area around the showroom or a city.";
+  // Cities to leave out (their whole city area), e.g. Surrey inside a big circle around Burnaby.
+  // deno-lint-ignore no-explicit-any
+  const exclude = (Array.isArray(x.exclude) ? x.exclude : []).slice(0, 25).map((c: any) => ({ key: String(c.key ?? "").replace(/\D/g, ""), name: String(c.name ?? "").slice(0, 80) })).filter((c: { key: string }) => c.key);
   const geo: Record<string, unknown> = {};
   if (showroom_km) geo.custom_locations = [{ ...SHOWROOM, radius: Math.max(1, showroom_km), distance_unit: "kilometer" }];
   if (cities.length) geo.cities = cities.map((c: { key: string; radius: number }) => ({ key: c.key, radius: c.radius, distance_unit: "kilometer" }));
-  const where = [showroom_km ? `${showroom_km} km around Burnaby` : "", ...cities.map((c: { name: string }) => c.name)].filter(Boolean).join(", ");
+  const where = [showroom_km ? `${showroom_km} km around Burnaby` : "", ...cities.map((c: { name: string }) => c.name.split(",")[0])].filter(Boolean).join(", ");
+  const not = exclude.length ? ` (not ${exclude.map((c: { name: string }) => c.name.split(",")[0]).join(", ")})` : "";
+  const targeting: Record<string, unknown> = { geo_locations: geo, age_min, age_max, targeting_automation: { advantage_audience: 0 } };
+  if (exclude.length) targeting.excluded_geo_locations = { cities: exclude.map((c: { key: string }) => ({ key: c.key })) };
   return {
-    targeting: { geo_locations: geo, age_min, age_max, targeting_automation: { advantage_audience: 0 } },
-    label: `${where.slice(0, 120)}, ${age_min} to ${age_max === 65 ? "65+" : age_max}`,
-    saved: { age_min, age_max, showroom_km, cities },
+    targeting,
+    label: `${where.slice(0, 100)}${not.slice(0, 80)}, ${age_min} to ${age_max === 65 ? "65+" : age_max}`,
+    saved: { age_min, age_max, showroom_km, cities, exclude },
   };
 }
 

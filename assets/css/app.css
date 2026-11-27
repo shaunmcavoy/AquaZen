@@ -562,3 +562,5 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .audcity select{font:inherit;font-size:.82rem;border:1px solid var(--line);border-radius:8px;padding:2px 4px;background:#fff}
 .audcity button{border:0;background:none;font-size:1.1rem;cursor:pointer;color:var(--muted);padding:0 4px}
 .audresults{display:flex;flex-wrap:wrap;gap:6px}
+.audnot{background:#fde2e0;color:#b3261e}
+.audsub{margin-top:6px}

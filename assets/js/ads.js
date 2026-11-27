@@ -375,7 +375,7 @@
   // Meta's button choices. Website ads and Messenger ads allow different ones.
   var WEB_CTAS = [['LEARN_MORE', 'Learn more'], ['SHOP_NOW', 'Shop now'], ['BOOK_TRAVEL', 'Book now'], ['GET_QUOTE', 'Get quote'], ['CONTACT_US', 'Contact us'], ['SIGN_UP', 'Sign up'], ['GET_OFFER', 'Get offer'], ['APPLY_NOW', 'Apply now'], ['SUBSCRIBE', 'Subscribe']];
   var MSG_CTAS = [['MESSAGE_PAGE', 'Send message'], ['LEARN_MORE', 'Learn more'], ['SHOP_NOW', 'Shop now']];
-  var AUD = { age_min: 30, age_max: 65, showroom_km: 60, cities: [] };
+  var AUD = { age_min: 30, age_max: 65, showroom_km: 60, cities: [], exclude: [] };
   function opts(list, val) { return list.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === val ? ' selected' : '') + '>' + o[1] + '</option>'; }).join(''); }
   function adList() {
     var box = $('#metaAdList'), ads = S.variants.filter(function (v) { return v.approved; });
@@ -401,8 +401,10 @@
     $('#audCities').innerHTML = AUD.cities.map(function (c, i) {
       return '<span class="audcity">' + AZ.esc(c.name) + ' <select data-ci="' + i + '" aria-label="Distance around ' + AZ.esc(c.name) + '">' + [17, 25, 40, 60, 80].map(function (k) { return '<option value="' + k + '"' + (k === c.radius ? ' selected' : '') + '>' + k + ' km</option>'; }).join('') + '</select><button type="button" data-cx="' + i + '" aria-label="Remove ' + AZ.esc(c.name) + '">&times;</button></span>';
     }).join('');
+    $('#audNot').innerHTML = AUD.exclude.map(function (c, i) { return '<span class="audcity audnot">Not ' + AZ.esc(c.name) + '<button type="button" data-nx="' + i + '" aria-label="Stop leaving out ' + AZ.esc(c.name) + '">&times;</button></span>'; }).join('');
     var where = [AUD.showroom_km ? AUD.showroom_km + ' km around the Burnaby showroom' : ''].concat(AUD.cities.map(function (c) { return c.radius + ' km around ' + c.name; })).filter(Boolean);
-    $('#audSummary').textContent = where.length ? 'Ages ' + AUD.age_min + ' to ' + (AUD.age_max === 65 ? '65 and up' : AUD.age_max) + ', ' + where.join(', ') + '. This becomes the starting audience next time too.' : 'Choose at least one place: the area around the showroom or a city.';
+    var not = AUD.exclude.length ? ', leaving out ' + AUD.exclude.map(function (c) { return c.name.split(',')[0]; }).join(', ') : '';
+    $('#audSummary').textContent = where.length ? 'Ages ' + AUD.age_min + ' to ' + (AUD.age_max === 65 ? '65 and up' : AUD.age_max) + ', ' + where.join(', ') + not + '. This becomes the starting audience next time too.' : 'Choose at least one place: the area around the showroom or a city.';
   }
   var geoTimer = null;
   function wireAudience() {
@@ -421,6 +423,22 @@
       if (!AUD.cities.some(function (c) { return c.key === b.dataset.key; })) AUD.cities.push({ key: b.dataset.key, name: b.dataset.name, radius: 25 });
       $('#audQ').value = ''; $('#audResults').innerHTML = ''; audShow();
     });
+    var notTimer = null;
+    $('#audNotQ').addEventListener('input', function () {
+      clearTimeout(notTimer); var q = $('#audNotQ').value.trim();
+      if (q.length < 2) { $('#audNotResults').innerHTML = ''; return; }
+      notTimer = setTimeout(function () {
+        AZ.api('meta-geo?q=' + encodeURIComponent(q), null, 'GET').then(function (r) {
+          $('#audNotResults').innerHTML = (r.places || []).map(function (p) { return '<button type="button" class="chip" data-key="' + p.key + '" data-name="' + AZ.esc(p.name) + '">' + AZ.esc(p.name) + '</button>'; }).join('') || '<span class="muted small">No Canadian city by that name.</span>';
+        }).catch(function (e) { $('#audNotResults').textContent = e.message; });
+      }, 300);
+    });
+    $('#audNotResults').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-key]'); if (!b) return;
+      if (!AUD.exclude.some(function (c) { return c.key === b.dataset.key; })) AUD.exclude.push({ key: b.dataset.key, name: b.dataset.name });
+      $('#audNotQ').value = ''; $('#audNotResults').innerHTML = ''; audShow();
+    });
+    $('#audNot').addEventListener('click', function (e) { var x = e.target.closest('[data-nx]'); if (x) { AUD.exclude.splice(+x.dataset.nx, 1); audShow(); } });
     $('#audCities').addEventListener('click', function (e) { var x = e.target.closest('[data-cx]'); if (x) { AUD.cities.splice(+x.dataset.cx, 1); audShow(); } });
     $('#audCities').addEventListener('change', function (e) { var c = e.target.closest('[data-ci]'); if (c) { AUD.cities[+c.dataset.ci].radius = +c.value; audShow(); } });
     $('#metaAdList').addEventListener('change', function (e) {
@@ -792,7 +810,7 @@
       if (!r.configured) { st.textContent = "Not connected yet. Once the Meta app's token is saved in Supabase, you can post and create ads from here."; return; }
       if (r.error) { st.textContent = r.error; return; }
       META = { ok: true, pages: r.pages, acts: r.adAccounts, chosen: r.chosen };
-      if (r.audience) { AUD = { age_min: r.audience.age_min, age_max: r.audience.age_max, showroom_km: r.audience.showroom_km, cities: r.audience.cities || [] }; $('#audMin').value = AUD.age_min; $('#audMax').value = AUD.age_max; $('#audKm').value = AUD.showroom_km; audShow(); }
+      if (r.audience) { AUD = { age_min: r.audience.age_min, age_max: r.audience.age_max, showroom_km: r.audience.showroom_km, cities: r.audience.cities || [], exclude: r.audience.exclude || [] }; $('#audMin').value = AUD.age_min; $('#audMax').value = AUD.age_max; $('#audKm').value = AUD.showroom_km; audShow(); }
       $('#metaPage').innerHTML = r.pages.map(function (p) { return '<option value="' + p.id + '"' + (p.id === r.chosen.page ? ' selected' : '') + '>' + AZ.esc(p.name) + (p.ig ? ' (Instagram @' + AZ.esc(p.ig.username) + ')' : ' (no Instagram linked)') + '</option>'; }).join('') || '<option value="">No Pages found</option>';
       $('#metaAct').innerHTML = r.adAccounts.map(function (a) { return '<option value="' + a.id + '"' + (a.id === r.chosen.adAccount ? ' selected' : '') + '>' + AZ.esc(a.name) + ' (' + AZ.esc(a.currency) + ')' + (a.active ? '' : ', not active') + '</option>'; }).join('') || '<option value="">No ad accounts found</option>';
       var pg = r.pages.filter(function (p) { return p.id === r.chosen.page; })[0];
