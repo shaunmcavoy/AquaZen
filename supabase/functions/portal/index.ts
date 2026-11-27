@@ -1956,16 +1956,19 @@ async function route_meta_post(req: Request): Promise<Response> {
     try {
       if (!s.ig) throw new Error("Your Facebook Page doesn't have an Instagram business account linked.");
       const c = await graph(`${s.ig}/media`, token, video ? { media_type: "REELS", video_url: mediaUrl, caption } : { image_url: mediaUrl, caption }, "POST");
-      // Videos take a moment for Instagram to process before they can be published.
-      if (video) {
-        for (let i = 0; i < 20; i++) {
-          const st = await graph(c.id, token, { fields: "status_code" });
-          if (st.status_code === "FINISHED") break;
-          if (st.status_code === "ERROR") throw new Error("Instagram couldn't process the video.");
-          await sleep(3000);
-        }
+      // Instagram needs a moment to prepare pictures as well as videos before they can be published.
+      for (let i = 0; i < (video ? 30 : 15); i++) {
+        const st = await graph(c.id, token, { fields: "status_code" }).catch(() => ({}));
+        if (st.status_code === "FINISHED") break;
+        if (st.status_code === "ERROR") throw new Error(`Instagram couldn't process the ${video ? "video" : "picture"}.`);
+        await sleep(i < 3 ? 2000 : 3000);
       }
-      const p = await graph(`${s.ig}/media_publish`, token, { creation_id: c.id }, "POST");
+      // If it still says "not ready", give it a few more tries.
+      let p;
+      for (let i = 0; ; i++) {
+        try { p = await graph(`${s.ig}/media_publish`, token, { creation_id: c.id }, "POST"); break; }
+        catch (e) { if (i >= 4 || !/not ready/i.test((e as Error).message)) throw e; await sleep(4000); }
+      }
       done.instagram = p.id;
     } catch (e) { failed.instagram = (e as Error).message; }
   }
