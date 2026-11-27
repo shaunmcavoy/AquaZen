@@ -364,9 +364,10 @@
     STEPS.forEach(function (s) { if (s.showIf && !s.showIf(answers)) { delete a[s.id]; delete a[s.id + '_other']; } });
     var readable = {};
     if (fromModel) readable['Came from the model page'] = fromModel.charAt(0).toUpperCase() + fromModel.slice(1);
+    if (!embedded && cameFrom) { a.source = 'finder_' + cameFrom; readable['Came from'] = cameFrom === 'fbad' ? 'A Facebook ad' : cameFrom === 'noah' ? 'Noah' : cameFrom; }
     if (embedded) {
       a.source = 'presentation' + (cameFrom ? '_' + cameFrom : '');
-      readable['Came from'] = 'How we deliver Zen' + (cameFrom === 'noah' ? ', sent by Noah' : '');
+      readable['Came from'] = 'How we deliver Zen' + (cameFrom === 'noah' ? ', sent by Noah' : cameFrom === 'fbad' ? ', from a Facebook ad' : cameFrom ? ', from ' + cameFrom : '');
       var GW = { sleep: 'Better sleep', muscles: 'Relief for sore muscles', together: 'Time together', escape: 'A quiet escape', all: 'All of it' };
       try { var gw = GW[localStorage.getItem('az-goal') || '']; if (gw) readable['What they want most'] = gw; } catch (e) {}
       var sec = document.getElementById('find-your-zen');
