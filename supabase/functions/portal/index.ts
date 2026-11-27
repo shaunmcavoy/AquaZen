@@ -2588,7 +2588,7 @@ async function personalLinks(psid: string, text: string): Promise<string> {
     if (!t) return text;
     const code = await threadCode(t.id);
     if (!code) return text;
-    return text.replace(/https?:\/\/(www\.)?aquazen\.ca\/(how-we-deliver-zen|find-your-zen|visit)\/(\?[^\s)]*)?/g, (_m, _w, page, q) => {
+    return text.replace(/https?:\/\/(www\.)?aquazen\.ca\/(how-we-deliver-zen|find-your-zen|visit)\/(\?[^\s)]*[^\s).,!?])?/g, (_m, _w, page, q) => {
       const u = new URL(`https://aquazen.ca/${page}/${q || ""}`);
       u.searchParams.set("from", "noah"); u.searchParams.set("c", code);
       return u.toString();
