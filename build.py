@@ -170,6 +170,64 @@ def built(kind):
 """
 
 
+def comes_with(kind):
+    """What every AquaSolus includes, from the AquaSolus 2026 brochure (NA)."""
+    if kind == "tub":
+        items = [
+            ("Six-colour LED lighting", "Lights above and below the waterline, with six shades from Halo to Ember: cool and clear for a morning soak, warm for the evening."),
+            ("Four kinds of massage", "Targeting jets you dial for your back, a tri-impeller that kneads, a multi-arm star that spreads water across your shoulders and a twin vortex for calves and feet."),
+            ("Two filters, easy to rinse", "Two 50 sq ft cartridges work side by side. Rinse them with a garden hose. No special tools."),
+            ("An insulated cover", "A thick, insulated cover comes with every tub to hold the heat in and keep leaves out. It works with our cover lifter."),
+            ("Heat pump ready", "Ports are already in place to add an air-source heat pump later, for an even lower hydro bill. AquaSolus recommends Aquark, and we can quote one with your tub."),
+            ("A cabinet that stays beautiful", "Luna Grey composite that won't rot, with matching steps. Inside, a composite outer frame and a 304 stainless steel inner frame carry the weight."),
+            ("Two shell finishes", "Aristech acrylic in Sterling Silver (light and architectural) or Odyssey (deep graphite). Both are tough and easy to wipe clean."),
+            ("Designed in England", "AquaSolus is a Superior Wellness brand, designed and engineered in England and sold through specialist dealers like us."),
+        ]
+        title = "Every AquaSolus hot tub comes with"
+    else:
+        items = [
+            ("Award winning", "The AquaSolus Swim Spa Series is a WhatSpa? Best Buy award winner."),
+            ("Three ways to set it up", "Professional: a 9-speed turbine for a smooth, deep current, from an easy recovery swim up to a 0:56 per 100 m pace. Standard: three river jets for a broad current. Dual Zone: a swim lane and a separate hot tub, each at its own temperature."),
+            ("Six-colour LED lighting", "Lights above and below the waterline, with six shades from Halo to Ember."),
+            ("Bluetooth sound with a subwoofer", "Stereo speakers and a subwoofer come standard. Drift and Solara add two transducer speakers you feel through the water."),
+            ("Two shell finishes", "Aristech acrylic in Sterling Silver or Odyssey, in a Luna Grey composite cabinet with a 304 stainless steel frame inside."),
+            ("Designed in England", "AquaSolus is a Superior Wellness brand, designed and engineered in England."),
+        ]
+        title = "Every AquaSolus swim spa comes with"
+    cells = "".join(f'<div class="incl-item"><h3>{e(t)}</h3><p>{e(d)}</p></div>' for t, d in items)
+    return f"""
+<section class="incl">
+  <div class="wrap"><h2 class="h2">{title}</h2><div class="incl-grid">{cells}</div></div>
+</section>
+"""
+
+
+SOLUS = [
+    ("10 years", "Shell and frame structure", "Against water loss from a defect in materials or workmanship."),
+    ("7 years", "Shell surface", "Against blistering, cracking and delamination of the acrylic."),
+    ("2 years", "Pumps", "Both the jet pumps and the circulation pump."),
+    ("2 years", "Plumbing", "Fittings, pipes, drains, joints, bonded parts and jet housings."),
+    ("2 years", "Control box and display", "Fuses, bulbs and gaskets are not included."),
+    ("2 years", "Ozone, audio and lights", "The ozone generator, factory audio (Bluetooth included) and factory LED lights."),
+    ("2 years", "Cover, plastics and jets", "The cover, filter housings, pillows, diverters, waterfalls, cup holders, steps and jets."),
+    ("2 years", "Cabinet", "Against cracking and peeling. Natural fading and weathering are not covered."),
+]
+
+
+def solus():
+    rows = "".join(f'<div class="solus-row"><span class="solus-y">{e(y)}</span><span class="solus-w"><strong>{e(w)}</strong> {e(d)}</span></div>' for y, w, d in SOLUS)
+    return f"""
+<section class="solus">
+  <div class="wrap narrow">
+    <h2 class="h2">The Solus Guarantee</h2>
+    <p class="lede">Every AquaSolus comes with the same protection, whichever model you choose. And because we're local, you call us, not a call centre.</p>
+    <div class="solus-list">{rows}</div>
+    <p class="solus-note">If anything arrives damaged, tell us within 30 days with photos so we can claim it for you right away. Damage from misuse or water that hasn't been looked after isn't covered, which is why we show you how before delivery. Full terms apply.</p>
+  </div>
+</section>
+"""
+
+
 def subnav(crumbs, links=None):
     """Apple-style secondary bar: where you are, plus sibling links."""
     c = ' <span aria-hidden="true">/</span> '.join(
@@ -343,6 +401,7 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
 </section>
 
 {built(kind)}
+{comes_with(kind)}
 
 <section class="compare">
   <div class="wrap">
@@ -360,6 +419,7 @@ def build_series(s, models=MODELS, base=None, crumbs=None, kind="tub"):
     <p>{e(s['honest'])}</p>
   </div>
 </section>
+{solus()}
 """
     page += FOOT.format(fz="/find-your-zen/")
     write(base.strip("/") + "/index.html", page)
@@ -438,6 +498,7 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
 </section>
 
 {built(kind)}
+{comes_with(kind)}
 <section class="specs" id="specs">
   <div class="wrap">
     <h2 class="h2">Tech specs</h2>
@@ -449,15 +510,17 @@ def build_model(k, m, s=None, models=MODELS, base=None, crumbs=None, kind="tub")
       <div><dt>Weight</dt><dd>{e(m['dry'])} empty</dd><dd class="spec-sub">{e(m['full'])} full</dd></div>
       <div><dt>Power</dt><dd>{e(m['power'])}</dd></div>
       <div><dt>Pumps</dt><dd>{e(m['pumps'])}</dd><dd class="spec-sub">Plus a circulation pump</dd></div>
+      <div><dt>Filtration</dt><dd>{'4' if m['name'].startswith('Fusion') else '2'} x 50 sq ft cartridges</dd><dd class="spec-sub">Rinse with a garden hose</dd></div>
       <div><dt>Heater and controls</dt><dd>{e(m['heater'])}</dd><dd class="spec-sub">{e(m['panel'])} control panel</dd></div>
       <div><dt>Water care</dt><dd>{'Double ozonator: ozone with a 45-second mixing chamber, then UV' if kind == 'tub' else 'Ozone, standard'}</dd><dd class="spec-sub">{'Plus Gecko WaterLab real-time monitoring' if s['slug'] == 'series-three' else 'Simple with soft Lower Mainland water'}</dd></div>
       <div><dt>Efficiency</dt><dd>AQ10 full insulation</dd><dd class="spec-sub">Heat from the pumps is kept in and put back into the water</dd></div>
-      <div><dt>Shell colours</dt><dd class="swatches"><span><img src="{IMG}swatch-sterling.webp" alt="" width="28" height="28">Sterling Silver</span><span><img src="{IMG}swatch-odyssey.webp" alt="" width="28" height="28">Odyssey Grey</span></dd></div>
+      <div><dt>Shell colours</dt><dd class="swatches"><span><img src="{IMG}swatch-sterling.webp" alt="" width="28" height="28">Sterling Silver</span><span><img src="{IMG}swatch-odyssey.webp" alt="" width="28" height="28">Odyssey</span></dd><dd class="spec-sub">Aristech acrylic, Luna Grey cabinet</dd></div>
       <div><dt>Built to last</dt><dd>{'304 stainless steel frame on a structured ABS base pan' if kind == 'tub' else '304 stainless steel frame'}</dd><dd class="spec-sub">{e(DATA['warranty'])}</dd></div>
     </dl>
   </div>
 </section>
 
+{solus()}
 <section class="picks-sec">
   <div class="wrap center"><h2 class="h2">More in {e(s['name'])}</h2></div>
   <div class="wrap picks picks-sm-row">{others}</div>
