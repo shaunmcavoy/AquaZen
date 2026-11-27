@@ -2950,7 +2950,8 @@ async function route_noah_web(req: Request): Promise<Response> {
   // The greeting the visitor saw first becomes part of the chat, so Noah knows what he "said".
   const { count: any } = await db.from("chat_messages").select("id", { count: "exact", head: true }).eq("thread_id", t.id);
   const greeting = String(b.greeting ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 400);
-  if (!any && greeting) await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: greeting, stage: "intro", move: "website greeting" });
+  const fact = String(b.fact ?? "").replace(/[^a-z]/g, "").slice(0, 12);
+  if (!any && greeting) await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: greeting, stage: "intro", move: fact ? `fact opener: ${fact}` : "website greeting" });
   await db.from("chat_messages").insert({ thread_id: t.id, role: "user", text });
   await db.from("chat_threads").update({ last_user_at: now.toISOString(), updated_at: now.toISOString() }).eq("id", t.id);
   if (t.status === "human" && t.human_until && new Date(t.human_until) > now) return json(req, { reply: `Thanks, I've passed that to the team. ${phone}` });
@@ -2960,7 +2961,7 @@ async function route_noah_web(req: Request): Promise<Response> {
   const clip = (x: unknown, n = 120) => String(x ?? "").replace(/[\r\n]+/g, " ").slice(0, n);
   const seen = page === "presentation" || page === "quiz" || !!c.saw_presentation;
   const lines = [
-    `WEBSITE CHAT. ${WEB_CTX[page]}`,
+    `WEBSITE CHAT. ${WEB_CTX[page]} Your first message (already sent) opened with a true fact as a pattern interrupt, then a question. Build on whatever they answer; don't repeat the fact.`,
     page === "model" && c.model ? `The page: the ${clip(c.model, 40)} (${clip(c.series, 30)}). They may want the price: give it straight (what people normally pay, our price, and the package that's included), then keep going with the process.` : "",
     page === "quiz" && c.picks ? `Their Find your Zen results showed: ${clip(c.picks, 160)}. Their answers: ${clip(c.answers, 900)}. The team will also call them about these, so you can help them choose between the two, answer questions, or sell the one they want right here.` : "",
     page !== "presentation" && c.saw_presentation ? "They've also been through the How we deliver Zen presentation on this website." : "",

@@ -27,13 +27,34 @@
 
   var msgs = store('msgs') || [];
   var ctx = { page: page, model: cfg.model || '', series: cfg.series || '', picks: '', answers: '', saw_presentation: !!store('saw') };
-  var greeting = '';
-  function greet() {
-    if (page === 'presentation') return "Hi, I'm Noah, AquaZen's AI assistant. Thank you for giving the presentation your time. What's on your mind? I can help you pick the right hot tub, or answer anything it didn't.";
-    if (page === 'quiz' && ctx.picks) return "Hi, I'm Noah, AquaZen's AI assistant. Thanks for filling that out. Any questions about the " + ctx.picks.replace(' and ', ' or the ') + "? I can help you choose, or give you the exact price.";
-    if (page === 'model' && cfg.model) return "Hi, I'm Noah, AquaZen's AI assistant. Thinking about the " + cfg.model + "? Ask me anything, price included.";
-    return "Hi, I'm Noah, AquaZen's AI assistant. What can I help you with?";
+  var greeting = '', factKey = '';
+  // The pattern interrupt: one true, surprising fact, then a question. Every fact is true and from our own
+  // presentation, or well-established (sleep: a warm soak 1 to 2 hours before bed; buoyancy: Mayo Clinic).
+  // People at the end of the presentation have already seen our equipment facts, so they get the general ones.
+  var FACTS = {
+    sleep: "a warm soak an hour or two before bed helps you fall asleep faster? Your body cools down afterwards, and that drop is one of the signals it uses to fall asleep.",
+    float: "when you're in the water up to your shoulders, it carries most of your body's weight? Your back and joints finally get a break.",
+    winter: "winter is when a hot tub is at its best? Hot water, cold air and steam rising off the top in the dark.",
+    jets: "most hot tub jets feel like an itch because of skinny plumbing, like a thumb over a garden hose? AquaSolus uses wide plumbing that sends four to five times more water to every jet.",
+    clean: "a typical hot tub takes about 45 minutes to move all its water through the filter, and an AquaSolus does it in under 10?",
+    heat: "most hot tub insulation leaves the pumps and lines bare, so heat escapes and the tub keeps running in the cold? An AquaSolus keeps all of its water insulated, all the time.",
+    care: "looking after the water in an AquaSolus comes down to about one teaspoon of chlorine after a soak?"
+  };
+  function pickFact() {
+    var keys = (page === 'model') ? ['jets', 'clean', 'heat', 'care', 'sleep', 'float', 'winter'] : ['sleep', 'float', 'winter'];
+    var seen = store('facts') || [], fresh = keys.filter(function (k) { return seen.indexOf(k) < 0; });
+    var pool = fresh.length ? fresh : keys, k = pool[Math.floor(Math.random() * pool.length)];
+    store('facts', seen.concat(k).slice(-8));
+    return k;
   }
+  function question() {
+    if (page === 'presentation') return 'What stood out most for you in the presentation?';
+    if (page === 'quiz' && ctx.picks) return 'Are you leaning toward the ' + ctx.picks.replace(' and ', ' or the ') + '?';
+    if (page === 'model' && cfg.model) return "What's got you looking at the " + cfg.model + '?';
+    return "What's got you thinking about a hot tub?";
+  }
+  function opener() { if (!factKey) factKey = pickFact(); return "Hi, I'm Noah, AquaZen's AI assistant. Did you know that " + FACTS[factKey]; }
+  function greet() { return opener() + '\n\n' + question(); }
 
   var root, panel, list, input, launch, teaser, busy = false, shown = false;
   function build() {
@@ -84,7 +105,7 @@
     if (!shown) { shown = true; requestAnimationFrame(function () { root.classList.add('on'); }); }
     if (withTeaser && panel.hidden && !store('teased.' + page + (cfg.model || ''))) {
       store('teased.' + page + (cfg.model || ''), 1);
-      teaser.textContent = greeting || greet(); teaser.hidden = false;
+      if (!greeting) greeting = greet(); teaser.textContent = opener(); teaser.hidden = false;
       setTimeout(function () { teaser.hidden = true; }, 12000);
     }
   }
@@ -95,7 +116,7 @@
     if (first) msgs.push({ role: 'noah', text: greeting || greet() });
     msgs.push({ role: 'user', text: text }); store('msgs', msgs.slice(-60));
     input.value = ''; input.style.height = 'auto'; busy = true; render();
-    fetch(URL_W, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vid: vid(), text: text, ctx: ctx, greeting: first ? msgs[0].text : '' }) })
+    fetch(URL_W, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vid: vid(), text: text, ctx: ctx, greeting: first ? msgs[0].text : '', fact: first ? factKey : '' }) })
       .then(function (r) { return r.json(); })
       .then(function (r) { msgs.push({ role: 'noah', text: r.reply || r.error || "Sorry, that didn't go through. Call or text us at 236-304-4424." }); })
       .catch(function () { msgs.push({ role: 'noah', text: "That didn't send. Check your connection and try again, or call or text us at 236-304-4424." }); })
@@ -120,7 +141,7 @@
   document.addEventListener('az:fzdone', function (e) {
     var d = e.detail || {};
     ctx.page = page = 'quiz'; ctx.picks = d.picks || ''; ctx.answers = d.answers || '';
-    greeting = greet(); show(true);
+    factKey = ''; greeting = greet(); show(true);
   });
   window.AZNoah = { open: function () { toggle(true); } };
 })();
