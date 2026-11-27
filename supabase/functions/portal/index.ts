@@ -1636,11 +1636,12 @@ async function route_ads_stats(req: Request): Promise<Response> {
   try {
     const fields = "campaign_id,campaign_name,adset_id,ad_id,ad_name,spend,reach,impressions,frequency,inline_link_clicks,ctr,actions";
     const [camps, adIns, total, life] = await Promise.all([
-      graph(`${act}/campaigns`, token, { fields: "id,name,status,effective_status,created_time,adsets.limit(20){id,name,status,effective_status,daily_budget},ads.limit(30){id,name,status,effective_status,adset_id}", limit: 50 }),
+      graph(`${act}/campaigns`, token, { fields: "id,name,status,effective_status,created_time,adsets.limit(20){id,name,status,effective_status,daily_budget},ads.limit(30){id,name,status,effective_status,adset_id,creative{body,title}}", limit: 50 }),
       graph(`${act}/insights`, token, { level: "ad", fields, date_preset: AD_RANGES[range], limit: 200 }),
       graph(`${act}/insights`, token, { fields: "spend,reach,impressions,inline_link_clicks,actions", date_preset: AD_RANGES[range] }),
       graph(`${act}/insights`, token, { fields: "spend", date_preset: "maximum" }),
     ]);
+    const plat = await graph(`${act}/insights`, token, { fields: "spend,reach,impressions,inline_link_clicks,actions", breakdowns: "publisher_platform", date_preset: AD_RANGES[range] }).catch(() => ({ data: [] }));
     // deno-lint-ignore no-explicit-any
     const byAd: Record<string, any> = {};
     for (const r of adIns.data ?? []) byAd[r.ad_id] = r;
@@ -1651,7 +1652,7 @@ async function route_ads_stats(req: Request): Promise<Response> {
     // deno-lint-ignore no-explicit-any
     const campaigns = (camps.data ?? []).map((c: any) => {
       // deno-lint-ignore no-explicit-any
-      const ads = (c.ads?.data ?? []).map((a: any) => ({ id: a.id, name: a.name, status: a.status, effective: a.effective_status, adset: a.adset_id, ...stat(byAd[a.id]) }));
+      const ads = (c.ads?.data ?? []).map((a: any) => ({ id: a.id, name: a.name, status: a.status, effective: a.effective_status, adset: a.adset_id, headline: a.creative?.title || "", text: a.creative?.body || "", ...stat(byAd[a.id]) }));
       const sum = (k: string) => ads.reduce((n: number, a: Record<string, number>) => n + (a[k] || 0), 0);
       // deno-lint-ignore no-explicit-any
       const adsets = (c.adsets?.data ?? []).map((x: any) => ({ id: x.id, name: x.name, status: x.status, effective: x.effective_status, budget: x.daily_budget ? Number(x.daily_budget) / 100 : null }));
@@ -1689,8 +1690,9 @@ async function route_ads_stats(req: Request): Promise<Response> {
     const spentSince = Number((await graph(`${act}/insights`, token, { fields: "spend", time_range: { since: start, until: new Date().toISOString().slice(0, 10) } })).data?.[0]?.spend || 0);
 
     const t = total.data?.[0];
+    const lastAdvice = (await db.from("settings").select("v").eq("k", "ads_advice_last").maybeSingle()).data?.v;
     return jsonAuth(req, {
-      configured: true, range, account: act,
+      configured: true, range, account: act, advice: lastAdvice ? JSON.parse(lastAdvice) : null,
       totals: { ...stat(t), lifetime: Number(life.data?.[0]?.spend || 0) },
       // deno-lint-ignore no-explicit-any
       ours: { leads: adLeads.length, sales: sold.length, revenue: sold.reduce((n: number, x: any) => n + Number(x.total || 0), 0),
@@ -1698,6 +1700,8 @@ async function route_ads_stats(req: Request): Promise<Response> {
         list: adLeads.slice(0, 50).map((l: any) => ({ name: [l.first_name, l.last_name].filter(Boolean).join(" "), when: l.created_at, bought: soldEmails.has(String(l.email || "").toLowerCase()), where: String(l.answers?.source ?? "") })) },
       fund: { perTub, start, tubs: tubs ?? 0, earned: (tubs ?? 0) * perTub, spent: spentSince, left: (tubs ?? 0) * perTub - spentSince, canEdit: me.profile.role === "admin" },
       campaigns,
+      // deno-lint-ignore no-explicit-any
+      platforms: (plat.data ?? []).map((r: any) => ({ platform: r.publisher_platform, ...stat(r) })).filter((r: any) => r.impressions > 0),
       manager: `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act.replace("act_", "")}`,
     });
   } catch (e) {
@@ -1744,6 +1748,118 @@ async function route_ads_control(req: Request): Promise<Response> {
     await graph(id, token, { status }, "POST");
     await db.from("meta_sends").insert({ created_by: me.user.id, kind: status === "ACTIVE" ? "resume" : "pause", headline: obj.name, result: { id, kind } }).then(() => {}, () => {});
     return jsonAuth(req, { ok: true });
+  } catch (e) {
+    return jsonAuth(req, { error: `Meta said: ${(e as Error).message}` }, 502);
+  }
+}
+
+
+// ---- Ad advice: Claude reads the results and suggests changes; Shaun taps Apply on the ones he wants ----
+// POST {data}  data = the ads-stats result the page is showing (re-checked on apply, never trusted for spending).
+async function route_ads_advice(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await menuOnly(req, "adresults");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ad results menu." }, 403);
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!key) return jsonAuth(req, { error: "AI advice isn't switched on yet. Add an ANTHROPIC_API_KEY secret in Supabase." }, 400);
+  const b = await req.json().catch(() => ({}));
+  const d = b.data ?? {};
+  // deno-lint-ignore no-explicit-any
+  const camps = (d.campaigns ?? []).filter((c: any) => !["ARCHIVED", "DELETED"].includes(c.effective)).slice(0, 12).map((c: any) => ({
+    campaign: c.name, campaign_id: c.id, status: c.effective,
+    // deno-lint-ignore no-explicit-any
+    adsets: (c.adsets ?? []).map((x: any) => ({ adset_id: x.id, name: x.name, status: x.effective, daily_budget: x.budget })),
+    // deno-lint-ignore no-explicit-any
+    ads: (c.ads ?? []).slice(0, 10).map((a: any) => ({ ad_id: a.id, status: a.effective, headline: String(a.headline || "").slice(0, 200), text: String(a.text || "").slice(0, 900), spend: a.spend, impressions: a.impressions, reach: a.reach, clicks: a.clicks, leads_meta: a.leads, frequency: a.frequency })),
+  }));
+  const facts = { period: d.range, totals: d.totals, our_leads_from_ads: d.ours?.leads, our_sales_from_ads: d.ours?.sales, ad_fund_left: d.fund?.left, platforms: d.platforms, campaigns: camps };
+  const prompt = `You are AquaZen's ad coach. Shaun owns AquaZen, a new hot tub company in Burnaby. He is not a marketer. Read these Facebook and Instagram ad results and tell him, in plain everyday words, how his ads are doing and what to change.
+
+RESULTS (JSON):
+${JSON.stringify(facts).slice(0, 14000)}
+
+RULES
+- Be honest. If there is too little data to judge (under about 1,000 views or under $10 spent on something), say so and don't recommend changes to it.
+- Only recommend changes you can tie to the numbers above. Never invent numbers.
+- Budgets: daily budgets between $5 and $500. Never recommend more total daily spend than the ad fund can cover for the next 7 days (ad_fund_left / 7), unless the fund is under $0, in which case keep total spend where it is or lower.
+- Only use ids that appear in the results. Budgets change on ad sets (adset_id). Pause or resume campaigns (campaign_id) or ads (ad_id).
+- A "copy" change writes new wording for one ad, keeping its picture. Write it in Shaun's voice, following the brand and SCP ad language rules you were given. A headline is under 40 characters. Main text is under 400 characters. No em dashes. Only suggest copy for an ad that has had a fair chance (over about 2,000 views) and gets few clicks, or that people have seen too often (frequency over 3.5).
+- At most 5 recommendations, most important first. Fewer is fine. If nothing should change, say so and return no recommendations.
+- Explain every "why" in one or two short sentences a non-marketer understands, using the numbers.
+
+Answer with JSON only:
+{"grade":"great|good|okay|poor|too_early","headline":"one short sentence: how the ads are doing overall","summary":"two or three plain sentences","recommendations":[{"type":"budget|pause|resume|copy","target_id":"id","target_name":"name","why":"plain reason","new_budget":0,"new_headline":"","new_text":""}]}`;
+  try {
+    const out = await adsClaude(key, [{ type: "text", text: prompt }], 3000);
+    // deno-lint-ignore no-explicit-any
+    const recs = (Array.isArray(out.recommendations) ? out.recommendations : []).slice(0, 5).filter((r: any) => ["budget", "pause", "resume", "copy"].includes(r.type) && /^\d+$/.test(String(r.target_id)))
+      // deno-lint-ignore no-explicit-any
+      .map((r: any) => ({ ...r, new_headline: String(r.new_headline || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").slice(0, 80), new_text: String(r.new_text || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").slice(0, 600), why: String(r.why || "").replace(/\s*[\u2014\u2013]\s*/g, ", ") }));
+    const advice = { grade: String(out.grade || "too_early"), headline: String(out.headline || ""), summary: String(out.summary || ""), recommendations: recs, at: new Date().toISOString(), range: d.range };
+    await admin().from("settings").upsert({ k: "ads_advice_last", v: JSON.stringify(advice) });
+    return jsonAuth(req, advice);
+  } catch {
+    return jsonAuth(req, { error: "The advice didn't come through. Please try again." }, 502);
+  }
+}
+
+// POST {rec}  Apply one recommendation. Budgets and pauses go through the same checks as ads-control.
+// Copy: a new ad in the same ad set with the new wording and the same picture or video; the old ad is paused.
+async function route_ads_apply(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await menuOnly(req, "adresults");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ad results menu." }, 403);
+  const token = Deno.env.get("META_TOKEN");
+  const s = await metaSettings();
+  if (!token || !s.adAccount) return jsonAuth(req, { error: "Meta isn't connected yet." }, 400);
+  const act = s.adAccount.startsWith("act_") ? s.adAccount : `act_${s.adAccount}`;
+  const r = (await req.json().catch(() => ({}))).rec ?? {};
+  const id = String(r.target_id ?? "").replace(/\D/g, "");
+  if (!id) return jsonAuth(req, { error: "Nothing to change." }, 400);
+  const db = admin();
+  try {
+    const obj = await graph(id, token, { fields: "account_id,name" });
+    if (`act_${obj.account_id}` !== act) return jsonAuth(req, { error: "That isn't in the AquaZen ad account." }, 403);
+    if (r.type === "budget") {
+      const dollars = Math.round(Number(r.new_budget));
+      if (!(dollars >= 5 && dollars <= 500)) return jsonAuth(req, { error: "Choose a daily budget between $5 and $500." }, 400);
+      await graph(id, token, { daily_budget: dollars * 100 }, "POST");
+      await db.from("meta_sends").insert({ created_by: me.user.id, kind: "budget", headline: obj.name, result: { id, daily_budget: dollars, from: "advice" } }).then(() => {}, () => {});
+      return jsonAuth(req, { ok: true, done: `Budget for ${obj.name} is now $${dollars} a day.` });
+    }
+    if (r.type === "pause" || r.type === "resume") {
+      const status = r.type === "resume" ? "ACTIVE" : "PAUSED";
+      await graph(id, token, { status }, "POST");
+      await db.from("meta_sends").insert({ created_by: me.user.id, kind: r.type, headline: obj.name, result: { id, from: "advice" } }).then(() => {}, () => {});
+      return jsonAuth(req, { ok: true, done: `${obj.name} is ${status === "ACTIVE" ? "turned on" : "paused"}.` });
+    }
+    if (r.type === "copy") {
+      const headline = String(r.new_headline || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").trim().slice(0, 80);
+      const message = String(r.new_text || "").replace(/\s*[\u2014\u2013]\s*/g, ", ").trim().slice(0, 600);
+      if (!headline || !message) return jsonAuth(req, { error: "The new wording is missing." }, 400);
+      const ad = await graph(id, token, { fields: "name,status,adset_id,creative{object_story_spec}" });
+      const old = ad.creative?.object_story_spec ?? {};
+      // deno-lint-ignore no-explicit-any
+      const story: any = { page_id: old.page_id };
+      if (old.instagram_user_id) story.instagram_user_id = old.instagram_user_id;
+      if (old.instagram_actor_id) story.instagram_actor_id = old.instagram_actor_id;
+      if (old.video_data) {
+        const v = old.video_data;
+        story.video_data = { video_id: v.video_id, message, title: headline, call_to_action: v.call_to_action };
+        if (v.image_hash) story.video_data.image_hash = v.image_hash; else if (v.image_url) story.video_data.image_url = v.image_url;
+      } else if (old.link_data) {
+        const l = old.link_data;
+        story.link_data = { link: l.link, message, name: headline, call_to_action: l.call_to_action };
+        if (l.image_hash) story.link_data.image_hash = l.image_hash; else if (l.picture) story.link_data.picture = l.picture;
+      } else return jsonAuth(req, { error: "This ad's format can't be copied here. Change it in Ads Manager." }, 400);
+      const cr = await graph(`${act}/adcreatives`, token, { name: `AquaZen: ${headline}`, object_story_spec: story }, "POST");
+      const day = new Date().toISOString().slice(0, 10);
+      const nu = await graph(`${act}/ads`, token, { name: `${headline} (${day})`, adset_id: ad.adset_id, creative: { creative_id: cr.id }, status: ad.status === "ACTIVE" ? "ACTIVE" : "PAUSED" }, "POST");
+      if (ad.status === "ACTIVE") await graph(id, token, { status: "PAUSED" }, "POST");
+      await db.from("meta_sends").insert({ created_by: me.user.id, kind: "copy", headline, result: { old_ad: id, new_ad: nu.id, from: "advice" } }).then(() => {}, () => {});
+      return jsonAuth(req, { ok: true, done: ad.status === "ACTIVE" ? `New wording is running. The old ad is paused. Meta may take a little while to review it.` : `New ad made with the new wording. It's paused, like the old one, until you turn it on.` });
+    }
+    return jsonAuth(req, { error: "Unknown change." }, 400);
   } catch (e) {
     return jsonAuth(req, { error: `Meta said: ${(e as Error).message}` }, 502);
   }
@@ -2194,7 +2310,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
 }
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,
