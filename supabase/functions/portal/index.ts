@@ -1718,6 +1718,19 @@ async function route_ads_stats(req: Request): Promise<Response> {
   return jsonAuth(req, out, out.error ? 502 : 200);
 }
 
+
+// Turning a campaign on means its ad sets and ads too; otherwise Meta shows it as on but nothing runs.
+async function setStatusDeep(kind: string, id: string, status: string, token: string) {
+  await graph(id, token, { status }, "POST");
+  if (kind === "campaign" && status === "ACTIVE") {
+    const c = await graph(id, token, { fields: "adsets.limit(50){id,status},ads.limit(100){id,status,effective_status}" });
+    // deno-lint-ignore no-explicit-any
+    for (const x of c.adsets?.data ?? []) if (x.status !== "ACTIVE" && x.status !== "ARCHIVED" && x.status !== "DELETED") await graph(x.id, token, { status }, "POST");
+    // deno-lint-ignore no-explicit-any
+    for (const a of c.ads?.data ?? []) if (a.status !== "ACTIVE" && a.status !== "ARCHIVED" && a.status !== "DELETED" && a.effective_status !== "DISAPPROVED") await graph(a.id, token, { status }, "POST");
+  }
+}
+
 // POST {kind: 'campaign'|'adset'|'ad', id, action: 'pause'|'resume'} or {kind:'adset', id, budget}
 //      or {fund: {per_tub, start}} (admins)
 async function route_ads_control(req: Request): Promise<Response> {
@@ -1770,7 +1783,7 @@ async function route_ads_control(req: Request): Promise<Response> {
     }
     const status = b.action === "resume" ? "ACTIVE" : b.action === "pause" ? "PAUSED" : "";
     if (!status) return jsonAuth(req, { error: "Pause or resume?" }, 400);
-    await graph(id, token, { status }, "POST");
+    await setStatusDeep(kind, id, status, token);
     await db.from("meta_sends").insert({ created_by: me.user.id, kind: status === "ACTIVE" ? "resume" : "pause", headline: obj.name, result: { id, kind } }).then(() => {}, () => {});
     return jsonAuth(req, { ok: true });
   } catch (e) {
@@ -1856,7 +1869,8 @@ async function route_ads_apply(req: Request): Promise<Response> {
     }
     if (r.type === "pause" || r.type === "resume") {
       const status = r.type === "resume" ? "ACTIVE" : "PAUSED";
-      await graph(id, token, { status }, "POST");
+      const isCamp = await graph(id, token, { fields: "objective" }).then((x) => !!x.objective, () => false);
+      await setStatusDeep(isCamp ? "campaign" : "ad", id, status, token);
       await db.from("meta_sends").insert({ created_by: me.user.id, kind: r.type, headline: obj.name, result: { id, from: "advice" } }).then(() => {}, () => {});
       return jsonAuth(req, { ok: true, done: `${obj.name} is ${status === "ACTIVE" ? "turned on" : "paused"}.` });
     }
