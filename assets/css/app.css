@@ -72,7 +72,7 @@ p{margin:0}
 .menu-pop a:hover,.menu-pop a:focus-visible{background:var(--paper)}
 .menu-pop a[aria-current="page"]{background:var(--paper)}
 .menu-pop a[aria-current="page"] b::after{content:"  \2022";color:var(--gold)}
-@media (max-width:640px){.menu-btn{padding:12px 10px;font-size:.9rem}.menu-group:last-child .menu-pop,.menu-group:nth-last-child(2) .menu-pop{left:auto;right:0}.menu-pop{min-width:240px}}
+@media (max-width:640px){.tabs.menu{position:relative}.menu-group{position:static}.menu-btn{padding:12px 10px;font-size:.9rem}.menu-pop{left:0;right:0;min-width:0}}
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;padding:24px;min-width:0}
 .card h2{font-size:1.7rem}
 .card h3{font-family:var(--body);font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--muted);margin:22px 0 10px}
