@@ -380,6 +380,7 @@
       else if (v === 'other' && a[s.id + '_other']) readable[s.title] = a[s.id + '_other'];
       else readable[s.title] = labelFor(s.id, v);
     });
+    lastReadable = readable;
     var body = {
       first_name: contact.first.trim(), last_name: contact.last.trim(), email: contact.email.trim(),
       phone: contact.phone.trim(), city: contact.city.trim(), best_time: contact.time,
@@ -397,6 +398,7 @@
       });
   }
 
+  var lastReadable = {};
   function done(a) {
     bar.style.width = '100%';
     var when = contact.time && contact.time !== 'Any time' ? ' in the ' + contact.time.toLowerCase() : '';
@@ -417,8 +419,16 @@
         '<p class="fz-sub">There\'s a lot a screen can\'t tell you: how it feels, how much room you really need, and what we\'d leave off so you only pay for what you\'ll use. That\'s what the visit is for.</p>' +
         '<p class="fz-sub">Can\'t wait? Call or text <a href="tel:+12363044424">236-304-4424</a>.</p>';
     }
-    h += '<div class="fz-done-ctas"><a class="pill" href="sms:+12363044424">Text us to book a visit</a><a class="link-btn" href="../hot-tubs/">Browse every hot tub</a></div></div>';
+    h += '<div class="fz-done-ctas"><a class="pill" href="sms:+12363044424">Text us to book a visit</a><button type="button" class="link-btn fz-ask-noah">Ask Noah a question</button><a class="link-btn" href="../hot-tubs/">Browse every hot tub</a></div></div>';
     form.innerHTML = h;
+    // Noah, the website chat, picks up from here with their results.
+    try {
+      var told = Object.keys(lastReadable).map(function (k) { return k + ': ' + lastReadable[k]; }).join('; ');
+      var me = 'Name ' + contact.first.trim() + ' ' + contact.last.trim() + ', phone ' + contact.phone.trim() + ', email ' + contact.email.trim() + ', city ' + contact.city.trim() + ' (they gave these in the form, so never ask again)';
+      document.dispatchEvent(new CustomEvent('az:fzdone', { detail: { picks: pk ? TUBS[pk.fit].name + ' and ' + TUBS[pk.up].name : '', answers: me + '. ' + told } }));
+    } catch (e) {}
+    var ask = form.querySelector('.fz-ask-noah');
+    if (ask) ask.addEventListener('click', function () { if (window.AZNoah) window.AZNoah.open(); });
     form.querySelector('.fz-title').focus({ preventScroll: true });
     if (embedded) document.getElementById('finder').scrollIntoView({ block: 'start' }); else window.scrollTo({ top: 0 });
   }

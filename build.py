@@ -702,6 +702,14 @@ def seo():
                             "if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;"
                             "s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');"
                             f"fbq('init','{META_PIXEL_ID}');fbq('track','PageView');</script>")
+            # Noah, the website chat: at the end of the presentation, after Find your Zen, and on model pages.
+            if path in ("/how-we-deliver-zen/", "/find-your-zen/") or (kind and kind[0] == "model"):
+                import hashlib
+                v = hashlib.md5(open(os.path.join(ROOT, "assets/js/noahchat.js"), "rb").read()).hexdigest()[:8]
+                if kind and kind[0] == "model":
+                    s_, k_, m_ = kind[1]
+                    tags.append("<script>window.AZ_NOAH=" + json.dumps({"page": "model", "model": m_["name"], "series": s_["name"]}) + ";</script>")
+                tags.append(f'<script src="/assets/js/noahchat.js?v={v}" defer></script>')
             tags += [f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in lds]
             tags = "\n".join(tags) + "<!-- /seo -->"
         txt = txt.replace("</head>", tags + "\n</head>", 1)

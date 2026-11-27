@@ -914,3 +914,44 @@ html[data-goal="sleep"] .g[data-g="sleep"],html[data-goal="muscles"] .g[data-g="
 .hz-now .k{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f0bf33;margin-bottom:8px}
 .hz-now[hidden]{display:none}
 .hz-fz.asking .hz-now{display:none}
+
+/* Noah, the website chat (assets/js/noahchat.js) */
+.noahw{position:fixed;z-index:70;left:max(20px,env(safe-area-inset-left,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));font-family:var(--font);opacity:0;transform:translateY(20px);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
+.noahw.on{opacity:1;transform:none;pointer-events:auto}
+.noahw-launch{display:flex;align-items:center;gap:10px;padding:12px 18px 12px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(22,22,23,.92);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);color:#fff;font:600 15px/1.2 var(--font);letter-spacing:-.01em;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.noahw-launch:hover{background:rgba(40,40,42,.95)}
+.noahw-launch:focus-visible,.noahw-x:focus-visible,.noahw-form button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.noahw.open .noahw-launch{display:none}
+.noahw-dot{width:22px;height:22px;border-radius:50%;background:var(--sunset);flex:none}
+.noahw-teaser{position:absolute;bottom:58px;left:0;width:min(300px,calc(100vw - 40px));padding:12px 14px;border-radius:16px 16px 16px 4px;background:#fff;color:#1d1d1f;font-size:14px;line-height:1.4;box-shadow:0 10px 30px rgba(0,0,0,.3);cursor:pointer}
+.noahw-panel{position:absolute;bottom:0;left:0;width:min(380px,calc(100vw - 40px));height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#f5f5f7;color:#1d1d1f;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.noahw-panel[hidden]{display:none}
+.noahw-panel header{display:flex;align-items:center;gap:10px;padding:14px 14px 14px 16px;background:#161617;color:#fff}
+.noahw-panel header div{display:flex;flex-direction:column;line-height:1.2;flex:1}
+.noahw-panel header b{font-size:16px}
+.noahw-panel header small{font-size:12px;color:#a1a1a6}
+.noahw-x{width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:22px;line-height:1;cursor:pointer}
+.noahw-list{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+.nw{max-width:85%;padding:10px 13px;border-radius:18px;font-size:15px;line-height:1.42;letter-spacing:-.01em;word-wrap:break-word}
+.nw-noah{align-self:flex-start;background:#fff;border-bottom-left-radius:5px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.nw-me{align-self:flex-end;background:#1d1d1f;color:#fff;border-bottom-right-radius:5px}
+.nw a{color:#0066cc}
+.nw-typing{display:flex;gap:4px;padding:14px}
+.nw-typing i{width:7px;height:7px;border-radius:50%;background:#a1a1a6;animation:nwdot 1.2s infinite ease-in-out}
+.nw-typing i:nth-child(2){animation-delay:.15s}.nw-typing i:nth-child(3){animation-delay:.3s}
+@keyframes nwdot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+.noahw-form{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(0,0,0,.08);background:#fff}
+.noahw-form textarea{flex:1;resize:none;border:1px solid #d2d2d7;border-radius:18px;padding:9px 13px;font:16px/1.35 var(--font);color:#1d1d1f;background:#fff;max-height:120px}
+.noahw-form textarea:focus{outline:none;border-color:#86868b}
+.noahw-form button{border:0;border-radius:999px;padding:0 16px;background:#1d1d1f;color:#fff;font:600 15px var(--font);cursor:pointer}
+.noahw-note{margin:0;padding:6px 12px 10px;background:#fff;font-size:11px;color:#86868b;text-align:center}
+.noahw-note a{color:#86868b}
+@media (max-width:640px){
+  .noahw{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));transition:opacity .35s ease,transform .35s ease,bottom .3s ease}
+  .noahw.above-zf:not(.open){bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .noahw-launch{padding:11px 16px 11px 12px;font-size:14px}
+  .noahw-teaser{left:auto;right:0;border-radius:16px 16px 4px 16px}
+  .noahw.open{left:0;right:0;bottom:0}
+  .noahw-panel{position:fixed;left:0;right:0;bottom:0;width:100%;height:min(82vh,640px);border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);background:#fff}
+}
+@media (prefers-reduced-motion:reduce){.noahw{transition:opacity .2s}.nw-typing i{animation:none}}

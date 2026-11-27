@@ -2091,7 +2091,7 @@ ${tileCell("Ad budget left", cad(f.left), `${cad(f.spent, true)} spent so far`)}
     // deno-lint-ignore no-explicit-any
     html += leadsToday.map((l: any) => `<p style="margin:0 0 6px">&#9679; <b>${escapeHtml(l.name || "Someone")}</b> filled out Find your Zen${l.bought ? " and bought" : ""}.</p>`).join("");
     // deno-lint-ignore no-explicit-any
-    html += handed.map((c: any) => `<p style="margin:0 0 6px">&#9679; <b>${escapeHtml(c.name || "Someone")}</b> was handed to you by Noah on ${c.channel === "instagram" ? "Instagram" : "Messenger"}.</p>`).join("");
+    html += handed.map((c: any) => `<p style="margin:0 0 6px">&#9679; <b>${escapeHtml(c.name || "Someone")}</b> was handed to you by Noah on ${c.channel === "web" ? "the website" : CH_NAME[c.channel] || "Messenger"}.</p>`).join("");
     if (!leadsToday.length && !handed.length) html += `<p style="margin:0;color:#6e6e73">No one new today.</p>`;
     html += `<p style="margin:12px 0 0"><a href="${SITE_URL}/staff/#customers" style="color:#ca3432;font-weight:600">Open Customers</a></p>`;
   }
@@ -2695,7 +2695,7 @@ async function noahDraftSale(customerId: string, deal: any, lead: any, channel: 
   const colour = /odyssey/i.test(String(deal.shell_colour)) ? "Odyssey" : /silver|sterling/i.test(String(deal.shell_colour)) ? "Sterling Silver" : "";
   const up = NOAH_UPGRADES[line];
   const deposit = String(deal.payment ?? "").toLowerCase() === "deposit";
-  const note = [`Built by Noah from a ${channel === "instagram" ? "Instagram" : "Messenger"} chat. Check it, then send it to sign.`,
+  const note = [`Built by Noah from a ${CH_NAME[channel] || "Messenger"} chat. Check it, then send it to sign.`,
     up ? `Included free: every available upgrade (${up.names}).` : "",
     extra ? `Extra discount Noah agreed: $${extra}${asked > cap ? ` (they asked for $${asked}; capped at $${cap} for ${line})` : ""}.` : "",
     deposit ? "Paying a 50% deposit now, balance two weeks before delivery." : String(deal.payment ?? "").toLowerCase() === "full" ? "Paying in full." : "Payment not discussed yet (set to paid in full).",
@@ -2712,15 +2712,16 @@ async function noahDraftSale(customerId: string, deal: any, lead: any, channel: 
   return { id: sale.id, number: sale.number, note };
 }
 
+const CH_NAME: Record<string, string> = { instagram: "Instagram", messenger: "Messenger", web: "website" };
 async function noahHandoff(threadId: string, channel: string, lead: Record<string, string>, history: { role: string; text: string }[]) {
   const db = admin();
   const { data: t } = await db.from("chat_threads").select("*").eq("id", threadId).single();
   const stamp = new Date().toLocaleDateString("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "short", day: "numeric" });
-  const notes = [`Noah on ${channel === "instagram" ? "Instagram" : "Messenger"} (${stamp}):`,
+  const notes = [`Noah on ${channel === "web" ? "the website" : CH_NAME[channel] || "Messenger"} (${stamp}):`,
     lead.interest ? `- Interested in: ${lead.interest}` : "", lead.best_time ? `- Best time to call: ${lead.best_time}` : "",
     lead.summary ? `- ${lead.summary}` : "", "", ...history.slice(-14).map((m) => `${m.role === "user" ? "Them" : m.role === "team" ? "Team" : "Noah"}: ${m.text}`)].filter((x) => x !== null).join("\n").slice(0, 7000);
   let customerId = t?.customer_id;
-  const fields = { name: lead.name || t?.name || "Social media lead", cell: lead.phone || null, email: lead.email || null, address: lead.address || null, city_pc: lead.city || null, heard_about: channel === "instagram" ? "Instagram: Noah" : "Messenger: Noah" };
+  const fields = { name: lead.name || (t?.name !== "Website visitor" ? t?.name : "") || (channel === "web" ? "Website lead" : "Social media lead"), cell: lead.phone || null, email: lead.email || null, address: lead.address || null, city_pc: lead.city || null, heard_about: channel === "web" ? "Website chat: Noah" : `${CH_NAME[channel] || "Messenger"}: Noah` };
   if (customerId) {
     const { data: c } = await db.from("customers").select("notes").eq("id", customerId).single();
     await db.from("customers").update({ ...Object.fromEntries(Object.entries(fields).filter(([, v]) => v)), notes: [notes, c?.notes].filter(Boolean).join("\n\n").slice(0, 8000) }).eq("id", customerId);
@@ -2735,8 +2736,8 @@ async function noahHandoff(threadId: string, channel: string, lead: Record<strin
     await sendEmail({
       from: FROM, to: Deno.env.get("LEAD_TO") || "shaun@aquazen.ca", reply_to: REPLY_TO,
       subject: deal ? `Noah sold a hot tub: ${fields.name}, deal #${deal.number} is ready to check` : `Noah handed you a lead: ${fields.name}${lead.phone ? ", " + lead.phone : ""}`,
-      html: emailShell({ preheader: "A social media lead is ready for a person.", body:
-        `<p>Noah passed a ${channel === "instagram" ? "Instagram" : "Messenger"} conversation to the team.</p>
+      html: emailShell({ preheader: "A lead from Noah is ready for a person.", body:
+        `<p>Noah passed a ${CH_NAME[channel] || "Messenger"} conversation to the team.</p>
 <p><b>${escapeHtml(fields.name)}</b><br>${escapeHtml(lead.phone || "no phone yet")}${lead.email ? "<br>" + escapeHtml(lead.email) : ""}${lead.best_time ? "<br>Best time: " + escapeHtml(lead.best_time) : ""}</p>
 ${lead.interest ? `<p>Interested in: ${escapeHtml(lead.interest)}</p>` : ""}${lead.summary ? `<p>${escapeHtml(lead.summary)}</p>` : ""}
 ${deal ? `<p><b>Noah built the deal as a draft (#${deal.number}).</b><br>${escapeHtml(deal.note).replace(/\n/g, "<br>")}</p>${button(`${SITE_URL}/staff/#sale-${deal.id}`, "Check the deal and send it to sign")}` : ""}
@@ -2854,7 +2855,7 @@ async function route_noah_followup(req: Request): Promise<Response> {
   const on = (await db.from("settings").select("v").eq("k", "noah_on").maybeSingle()).data?.v !== "off";
   if (!on || !Deno.env.get("META_TOKEN")) return new Response("off");
   const now = Date.now();
-  const { data: threads } = await db.from("chat_threads").select("*").eq("status", "bot").is("followup_at", null).is("handed_off_at", null)
+  const { data: threads } = await db.from("chat_threads").select("*").eq("status", "bot").neq("channel", "web").is("followup_at", null).is("handed_off_at", null)
     .lt("last_bot_at", new Date(now - 3 * 3600e3).toISOString()).gt("last_user_at", new Date(now - 22 * 3600e3).toISOString()).limit(20);
   let sent = 0;
   const ptoken = threads?.length ? await pageToken() : "";
@@ -2909,6 +2910,67 @@ async function personalLinks(psid: string, text: string): Promise<string> {
 }
 
 // Public. POST {c, e: open|beat|away|back|form, ch?, page?, s?}  From the presentation and Find your Zen (sendBeacon too).
+// Noah on the website (public): a chat box at the end of the presentation, after Find your Zen and on model pages.
+// The visitor's browser keeps a random id (vid); that's the thread. Nothing here can reach Messenger.
+const WEB_CTX: Record<string, string> = {
+  presentation: "They've just reached the end of the How we deliver Zen presentation on the website and opened the chat. They HAVE been through the presentation, so you're in closing mode.",
+  quiz: "They've just sent the Find your Zen form on the website and opened the chat from their results.",
+  model: "They're on a hot tub model page on the website.",
+  site: "They're on the AquaZen website.",
+};
+async function route_noah_web(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
+  const b = await req.text().then((t) => { try { return JSON.parse(t); } catch { return {}; } });
+  const vid = String(b.vid ?? "").replace(/[^a-z0-9-]/gi, "").slice(0, 40);
+  const text = String(b.text ?? "").trim().slice(0, 1000);
+  if (vid.length < 16 || !text) return json(req, { error: "Please type a message." }, 400);
+  const db = admin();
+  const phone = "If you'd rather talk to a person, call or text us at 236-304-4424.";
+  const on = (await db.from("settings").select("v").eq("k", "noah_on").maybeSingle()).data?.v !== "off";
+  if (!on) return json(req, { reply: `Noah is taking a break right now. ${phone}` });
+  const now = new Date();
+  let { data: t } = await db.from("chat_threads").select("*").eq("channel", "web").eq("psid", vid).maybeSingle();
+  if (!t) t = (await db.from("chat_threads").insert({ channel: "web", psid: vid, name: "Website visitor", last_user_at: now.toISOString() }).select("*").single()).data;
+  if (!t) return json(req, { error: "Something went wrong. Please try again." }, 500);
+  // A simple limit so nobody can run up the bill: 10 messages in 5 minutes, 60 a day.
+  const { count: recent } = await db.from("chat_messages").select("id", { count: "exact", head: true }).eq("thread_id", t.id).eq("role", "user").gte("created_at", new Date(now.getTime() - 5 * 60e3).toISOString());
+  const { count: today } = await db.from("chat_messages").select("id", { count: "exact", head: true }).eq("thread_id", t.id).eq("role", "user").gte("created_at", new Date(now.getTime() - 24 * 3600e3).toISOString());
+  if ((recent ?? 0) >= 10 || (today ?? 0) >= 60) return json(req, { reply: `That's a lot of messages in a short time, so I'm going to pause here. ${phone}` });
+  // The greeting the visitor saw first becomes part of the chat, so Noah knows what he "said".
+  const { count: any } = await db.from("chat_messages").select("id", { count: "exact", head: true }).eq("thread_id", t.id);
+  const greeting = String(b.greeting ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 400);
+  if (!any && greeting) await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: greeting, stage: "intro", move: "website greeting" });
+  await db.from("chat_messages").insert({ thread_id: t.id, role: "user", text });
+  await db.from("chat_threads").update({ last_user_at: now.toISOString(), updated_at: now.toISOString() }).eq("id", t.id);
+  if (t.status === "human" && t.human_until && new Date(t.human_until) > now) return json(req, { reply: `Thanks, I've passed that to the team. ${phone}` });
+
+  const c = b.ctx && typeof b.ctx === "object" ? b.ctx : {};
+  const page = ["presentation", "quiz", "model"].includes(String(c.page)) ? String(c.page) : "site";
+  const clip = (x: unknown, n = 120) => String(x ?? "").replace(/[\r\n]+/g, " ").slice(0, n);
+  const seen = page === "presentation" || page === "quiz" || !!c.saw_presentation;
+  const lines = [
+    `WEBSITE CHAT. ${WEB_CTX[page]}`,
+    page === "model" && c.model ? `The page: the ${clip(c.model, 40)} (${clip(c.series, 30)}). They may want the price: give it straight (what people normally pay, our price, and the package that's included), then keep going with the process.` : "",
+    page === "quiz" && c.picks ? `Their Find your Zen results showed: ${clip(c.picks, 160)}. Their answers: ${clip(c.answers, 900)}. The team will also call them about these, so you can help them choose between the two, answer questions, or sell the one they want right here.` : "",
+    page !== "presentation" && c.saw_presentation ? "They've also been through the How we deliver Zen presentation on this website." : "",
+    "This is a chat box on aquazen.ca, not Messenger: links to pages on aquazen.ca are fine (they open on the site), but never suggest Messenger. The team can only follow up by phone or email, so when it's natural (a question you can't answer, a call, or a yes) ask for their first name and phone number or email. Count an email as enough for handoff when they'd rather not give a phone number.",
+    seen ? NOAH_CLOSE : "",
+    t.handed_off_at ? "The team already has their details and will call. Keep helping warmly, and don't ask for their details again." : "",
+  ].filter(Boolean).join("\n\n");
+  const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t.id).order("created_at").limit(60);
+  const history = msgs ?? [];
+  try {
+    const j = await noahThink(history, lines);
+    await noahRecord(t.id, j, null);
+    await db.from("chat_threads").update({ last_bot_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(j.lead?.name && !t.handed_off_at ? { name: clip(j.lead.name, 60) } : {}) }).eq("id", t.id);
+    if (j.handoff && !t.handed_off_at) await noahHandoff(t.id, "web", j.lead || {}, [...history, { role: "noah", text: j.reply }]).catch((e) => console.error("noah web handoff", e));
+    return json(req, { reply: j.reply });
+  } catch (e) {
+    console.error("noah web", e);
+    return json(req, { reply: `Sorry, I didn't catch that one. Could you send it again? ${phone}` });
+  }
+}
+
 async function route_noah_track(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   const b = await req.text().then((t) => { try { return JSON.parse(t); } catch { return {}; } });
@@ -2960,6 +3022,7 @@ async function route_noah_nudge(req: Request): Promise<Response> {
     // the team isn't on it, and Noah hasn't already done this for them today.
     if (!t || (t.status === "human" && t.human_until && new Date(t.human_until).getTime() > now)) { await mark("(skipped: team has the chat)"); continue; }
     if (t.handed_off_at) { await mark("(skipped: already with the team)"); continue; }
+    if (t.channel === "web") { await mark("(skipped: a website chat)"); continue; }
     if (!t.last_user_at || new Date(t.last_user_at).getTime() < now - 23 * 3600e3) { await mark("(skipped: outside Meta's 24-hour window)"); continue; }
     if (new Date(t.last_user_at) > new Date(v.started_at)) { await mark("(skipped: they wrote to Noah after opening it)"); continue; }
     const { count } = await db.from("page_visits").select("id", { count: "exact", head: true }).eq("thread_id", t.id).gte("nudged_at", new Date(now - 24 * 3600e3).toISOString()).not("nudge_text", "like", "(skipped%");
@@ -3045,7 +3108,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
 }
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "ads-daily": route_ads_daily, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-track": route_noah_track, "noah-nudge": route_noah_nudge, "noah-learn": route_noah_learn, "noah-admin": route_noah_admin,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "ads-daily": route_ads_daily, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-track": route_noah_track, "noah-web": route_noah_web, "noah-nudge": route_noah_nudge, "noah-learn": route_noah_learn, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

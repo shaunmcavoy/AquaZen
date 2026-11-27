@@ -28,7 +28,7 @@
       var sub = $('#noahSub'); if (sub) sub.onclick = function () { sub.disabled = true; AZ.api('noah-admin', { subscribe: true }).then(function (x) { sub.textContent = x.subscribed ? 'Page connected' : 'Try again'; }, function (e2) { sub.textContent = e2.message; }); };
       threads = r.threads || [];
       $('#noahThreads').innerHTML = threads.map(function (t) {
-        return '<tr data-id="' + t.id + '" tabindex="0"><td><b>' + AZ.esc(t.name || 'Someone') + '</b></td><td>' + (t.channel === 'instagram' ? 'Instagram' : 'Messenger') + '</td><td>' + statusOf(t) + '</td><td>' + AZ.esc(t.stage_name || '') + '</td><td>' + when(t.last_user_at) + '</td></tr>';
+        return '<tr data-id="' + t.id + '" tabindex="0"><td><b>' + AZ.esc(t.name || 'Someone') + '</b></td><td>' + ({ instagram: 'Instagram', web: 'Website' }[t.channel] || 'Messenger') + '</td><td>' + statusOf(t) + '</td><td>' + AZ.esc(t.stage_name || '') + '</td><td>' + when(t.last_user_at) + '</td></tr>';
       }).join('') || '<tr><td colspan="5" class="empty">No conversations yet.</td></tr>';
       learningHtml(r);
     }).catch(function (e) { $('#noahReady').textContent = e.message; });
@@ -78,7 +78,7 @@
     openId = id;
     var t = threads.filter(function (x) { return x.id === id; })[0]; if (!t) return;
     $('#noahThread').hidden = false;
-    $('#noahThreadName').textContent = (t.name || 'Someone') + ' on ' + (t.channel === 'instagram' ? 'Instagram' : 'Messenger');
+    $('#noahThreadName').textContent = (t.name || 'Someone') + ' on ' + ({ instagram: 'Instagram', web: 'Website' }[t.channel] || 'Messenger');
     var paused = t.status === 'human' && t.human_until && new Date(t.human_until) > new Date();
     $('#noahPause').textContent = paused ? 'Let Noah answer this chat again' : 'Pause Noah on this chat';
     $('#noahPause').dataset.to = paused ? 'bot' : 'human';
