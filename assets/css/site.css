@@ -955,3 +955,9 @@ html[data-goal="sleep"] .g[data-g="sleep"],html[data-goal="muscles"] .g[data-g="
   .noahw-panel{position:fixed;left:0;right:0;bottom:0;width:100%;height:min(82vh,640px);border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);background:#fff}
 }
 @media (prefers-reduced-motion:reduce){.noahw{transition:opacity .2s}.nw-typing i{animation:none}}
+
+/* Social links in the footer */
+.foot-social{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 10px!important}
+.foot-soc{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 11px;border-radius:999px;border:1px solid #333;color:#f5f5f7;text-decoration:none;font-size:13px;transition:background .2s,border-color .2s}
+.foot-soc:hover{background:#1d1d1f;border-color:#555}
+.foot-soc:focus-visible{outline:2px solid #fff;outline-offset:3px}

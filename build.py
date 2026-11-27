@@ -582,6 +582,36 @@ GOOGLE_SITE_VERIFICATION = ""
 META_PIXEL_ID = "1808425697108610"
 # Our delivery crew goes anywhere from Whistler to Hope.
 DELIVERY_AREA = ["Whistler", "Squamish", "West Vancouver", "North Vancouver", "Vancouver", "Burnaby", "New Westminster", "Richmond", "Delta", "Surrey", "White Rock", "Langley", "Coquitlam", "Port Coquitlam", "Port Moody", "Pitt Meadows", "Maple Ridge", "Mission", "Abbotsford", "Chilliwack", "Agassiz", "Harrison Hot Springs", "Hope"]
+# Our social accounts. Shown in every footer and listed in the Store schema (sameAs) so Google ties them to AquaZen.
+SOCIAL = [
+    ("Facebook", "https://www.facebook.com/1507596002430176",
+     '<path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.9v3h2.5V21h3.1z"/>'),
+    ("Instagram", "https://www.instagram.com/aquazenhottubs/",
+     '<path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM21 8.1c-.1-1.4-.4-2.7-1.4-3.7S17.3 3 15.9 3C14.4 2.9 9.6 2.9 8.1 3 6.7 3.1 5.4 3.4 4.4 4.4S3 6.7 3 8.1C2.9 9.6 2.9 14.4 3 15.9c.1 1.4.4 2.7 1.4 3.7S6.7 21 8.1 21c1.5.1 6.3.1 7.8 0 1.4-.1 2.7-.4 3.7-1.4s1.3-2.3 1.4-3.7c.1-1.5.1-6.3 0-7.8zm-2 9.6c-.3.8-.9 1.4-1.7 1.7-1.2.5-3.9.4-5.3.4s-4.1.1-5.3-.4c-.8-.3-1.4-.9-1.7-1.7-.5-1.2-.4-3.9-.4-5.3s-.1-4.1.4-5.3c.3-.8.9-1.4 1.7-1.7 1.2-.5 3.9-.4 5.3-.4s4.1-.1 5.3.4c.8.3 1.4.9 1.7 1.7.5 1.2.4 3.9.4 5.3s.1 4.1-.4 5.3z"/>'),
+]
+
+
+def social_row():
+    links = "".join(f'<a class="foot-soc" href="{u}" target="_blank" rel="noopener" aria-label="AquaZen on {n}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">{svg}</svg><span>{n}</span></a>' for n, u, svg in SOCIAL)
+    return f'<!-- social --><p class="foot-social">{links}</p><!-- /social -->'
+
+
+def socials():
+    """Put the social links in every public footer, right after the phone and email line."""
+    for dirpath, _, files in os.walk(ROOT):
+        rel = os.path.relpath(dirpath, ROOT)
+        if rel.startswith((".git", "supabase", "src", "assets", "__pycache__")) or rel.split(os.sep)[0] in APP_DIRS:
+            continue
+        if "index.html" not in files:
+            continue
+        full = os.path.join(dirpath, "index.html")
+        txt = open(full).read()
+        txt = re.sub(r"<!-- social -->.*?<!-- /social -->", "", txt, flags=re.S)
+        new = re.sub(r'(<a class="plain" href="mailto:shaun@aquazen\.ca">shaun@aquazen\.ca</a></p>)', lambda m: m.group(1) + "\n    " + social_row(), txt, count=1)
+        if new != txt or "<!-- social -->" in new:
+            open(full, "w").write(new)
+
+
 STORE = {
     "@type": ["Store", "LocalBusiness"], "@id": SITE + "/#store",
     "name": "AquaZen", "legalName": "Aqua Zen Wellness Consulting",
@@ -597,6 +627,7 @@ STORE = {
     "founder": {"@type": "Person", "name": "Shaun McAvoy"},
     "brand": {"@type": "Brand", "name": "AquaSolus"},
     "slogan": "Your Zen is calling.",
+    "sameAs": [u for _, u, _ in SOCIAL],
     "areaServed": [{"@type": "City", "name": c} for c in DELIVERY_AREA],
     "knowsAbout": ["hot tubs", "swim spas", "hot tub water care", "hot tub installation in BC"],
 }
@@ -802,6 +833,7 @@ if __name__ == "__main__":
     build_faq()
     build_visit()
     build_app()
+    socials()
     stamp_assets()
     seo()
     llms()
