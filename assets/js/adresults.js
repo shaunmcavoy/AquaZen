@@ -52,7 +52,7 @@
     if (!a) return h + '</div>';
     var g = GRADE[a.grade] || GRADE.too_early;
     h += '<div class="adverdict"><span class="adrate ' + g[1] + '">' + esc(g[0]) + '</span><b>' + esc(a.headline) + '</b></div><p>' + esc(a.summary) + '</p>' +
-      '<p class="muted adnote">From ' + esc(AZ.dateTime(a.at)) + ', looking at ' + esc(RANGE_NAME[a.range] || 'your results') + '.</p>';
+      '<p class="muted adnote">Written ' + esc(AZ.dateTime(a.at)) + ', from your results ' + esc(RANGE_NAME[a.range] || '') + '.</p>';
     if (!a.recommendations.length) return h + '<p><b>No changes needed right now.</b></p></div>';
     h += '<ol class="adrecs">' + a.recommendations.map(function (r, i) {
       var k = a.at + i, done = applied[k];
