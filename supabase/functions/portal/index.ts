@@ -666,7 +666,7 @@ const MENU_DEFAULTS: Record<string, string[]> = {
 };
 // What an admin can give each role. Financials, Products and Team stay admin only (true costs, team settings).
 const MENU_ALLOWED: Record<string, string[]> = {
-  staff: ["customers", "sales", "new", "deliveries", "service", "resources", "ads", "noah"],
+  staff: ["customers", "sales", "new", "deliveries", "service", "resources", "ads", "adresults", "noah"],
   delivery: ["deliveries", "service", "resources"],
 };
 // deno-lint-ignore no-explicit-any
@@ -1605,6 +1605,150 @@ async function route_meta_status(req: Request): Promise<Response> {
   }
 }
 
+
+// ---- Ad results: what Meta says plus what really happened (leads tagged ?from=fbad, and sales) ----
+const AD_RANGES: Record<string, string> = { today: "today", "7d": "last_7d", "30d": "last_30d", max: "maximum" };
+// deno-lint-ignore no-explicit-any
+const actionCount = (row: any, types: string[]) => (row?.actions ?? []).filter((a: any) => types.includes(a.action_type)).reduce((n: number, a: any) => n + Number(a.value || 0), 0);
+const LEAD_TYPES = ["offsite_conversion.fb_pixel_lead", "lead"];
+const LPV_TYPES = ["landing_page_view"];
+function sinceFor(range: string) {
+  const now = new Date(); const d = new Date(now.toLocaleString("en-US", { timeZone: "America/Vancouver" }));
+  d.setHours(0, 0, 0, 0);
+  if (range === "7d") d.setDate(d.getDate() - 6);
+  else if (range === "30d") d.setDate(d.getDate() - 29);
+  else if (range === "max") return new Date("2020-01-01T00:00:00Z");
+  // back to UTC: Vancouver midnight
+  return new Date(d.getTime() + (now.getTime() - new Date(now.toLocaleString("en-US", { timeZone: "America/Vancouver" })).getTime()));
+}
+
+// GET ?range=today|7d|30d|max
+async function route_ads_stats(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await menuOnly(req, "adresults");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ad results menu." }, 403);
+  const token = Deno.env.get("META_TOKEN");
+  const s = await metaSettings();
+  if (!token || !s.adAccount) return jsonAuth(req, { configured: false });
+  const act = s.adAccount.startsWith("act_") ? s.adAccount : `act_${s.adAccount}`;
+  const range = AD_RANGES[new URL(req.url).searchParams.get("range") || "7d"] ? new URL(req.url).searchParams.get("range") || "7d" : "7d";
+  const db = admin();
+  try {
+    const fields = "campaign_id,campaign_name,adset_id,ad_id,ad_name,spend,reach,impressions,frequency,inline_link_clicks,ctr,actions";
+    const [camps, adIns, total, life] = await Promise.all([
+      graph(`${act}/campaigns`, token, { fields: "id,name,status,effective_status,created_time,adsets.limit(20){id,name,status,effective_status,daily_budget},ads.limit(30){id,name,status,effective_status,adset_id}", limit: 50 }),
+      graph(`${act}/insights`, token, { level: "ad", fields, date_preset: AD_RANGES[range], limit: 200 }),
+      graph(`${act}/insights`, token, { fields: "spend,reach,impressions,inline_link_clicks,actions", date_preset: AD_RANGES[range] }),
+      graph(`${act}/insights`, token, { fields: "spend", date_preset: "maximum" }),
+    ]);
+    // deno-lint-ignore no-explicit-any
+    const byAd: Record<string, any> = {};
+    for (const r of adIns.data ?? []) byAd[r.ad_id] = r;
+    // deno-lint-ignore no-explicit-any
+    const num = (r: any, k: string) => Number(r?.[k] || 0);
+    // deno-lint-ignore no-explicit-any
+    const stat = (r: any) => ({ spend: num(r, "spend"), reach: num(r, "reach"), impressions: num(r, "impressions"), clicks: num(r, "inline_link_clicks"), visits: actionCount(r, LPV_TYPES), leads: actionCount(r, LEAD_TYPES), frequency: num(r, "frequency") });
+    // deno-lint-ignore no-explicit-any
+    const campaigns = (camps.data ?? []).map((c: any) => {
+      // deno-lint-ignore no-explicit-any
+      const ads = (c.ads?.data ?? []).map((a: any) => ({ id: a.id, name: a.name, status: a.status, effective: a.effective_status, adset: a.adset_id, ...stat(byAd[a.id]) }));
+      const sum = (k: string) => ads.reduce((n: number, a: Record<string, number>) => n + (a[k] || 0), 0);
+      // deno-lint-ignore no-explicit-any
+      const adsets = (c.adsets?.data ?? []).map((x: any) => ({ id: x.id, name: x.name, status: x.status, effective: x.effective_status, budget: x.daily_budget ? Number(x.daily_budget) / 100 : null }));
+      return { id: c.id, name: c.name, status: c.status, effective: c.effective_status, created: c.created_time, adsets, ads,
+        spend: sum("spend"), impressions: sum("impressions"), clicks: sum("clicks"), visits: sum("visits"), leads: sum("leads"),
+        budget: adsets.reduce((n: number, x: { budget: number | null; status: string }) => n + (x.status === "ACTIVE" && x.budget ? x.budget : 0), 0) };
+    });
+
+    // What really happened: Find your Zen leads from ?from=fbad links, and who went on to buy.
+    const since = sinceFor(range).toISOString();
+    const { data: leads } = await db.from("leads").select("id, first_name, last_name, email, created_at, answers").gte("created_at", since).order("created_at", { ascending: false }).limit(500);
+    // deno-lint-ignore no-explicit-any
+    const adLeads = (leads ?? []).filter((l: any) => String(l.answers?.source ?? "").includes("fbad"));
+    // deno-lint-ignore no-explicit-any
+    const emails = [...new Set(adLeads.map((l: any) => String(l.email || "").toLowerCase()).filter(Boolean))];
+    // deno-lint-ignore no-explicit-any
+    let sold: any[] = [];
+    if (emails.length) {
+      const { data: custs } = await db.from("customers").select("id, email").in("email", emails);
+      // deno-lint-ignore no-explicit-any
+      const ids = (custs ?? []).map((c: any) => c.id);
+      if (ids.length) {
+        const { data: sales } = await db.from("sales").select("id, number, total, status, customer_id, customers(name, email)").in("customer_id", ids).not("status", "in", "(draft,cancelled)");
+        sold = sales ?? [];
+      }
+    }
+    // deno-lint-ignore no-explicit-any
+    const soldEmails = new Set(sold.map((x: any) => String(x.customers?.email || "").toLowerCase()));
+
+    // The ad fund: a set amount from every tub sold since the fund started, minus everything spent on ads since then.
+    const { data: fs } = await db.from("settings").select("k, v").in("k", ["ad_fund_per_tub", "ad_fund_start"]);
+    const f: Record<string, string> = {}; for (const r of fs ?? []) f[r.k] = r.v;
+    const perTub = Number(f.ad_fund_per_tub || 1500), start = f.ad_fund_start || "2026-11-27";
+    const { count: tubs } = await db.from("sales").select("id", { count: "exact", head: true }).gte("customer_signed_at", start + "T00:00:00-08:00").not("status", "in", "(draft,cancelled)");
+    const spentSince = Number((await graph(`${act}/insights`, token, { fields: "spend", time_range: { since: start, until: new Date().toISOString().slice(0, 10) } })).data?.[0]?.spend || 0);
+
+    const t = total.data?.[0];
+    return jsonAuth(req, {
+      configured: true, range, account: act,
+      totals: { ...stat(t), lifetime: Number(life.data?.[0]?.spend || 0) },
+      // deno-lint-ignore no-explicit-any
+      ours: { leads: adLeads.length, sales: sold.length, revenue: sold.reduce((n: number, x: any) => n + Number(x.total || 0), 0),
+        // deno-lint-ignore no-explicit-any
+        list: adLeads.slice(0, 50).map((l: any) => ({ name: [l.first_name, l.last_name].filter(Boolean).join(" "), when: l.created_at, bought: soldEmails.has(String(l.email || "").toLowerCase()), where: String(l.answers?.source ?? "") })) },
+      fund: { perTub, start, tubs: tubs ?? 0, earned: (tubs ?? 0) * perTub, spent: spentSince, left: (tubs ?? 0) * perTub - spentSince, canEdit: me.profile.role === "admin" },
+      campaigns,
+      manager: `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act.replace("act_", "")}`,
+    });
+  } catch (e) {
+    return jsonAuth(req, { configured: true, error: `Meta said: ${(e as Error).message}` }, 502);
+  }
+}
+
+// POST {kind: 'campaign'|'adset'|'ad', id, action: 'pause'|'resume'} or {kind:'adset', id, budget}
+//      or {fund: {per_tub, start}} (admins)
+async function route_ads_control(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await menuOnly(req, "adresults");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ad results menu." }, 403);
+  const b = await req.json().catch(() => ({}));
+  const db = admin();
+  if (b.fund) {
+    if (me.profile.role !== "admin") return jsonAuth(req, { error: "Only an admin can change the ad fund." }, 403);
+    const per = Math.max(0, Math.min(20000, Math.round(Number(b.fund.per_tub) || 0)));
+    const start = /^\d{4}-\d{2}-\d{2}$/.test(String(b.fund.start)) ? String(b.fund.start) : "2026-11-27";
+    await db.from("settings").upsert([{ k: "ad_fund_per_tub", v: String(per) }, { k: "ad_fund_start", v: start }]);
+    return jsonAuth(req, { ok: true });
+  }
+  const token = Deno.env.get("META_TOKEN");
+  const s = await metaSettings();
+  if (!token || !s.adAccount) return jsonAuth(req, { error: "Meta isn't connected yet." }, 400);
+  const act = s.adAccount.startsWith("act_") ? s.adAccount : `act_${s.adAccount}`;
+  const id = String(b.id ?? "").replace(/\D/g, "");
+  const kind = ["campaign", "adset", "ad"].includes(b.kind) ? b.kind : "";
+  if (!id || !kind) return jsonAuth(req, { error: "Choose a campaign, ad set or ad." }, 400);
+  try {
+    // Only touch things that belong to our ad account.
+    const obj = await graph(id, token, { fields: "account_id,name" });
+    if (`act_${obj.account_id}` !== act) return jsonAuth(req, { error: "That isn't in the AquaZen ad account." }, 403);
+    if (b.budget !== undefined) {
+      if (kind !== "adset") return jsonAuth(req, { error: "Budgets are set on the ad set." }, 400);
+      const dollars = Math.round(Number(b.budget));
+      if (!(dollars >= 5 && dollars <= 500)) return jsonAuth(req, { error: "Choose a daily budget between $5 and $500." }, 400);
+      await graph(id, token, { daily_budget: dollars * 100 }, "POST");
+      await db.from("meta_sends").insert({ created_by: me.user.id, kind: "budget", headline: obj.name, result: { id, daily_budget: dollars } }).then(() => {}, () => {});
+      return jsonAuth(req, { ok: true });
+    }
+    const status = b.action === "resume" ? "ACTIVE" : b.action === "pause" ? "PAUSED" : "";
+    if (!status) return jsonAuth(req, { error: "Pause or resume?" }, 400);
+    await graph(id, token, { status }, "POST");
+    await db.from("meta_sends").insert({ created_by: me.user.id, kind: status === "ACTIVE" ? "resume" : "pause", headline: obj.name, result: { id, kind } }).then(() => {}, () => {});
+    return jsonAuth(req, { ok: true });
+  } catch (e) {
+    return jsonAuth(req, { error: `Meta said: ${(e as Error).message}` }, 502);
+  }
+}
+
 async function signedAdUrl(path: string): Promise<string> {
   const { data, error } = await admin().storage.from("ads").createSignedUrl(path, 3600);
   if (error || !data?.signedUrl) throw new Error("Couldn't prepare the file for Meta.");
@@ -1673,8 +1817,9 @@ async function route_meta_ad(req: Request): Promise<Response> {
   if (!s.adAccount || !s.page) return jsonAuth(req, { error: "Pick your Facebook Page and ad account first." }, 400);
   const headline = String(b.headline ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 120);
   const message = String(b.caption ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 2000);
-  const links: Record<string, string> = { visit: "https://aquazen.ca/visit/", quiz: "https://aquazen.ca/find-your-zen/" };
-  const link = links[String(b.link)] || "https://aquazen.ca/";
+  // ?from=fbad tags Find your Zen leads as "from a Facebook ad" so Ad results can count them.
+  const links: Record<string, string> = { zen: "https://aquazen.ca/how-we-deliver-zen/?from=fbad", visit: "https://aquazen.ca/visit/?from=fbad", quiz: "https://aquazen.ca/find-your-zen/?from=fbad" };
+  const link = links[String(b.link)] || "https://aquazen.ca/?from=fbad";
   const budget = Math.max(5, Math.min(500, Math.round(Number(b.budget) || 20))); // dollars a day
   const act = s.adAccount.startsWith("act_") ? s.adAccount : `act_${s.adAccount}`;
   const day = new Date().toISOString().slice(0, 10);
@@ -2049,7 +2194,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
 }
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,

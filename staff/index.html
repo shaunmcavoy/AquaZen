@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/assets/img/icon-512.png">
-<link rel="stylesheet" href="/assets/css/app.css?v=451b7259">
+<link rel="stylesheet" href="/assets/css/app.css?v=64f5a8a1">
 <!-- seo --><meta name="robots" content="noindex, nofollow"><!-- /seo -->
 </head>
 <body class="app app-staff">
@@ -420,6 +420,19 @@
     </div>
 
     <!-- Ad studio (admins) -->
+    <div id="view-adresults" class="view" hidden>
+      <div class="adr-bar">
+        <div class="filters" role="group" aria-label="Time period" id="adrRange">
+          <button class="chip" type="button" data-range="today" aria-pressed="false">Today</button>
+          <button class="chip" type="button" data-range="7d" aria-pressed="true">7 days</button>
+          <button class="chip" type="button" data-range="30d" aria-pressed="false">30 days</button>
+          <button class="chip" type="button" data-range="max" aria-pressed="false">All time</button>
+        </div>
+        <button class="btn btn-line btn-sm" type="button" id="adrRefresh">Refresh</button>
+      </div>
+      <div id="adrBody"></div>
+    </div>
+
     <div id="view-ads" class="view" hidden>
       <p class="muted small">Make ads for Facebook and Instagram that sell the SCP way. Fill in the brief, approve the plan, then approve the ads you like and save them.</p>
 
@@ -542,7 +555,7 @@
             </div>
             <div class="abq"><p class="abl">Run it as an ad <span class="muted">created paused; nothing spends until you turn it on in Ads Manager</span></p>
               <div class="form abrow"><label>Daily budget ($)<input id="metaBudget" type="number" min="5" max="500" step="1" value="20"></label>
-              <label>Where the ad goes<select id="metaLink"><option value="visit">Book a visit page</option><option value="quiz">Find your Zen quiz</option><option value="home">aquazen.ca home page</option></select></label></div>
+              <label>Where the ad goes<select id="metaLink"><option value="zen">How we deliver Zen presentation (best)</option><option value="visit">Book a visit page</option><option value="quiz">Find your Zen quiz</option><option value="home">aquazen.ca home page</option></select></label></div>
               <p class="muted small abhelp">Audience to start: ages 30 to 65 within about 60 km of the Burnaby showroom. Change anything in Ads Manager before you turn it on.</p>
               <div class="formactions"><button class="btn btn-gold" type="button" id="metaAdBtn" disabled>Create paused ads</button></div>
             </div>
@@ -647,8 +660,9 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
 <script src="/assets/js/app.js?v=e9e700e1"></script>
-<script src="/assets/js/staff.js?v=4009585d"></script>
-<script src="/assets/js/ads.js?v=9ff17de9"></script>
+<script src="/assets/js/staff.js?v=721adb7d"></script>
+<script src="/assets/js/ads.js?v=f1a757b5"></script>
+<script src="/assets/js/adresults.js?v=65694e31"></script>
 <script src="/assets/js/noah.js?v=5834903b"></script>
 </body>
 </html>

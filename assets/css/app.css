@@ -476,3 +476,40 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .noahsend input{flex:1;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);min-width:0}
 #noahThreads tr{cursor:pointer}
 #noahThread{margin-top:18px}
+
+/* Ad results */
+.adr-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.adtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:12px}
+.adtile{background:var(--cream);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:4px}
+.adtile span{color:var(--muted);font-size:.84rem;font-weight:600}
+.adtile b{font-size:1.6rem;letter-spacing:-.02em}
+.adtile small{color:var(--muted);font-size:.8rem}
+.adnote{font-size:.86rem;margin:6px 0 18px}
+.adfund{margin:18px 0}
+.adfund-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.adfund-left{text-align:right;display:grid}
+.adfund-left span{color:var(--muted);font-size:.84rem;font-weight:600}
+.adfund-left b{font-size:1.8rem;color:#1f7a45}
+.adfund-left.neg b{color:#b3261e}
+.adfund-line{font-size:.92rem;margin-top:6px}
+.adfund-edit{margin-top:10px}
+.adfund-edit summary{cursor:pointer;font-weight:600;font-size:.9rem}
+.adfund-edit .form.inline{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-top:10px}
+.adr-h{margin:26px 0 10px}
+.adcamp{margin-bottom:14px;display:grid;gap:12px}
+.adcamp-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.adcamp h4{margin:0 0 6px;font-size:1.02rem}
+.adcamp-stats{display:flex;gap:8px 20px;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+.adcamp-stats b{color:var(--ink)}
+.adset{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.9rem;padding:8px 12px;background:var(--paper);border-radius:10px}
+.adbudget{margin-left:auto;font-weight:600}
+.adstate{display:inline-block;font-size:.76rem;font-weight:700;padding:3px 9px;border-radius:999px;background:#ececf0;color:var(--muted)}
+.adstate.ok{background:#dff3e6;color:#1f7a45}
+.adstate.wait{background:#fff3d1;color:#8a6100}
+.adstate.bad{background:#fde2e0;color:#b3261e}
+.adlink{background:none;border:0;padding:0;color:var(--water-deep,#0a6aa6);font:inherit;font-weight:700;font-size:.86rem;cursor:pointer}
+.adtable{min-width:720px}
+.adtable td.warn{color:#b3261e;font-weight:700}
+.adleads{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.adleads li{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}
+.adleads span{color:var(--muted);font-size:.86rem}

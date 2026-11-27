@@ -801,7 +801,7 @@
     $('#metaPostBtn').addEventListener('click', metaPost);
     $('#metaAdBtn').addEventListener('click', metaAd);
     // Default the ad's destination to the brief's purpose.
-    $('#abPurpose').addEventListener('click', function () { $('#metaLink').value = B.purpose === 'quiz' ? 'quiz' : B.purpose === 'visit' ? 'visit' : 'home'; });
+    $('#abPurpose').addEventListener('click', function () { $('#metaLink').value = B.purpose === 'quiz' ? 'quiz' : B.purpose === 'visit' ? 'visit' : 'zen'; });
     metaLoad();
   }
 

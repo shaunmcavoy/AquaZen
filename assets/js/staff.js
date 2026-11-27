@@ -215,14 +215,15 @@
     { key: 'deliveries', group: 'after', label: 'Deliveries', hint: 'What is going out, serial numbers and photos' },
     { key: 'service', group: 'after', label: 'Service', hint: 'Owner service requests' },
     { key: 'resources', group: 'after', label: 'Documents', hint: 'The AquaSolus book and owner guides' },
-    { key: 'ads', group: 'marketing', label: 'Ads', hint: 'Make ads and send them to Facebook and Instagram' },
+    { key: 'ads', group: 'marketing', label: 'Ad studio', hint: 'Make ads and send them to Facebook and Instagram' },
+    { key: 'adresults', group: 'marketing', label: 'Ad results', hint: 'Spend, leads and sales from ads, pause and budgets' },
     { key: 'noah', group: 'marketing', label: 'Noah', hint: 'Our Messenger and Instagram salesperson' },
     { key: 'money', group: 'business', label: 'Financials', hint: 'Profit, commissions and what is owed', admin: true },
     { key: 'products', group: 'business', label: 'Products', hint: 'Costs, prices and add-ons', admin: true },
     { key: 'team', group: 'business', label: 'Team', hint: 'Invite people and choose what they see', admin: true }
   ];
   var MENU_DEFAULTS = { staff: ['customers', 'sales', 'new', 'deliveries', 'service', 'resources'], delivery: ['deliveries', 'resources'] };
-  var MENU_ALLOWED = { staff: ['customers', 'sales', 'new', 'deliveries', 'service', 'resources', 'ads', 'noah'], delivery: ['deliveries', 'service', 'resources'] };
+  var MENU_ALLOWED = { staff: ['customers', 'sales', 'new', 'deliveries', 'service', 'resources', 'ads', 'adresults', 'noah'], delivery: ['deliveries', 'service', 'resources'] };
   function menusFor(p) {
     if (p.role === 'admin') return MENUS.map(function (m) { return m.key; });
     var allowed = MENU_ALLOWED[p.role] || [];
@@ -263,7 +264,7 @@
     var t = $('.tabs a[data-tab="' + tab + '"]'); if (t) t.setAttribute('aria-current', 'page');
     $$('.menu-group').forEach(function (g) { g.classList.toggle('is-current', !!g.querySelector('[data-tab="' + tab + '"]')); });
     closeMenus();
-    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', resources: 'Documents', money: 'Financials', ads: 'Ad studio', noah: 'Noah', customers: 'Customers', customer: 'Customer', none: 'Nothing here yet' }[view] || 'Sales';
+    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', resources: 'Documents', money: 'Financials', ads: 'Ad studio', adresults: 'Ad results', noah: 'Noah', customers: 'Customers', customer: 'Customer', none: 'Nothing here yet' }[view] || 'Sales';
     window.scrollTo(0, 0);
   }
 
@@ -286,6 +287,7 @@
     else if (h === 'products') { show('products'); loadProducts(); }
     else if (h === 'money') { show('money'); loadMoney(); }
     else if (h === 'ads') { show('ads'); if (window.AZAds) window.AZAds.open(); }
+    else if (h === 'adresults') { show('adresults'); if (window.AZAdResults) window.AZAdResults.open(); }
     else if (h === 'noah') { show('noah'); if (window.AZNoah) window.AZNoah.open(); }
     else if (h === 'new') { openSale(null); }
     else if (h.indexOf('new-c-') === 0) { openSale(null, h.slice(6)); }
