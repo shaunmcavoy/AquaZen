@@ -2621,10 +2621,10 @@ async function noahThink(history: { role: string; text: string }[], extra = "", 
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
-      model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 6000, system,
-      tools: [NOAH_TOOL], tool_choice: { type: "tool", name: "noah_reply" },
+      model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 16000, system,
+      tools: [NOAH_TOOL], tool_choice: { type: "auto" },
       messages: [{ role: "user", content: `THE CONVERSATION SO FAR:\n${convo || "(none)"}\n\n${extra || "Write Noah's next message."}
-Answer with the noah_reply tool.
+Answer ONLY by calling the noah_reply tool, once. Write nothing outside it.
 Fill lead.deal ONLY when they have said yes to buying a specific hot tub: model (exact model name), shell_colour (Sterling Silver or Odyssey, or "" if not chosen), extra_discount (dollars of extra discount you agreed, 0 if none), payment ("full" or "deposit", "" if not discussed). Otherwise leave model "".
 stage: where the chat is after your message (presentation_done means they've been through it; chosen means they've said which tub; price means you've shown the price; ask means you've asked for the decision). move: 2 to 5 words naming the SCP move you made (for example "pattern interrupt", "true hook", "takeaway", "sold the presentation", "bridge statement", "ownership question", "full value ask", "1 to 10 question", "A-C-A steer back", "extra discount step").
 Set handoff to true only when they've given a phone number for a call, or they're ready to buy and gave their details, or they asked for a person. Fill lead with whatever they've told you so far.` }],
