@@ -826,13 +826,13 @@
       });
     });
   }
-  var postArmed = false;
+  var postArmed = false, adArmed = false;
   function metaPost() {
     var ads = S.variants.filter(function (v) { return v.approved; }), btn = $('#metaPostBtn'), msg = $('#metaMsg');
     var fb = $('#metaFb').checked, ig = $('#metaIg').checked;
     if (!fb && !ig) { msg.textContent = 'Tick Facebook, Instagram or both.'; return; }
     // Posting is public, so it takes a second tap to confirm.
-    if (!postArmed) { postArmed = true; btn.textContent = 'Tap again to post ' + ads.length + (ads.length === 1 ? ' ad' : ' ads') + ' publicly'; setTimeout(function () { postArmed = false; btn.textContent = 'Post approved ads'; }, 6000); return; }
+    if (!postArmed) { postArmed = true; btn.textContent = 'Tap again to post ' + ads.length + (ads.length === 1 ? ' ad' : ' ads') + ' publicly'; setTimeout(function () { postArmed = false; btn.textContent = 'Post on my Page'; }, 6000); return; }
     postArmed = false; btn.disabled = true; btn.textContent = 'Posting...';
     var out = [];
     pool(ads, 1, function (v) {
@@ -844,21 +844,31 @@
         Object.keys(r.failed || {}).forEach(function (k) { bits.push(k + ': ' + r.failed[k]); });
         out.push('"' + v.hook.h + '": ' + bits.join(', '));
       }, function (e) { out.push('"' + v.hook.h + '": ' + e.message); });
-    }).then(function () { msg.textContent = out.join(' | '); btn.textContent = 'Post approved ads'; count(); });
+    }).then(function () { msg.textContent = out.join(' | '); btn.textContent = 'Post on my Page'; count(); });
   }
   function metaAd() {
     var ads = S.variants.filter(function (v) { return v.approved; }), btn = $('#metaAdBtn'), msg = $('#metaMsg');
-    btn.disabled = true; btn.textContent = 'Creating paused ads...';
     audRead();
-    if (!AUD.showroom_km && !AUD.cities.length) { msg.textContent = 'Choose at least one place for the audience.'; btn.disabled = false; btn.textContent = 'Create paused ads'; return; }
-    var out = [], budget = +$('#metaBudget').value || 20, last = '';
+    if (!AUD.showroom_km && !AUD.cities.length) { msg.textContent = 'Choose at least one place for the audience.'; return; }
+    var budget = Math.max(5, Math.min(500, Math.round(+$('#metaBudget').value || 20)));
+    // Starting spends money, so it takes a second tap that says what it will cost.
+    if (!adArmed) {
+      adArmed = true;
+      btn.textContent = 'Tap again to start: ' + ads.length + (ads.length === 1 ? ' ad' : ' ads') + ' at $' + budget + ' a day' + (ads.length > 1 ? ' each ($' + budget * ads.length + ' a day)' : '');
+      setTimeout(function () { if (adArmed) { adArmed = false; btn.textContent = 'Start ad campaign'; } }, 7000);
+      return;
+    }
+    adArmed = false;
+    btn.disabled = true; btn.textContent = 'Starting your ads...';
+    var out = [], last = '';
     pool(ads, 1, function (v) {
       return uploadAd(v).then(function (m) {
-        return AZ.api('meta-ad', { image: m.image, video: m.video, headline: v.hook.h, caption: v.hook.post, link: v.dest || $('#metaLink').value, cta: v.cta, budget: budget, audience: AUD });
-      }).then(function (r) { last = r.manager; out.push('"' + v.hook.h + '": created, paused' + (v.dest === 'messages' ? ' (Messenger)' : '')); }, function (e) { out.push('"' + v.hook.h + '": ' + e.message); });
+        return AZ.api('meta-ad', { image: m.image, video: m.video, headline: v.hook.h, caption: v.hook.post, link: v.dest || $('#metaLink').value, cta: v.cta, budget: budget, audience: AUD, start: true });
+      }).then(function (r) { last = r.manager; out.push('"' + v.hook.h + '": ' + (r.started ? 'started' : 'set up but not started (' + (r.startError || 'turn it on in Ad results') + ')') + (v.dest === 'messages' ? ', goes to Messenger' : '')); }, function (e) { out.push('"' + v.hook.h + '": ' + e.message); });
     }).then(function () {
       msg.innerHTML = AZ.esc(out.join(' | ')) + (last ? ' <a href="' + last + '" target="_blank" rel="noopener">Open Ads Manager</a>' : '');
-      btn.textContent = 'Create paused ads'; count();
+      msg.innerHTML += ' <a href="#adresults">See them in Ad results</a>';
+      btn.textContent = 'Start ad campaign'; count();
     });
   }
   function wireMeta() {

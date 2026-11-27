@@ -2042,8 +2042,17 @@ async function route_meta_ad(req: Request): Promise<Response> {
     steps.creative = cr.id;
     const ad = await graph(`${act}/ads`, token, { name: `AquaZen: ${headline}`, adset_id: set.id, creative: { creative_id: cr.id }, status: "PAUSED" }, "POST");
     steps.ad = ad.id;
-    await admin().from("meta_sends").insert({ created_by: me.user.id, kind: "ad", headline, media_path: video || image, result: steps });
-    return jsonAuth(req, { ok: true, ...steps, manager: `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act.replace("act_", "")}&selected_campaign_ids=${camp.id}` });
+    // "Start ad campaign": everything is built paused first, then switched on together, so a failed step never leaves
+    // a half-built ad spending. If switching on fails, it stays paused and the page says so.
+    let started = false, startError = "";
+    if (b.start === true) {
+      try {
+        for (const id of [ad.id, set.id, camp.id]) await graph(id, token, { status: "ACTIVE" }, "POST");
+        started = true;
+      } catch (e) { startError = (e as Error).message; }
+    }
+    await admin().from("meta_sends").insert({ created_by: me.user.id, kind: started ? "ad_started" : "ad", headline, media_path: video || image, result: { ...steps, started, startError } });
+    return jsonAuth(req, { ok: true, started, startError, ...steps, manager: `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act.replace("act_", "")}&selected_campaign_ids=${camp.id}` });
   } catch (e) {
     // Don't leave a half-built, empty campaign behind: deleting the campaign removes its ad set too.
     if (steps.campaign) { try { await graph(steps.campaign, token, {}, "DELETE"); steps.removed = "campaign"; } catch { /* leave it; it's paused */ } }
