@@ -2325,19 +2325,11 @@ AQUAZEN FACTS
 
 // What Noah may quote: Shaun's retail sheet (AquaZen_Retail_sheet.pdf, Nov 2026) and the deal he may offer.
 // Prices are before tax (GST 5% + PST 7%). Keep in step with the sheet when it changes.
-const NOAH_SHEET = `PRICE SHEET (before tax; BC adds GST 5% + PST 7%)
-Series Three, AquaLux (touchscreen, Bluetooth with subwoofer, LED lighting, waterfall):
-- Zenith: MSRP $31,495, sale $21,895 (save $9,600)
-- Cascade, Serenity, Solstice: MSRP $28,695, sale $19,995 (save $8,700)
-- Available upgrades: in.touch 3+ app control $649, UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149, WaterLab monitoring $899 (total $4,346)
-Series Two, NaturaBalance (dual pumps with flow control, Gecko K506 controls; Aspen and Eden also have dual filters with ozone, Bluetooth with subwoofer, LED waterline, waterfall, LED base and logo):
-- Aspen, Harmony, Eden, Calma: MSRP $18,495, sale $12,895 (save $5,600)
-- Sierra: MSRP $17,795, sale $12,395 (save $5,400)
-- Available upgrades: UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149 (total $2,798)
-Series One, AquaPure (120 V plug-and-play option, Gecko K330 controls):
-- Cove, Cypress, Zephyr: MSRP $16,395, sale $11,395 (save $5,000)
-- Brook: MSRP $14,995, sale $10,495 (save $4,500)
-- Available upgrades: UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149 (total $2,798)
+const NOAH_SHEET = `WHAT COMES WITH EACH SERIES
+Series Three, AquaLux: Gecko touchscreen, Bluetooth with subwoofer, 2 transducers and 4 LED speakers, LED base, corners and logo, LED waterline and waterfall. Available upgrades: in.touch 3+ app control $649, UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149, WaterLab monitoring $899 (total $4,346).
+Series Two, NaturaBalance: dual pumps with flow control, Gecko K506 controls; Aspen and Eden also have dual filters with ozone, Bluetooth with subwoofer, LED waterline, waterfall, LED base and logo. Available upgrades: UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149 (total $2,798).
+Series One, AquaPure: 120 V plug-and-play option, Gecko K330 controls, dual filters with ozone, Bluetooth with subwoofer, LED waterline, base and logo. Available upgrades: UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149 (total $2,798).
+
 THE HOT TUBS (from src/tubs.json)
 - Brook (Series One): 4 people, 4 seats, 23 jets, 84 x 71 x 31 in, power 15 A 120V, or 40 A 240V. The compact one. Four seats, on a standard outlet. Best for: Couples and small families, and smaller patios. The easiest way to start.
 - Zephyr (Series One): 5 people, 3 seats + 2 lounger, 25 jets, 84 x 84 x 35 in, power 15 A 120V, or 40 A 240V. Two loungers, three seats, room for five. Best for: Two people who both want to stretch out, with room for the kids or friends.
@@ -2353,17 +2345,41 @@ THE HOT TUBS (from src/tubs.json)
 - Zenith (Series Three): 7 people, 6 seats + 1 lounger, 61 jets, 110 x 91 x 37 in, power 60 A 240V dedicated line. Our largest tub. Seven people, 61 jets. Best for: Big families and anyone who wants the most room and the most jets.
 - Solstice (Series Three): 7 people, 7 seats, 41 jets, 91 x 91 x 37 in, power 60 A 240V dedicated line. Seven upright seats, made for gathering. Best for: Families and friends who soak together, with the best water care.
 COLOURS: every AquaSolus comes with a Lunar Grey cabinet. The shell (the inside) comes in two colours: Sterling Silver (light and bright, the water looks clear blue and inviting, shows the LED lighting well) or Odyssey (a deeper grey, modern and moody, hides everyday marks). The team confirms availability of a colour when they lock in the order.
-Accessories and service: AquaSolus steps $399, cover lifter $449, GFCI $599, starter kit $299; standard delivery $549, white glove delivery $649, delivery over 50 km $2.50 a km, old spa removal $399.
+Other accessories and service: GFCI $599, starter kit $299, delivery over 50 km $2.50 a km, old spa removal $399.
 
 THE DEAL YOU CAN OFFER (all real)
 - Every available upgrade for their model is included free.
 - Free local delivery, free cover lifter and free AquaSolus steps.
-- So on top of the sale price, the package adds about $5,743 of value on Series Three ($4,346 upgrades + $549 delivery + $449 lifter + $399 steps) and about $4,195 on Series One and Two ($2,798 + $549 + $449 + $399).
+- So on top of the sale price, the package adds the upgrades for their series plus the delivery, cover lifter and steps at the prices in the price list below.
 - If, and only if, price is the last thing standing between them and yes, you may take up to this much MORE off the sale price: Series One $500, Series Two $750, Series Three $1,250. Never more. Never lead with it, never offer it to someone who hasn't chosen a tub, and give it in steps (start with about half, and use the rest only if they still need it to say yes). Present it as a one-time extra to earn their business today, which it is.
 - Delivery beyond 50 km, GFCI, starter kit, white glove delivery and old spa removal are extra at the sheet price unless the team says otherwise.`;
+// Prices come from the deal builder (Products), so Noah's numbers always match the agreement.
+const NOAH_MAX_EXTRA: Record<string, number> = { "Series One": 500, "Series Two": 750, "Series Three": 1250 };
+const NOAH_UPGRADES: Record<string, { names: string; total: number }> = {
+  "Series One": { names: "UV + ozone delay chamber, Bluetooth + subwoofer", total: 2798 },
+  "Series Two": { names: "UV + ozone delay chamber, Bluetooth + subwoofer", total: 2798 },
+  "Series Three": { names: "in.touch 3+ app control, UV + ozone delay chamber, Bluetooth + subwoofer, WaterLab monitoring", total: 4346 },
+};
+async function noahPriceList(): Promise<string> {
+  const db = admin();
+  const { data: rows } = await db.from("product_costs").select("model, msrp, sale_price, product_type, product_lines(name, sort)").eq("product_type", "hot_tub");
+  const { data: adds } = await db.from("addons").select("kind, name, sale_price").eq("offered", true);
+  const extras = (adds ?? []).reduce((t, a) => t + Number(a.sale_price || 0), 0);
+  const $ = (n: number) => "$" + Math.round(n).toLocaleString("en-CA");
+  const by: Record<string, string[]> = {};
+  // deno-lint-ignore no-explicit-any
+  for (const r of (rows ?? []) as any[]) {
+    const line = r.product_lines?.name || "Other";
+    (by[line] ??= []).push(`- ${r.model}: MSRP ${$(r.msrp)}, sale ${$(r.sale_price)} (save ${$(Number(r.msrp) - Number(r.sale_price))})`);
+  }
+  const lines = ["Series Three", "Series Two", "Series One"].filter((l) => by[l]).map((l) =>
+    `${l} (package value on top: ${$(NOAH_UPGRADES[l].total + extras)} = upgrades ${$(NOAH_UPGRADES[l].total)} + ${(adds ?? []).map((a) => `${a.name.toLowerCase()} ${$(Number(a.sale_price))}`).join(" + ")}; extra off at most ${$(NOAH_MAX_EXTRA[l])}):\n${by[l].join("\n")}`);
+  return `PRICE LIST (from the deal builder, before tax; BC adds GST 5% + PST 7%)\n${lines.join("\n")}`;
+}
 async function noahPricing(): Promise<string> {
   const { data: promo } = await admin().from("settings").select("v").eq("k", "noah_promo").maybeSingle();
-  return `${NOAH_SHEET}
+  return `${await noahPriceList()}
+${NOAH_SHEET}
 CURRENT PROMOTION NOTE FROM SHAUN: ${promo?.v || "none"}
 Before they've been through the presentation, share prices when asked (never dodge), then bring it back to value and the presentation. Exact availability and delivery dates are confirmed by the team.`;
 }
@@ -2399,7 +2415,7 @@ HOW TO CLOSE (SCP)
 WHEN THEY SAY YES
 - Get their full name, phone number, email, and the delivery address or city, and confirm the model, the shell colour, the price you agreed (and any extra discount), plus tax.
 - Tell them Shaun will send the agreement to sign and a secure payment link, and call to confirm delivery. You never take payment yourself.
-- Set handoff to true, and in lead.summary write the deal exactly: model, shell colour, sale price, any extra discount, the free items, the total before tax, and anything they asked for.
+- Set handoff to true and fill lead.deal (model, shell_colour, extra_discount) plus lead.address and lead.city: the portal builds the deal from these, with the prices from the deal builder. In lead.summary write the deal exactly: model, shell colour, sale price, any extra discount, the free items, the total before tax, and anything they asked for.
 WHEN THEY WANT A CALL: get first name, phone and best time, set handoff to true, and say Shaun will call them.`;
 
 // deno-lint-ignore no-explicit-any
@@ -2414,7 +2430,8 @@ async function noahThink(history: { role: string; text: string }[], extra = ""):
     body: JSON.stringify({
       model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 1200, system,
       messages: [{ role: "user", content: `THE CONVERSATION SO FAR:\n${convo || "(none)"}\n\n${extra || "Write Noah's next message."}
-Reply with only JSON: {"reply":"Noah's message","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":""}}
+Reply with only JSON: {"reply":"Noah's message","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0}}}
+Fill lead.deal ONLY when they have said yes to buying a specific hot tub: model (exact model name), shell_colour (Sterling Silver or Odyssey, or "" if not chosen), extra_discount (dollars of extra discount you agreed, 0 if none). Otherwise leave model "".
 Set handoff to true only when they've given a phone number for a call, or they're ready to buy and gave their details, or they asked for a person. Fill lead with whatever they've told you so far.` }],
     }),
   });
@@ -2457,6 +2474,38 @@ async function isNoahEcho(threadId: string, mid: string, text: string): Promise<
   return false;
 }
 
+// When Noah closes a sale, build the deal in the portal as a draft so Shaun only has to check it and send it to sign.
+// Prices come from Products, never from the chat; the extra discount is capped per series.
+// deno-lint-ignore no-explicit-any
+async function noahDraftSale(customerId: string, deal: any, lead: any, channel: string): Promise<{ id: string; number: number; note: string } | null> {
+  const db = admin();
+  const model = String(deal?.model ?? "").trim();
+  if (!model) return null;
+  const { data: p } = await db.from("product_costs").select("model, msrp, sale_price, product_lines(name)").eq("product_type", "hot_tub").ilike("model", model).maybeSingle();
+  if (!p) return null;
+  // deno-lint-ignore no-explicit-any
+  const line = (p as any).product_lines?.name || "";
+  const cap = NOAH_MAX_EXTRA[line] ?? 0;
+  const asked = Math.max(0, Math.round(Number(deal.extra_discount) || 0));
+  const extra = Math.min(asked, cap);
+  const { data: adds } = await db.from("addons").select("id, kind, name, sale_price").eq("offered", true);
+  // Delivery, cover lifter and steps are included (price 0), so the agreement shows "Included (a $X value)".
+  const extras = (adds ?? []).filter((a) => ["delivery", "cover_lifter", "steps"].includes(a.kind)).map((a) => ({ id: a.id, name: a.name, price: 0, list: Number(a.sale_price) }));
+  const colour = /odyssey/i.test(String(deal.shell_colour)) ? "Odyssey" : /silver|sterling/i.test(String(deal.shell_colour)) ? "Sterling Silver" : "";
+  const up = NOAH_UPGRADES[line];
+  const note = [`Built by Noah from a ${channel === "instagram" ? "Instagram" : "Messenger"} chat. Check it, then send it to sign.`,
+    up ? `Included free: every available upgrade (${up.names}).` : "",
+    extra ? `Extra discount Noah agreed: $${extra}${asked > cap ? ` (they asked for $${asked}; capped at $${cap} for ${line})` : ""}.` : "",
+    colour ? "" : "Shell colour not chosen yet.", lead?.summary ? `Noah's note: ${lead.summary}` : ""].filter(Boolean).join("\n");
+  const { data: sale, error } = await db.from("sales").insert({
+    customer_id: customerId, status: "draft", product_type: "hot_tub", tub_make: "AquaSolus", tub_model: p.model, tub_line: line || null,
+    shell_colour: colour || null, siding: "Lunar Grey", hot_tub_value: Number(p.sale_price) - extra, msrp: p.msrp, zen_price: p.sale_price,
+    extras, other: up ? `All available upgrades included: ${up.names}` : null, notes: note,
+  }).select("id, number").single();
+  if (error || !sale) { console.error("noah draft sale", error); return null; }
+  return { id: sale.id, number: sale.number, note };
+}
+
 async function noahHandoff(threadId: string, channel: string, lead: Record<string, string>, history: { role: string; text: string }[]) {
   const db = admin();
   const { data: t } = await db.from("chat_threads").select("*").eq("id", threadId).single();
@@ -2465,7 +2514,7 @@ async function noahHandoff(threadId: string, channel: string, lead: Record<strin
     lead.interest ? `- Interested in: ${lead.interest}` : "", lead.best_time ? `- Best time to call: ${lead.best_time}` : "",
     lead.summary ? `- ${lead.summary}` : "", "", ...history.slice(-14).map((m) => `${m.role === "user" ? "Them" : m.role === "team" ? "Team" : "Noah"}: ${m.text}`)].filter((x) => x !== null).join("\n").slice(0, 7000);
   let customerId = t?.customer_id;
-  const fields = { name: lead.name || t?.name || "Social media lead", cell: lead.phone || null, email: lead.email || null, heard_about: channel === "instagram" ? "Instagram: Noah" : "Messenger: Noah" };
+  const fields = { name: lead.name || t?.name || "Social media lead", cell: lead.phone || null, email: lead.email || null, address: lead.address || null, city_pc: lead.city || null, heard_about: channel === "instagram" ? "Instagram: Noah" : "Messenger: Noah" };
   if (customerId) {
     const { data: c } = await db.from("customers").select("notes").eq("id", customerId).single();
     await db.from("customers").update({ ...Object.fromEntries(Object.entries(fields).filter(([, v]) => v)), notes: [notes, c?.notes].filter(Boolean).join("\n\n").slice(0, 8000) }).eq("id", customerId);
@@ -2474,15 +2523,18 @@ async function noahHandoff(threadId: string, channel: string, lead: Record<strin
     customerId = c?.id;
   }
   await db.from("chat_threads").update({ handed_off_at: new Date().toISOString(), customer_id: customerId, name: lead.name || t?.name }).eq("id", threadId);
+  // deno-lint-ignore no-explicit-any
+  const deal = customerId ? await noahDraftSale(customerId, (lead as any).deal, lead, channel).catch((e) => { console.error("noah deal", e); return null; }) : null;
   try {
     await sendEmail({
       from: FROM, to: Deno.env.get("LEAD_TO") || "shaun@aquazen.ca", reply_to: REPLY_TO,
-      subject: `Noah handed you a lead: ${fields.name}${lead.phone ? ", " + lead.phone : ""}`,
+      subject: deal ? `Noah sold a hot tub: ${fields.name}, deal #${deal.number} is ready to check` : `Noah handed you a lead: ${fields.name}${lead.phone ? ", " + lead.phone : ""}`,
       html: emailShell({ preheader: "A social media lead is ready for a person.", body:
         `<p>Noah passed a ${channel === "instagram" ? "Instagram" : "Messenger"} conversation to the team.</p>
 <p><b>${escapeHtml(fields.name)}</b><br>${escapeHtml(lead.phone || "no phone yet")}${lead.email ? "<br>" + escapeHtml(lead.email) : ""}${lead.best_time ? "<br>Best time: " + escapeHtml(lead.best_time) : ""}</p>
 ${lead.interest ? `<p>Interested in: ${escapeHtml(lead.interest)}</p>` : ""}${lead.summary ? `<p>${escapeHtml(lead.summary)}</p>` : ""}
-<p style="color:${MUTED}">They're in the staff portal's Customers tab as a new lead, with the conversation in the notes.</p>` }),
+${deal ? `<p><b>Noah built the deal as a draft (#${deal.number}).</b><br>${escapeHtml(deal.note).replace(/\n/g, "<br>")}</p>${button(`${SITE_URL}/staff/#sale-${deal.id}`, "Check the deal and send it to sign")}` : ""}
+<p style="color:${MUTED}">They're in the staff portal's Customers tab, with the conversation in the notes.</p>` }),
     });
   } catch (e) { console.error("noah handoff email", e); }
 }
