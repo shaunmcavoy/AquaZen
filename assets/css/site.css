@@ -968,7 +968,7 @@ html[data-goal="sleep"] .g[data-g="sleep"],html[data-goal="muscles"] .g[data-g="
 .incl-item h3{font-size:21px;letter-spacing:-.02em;margin:0 0 8px}
 .incl-item p{margin:0;color:#6e6e73;font-size:16px;line-height:1.45}
 .solus{background:#000;color:#f5f5f7;padding:96px 0}
-.solus .lede{color:var(--dim);margin-top:12px}
+.solus .lede{color:var(--dim);margin:12px 0 0}
 .solus-list{margin-top:36px;border-top:1px solid #333}
 .solus-row{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid #333}
 .solus-y{font-weight:600;font-size:19px}
