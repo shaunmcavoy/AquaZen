@@ -2323,32 +2323,84 @@ AQUAZEN FACTS
 - The presentation is about hot tubs. If they're after a swim spa or mini pool, skip it: send the Find your Zen form (it covers swim spas and mini pools too) or offer the call.
 - Never invent prices, stock, delivery dates, reviews, awards, customer stories or anything not given here. If you don't know, say you'll have the team confirm, and offer the call.`;
 
-// The price ranges and promotion Noah may quote, from the live price list.
+// What Noah may quote: Shaun's retail sheet (AquaZen_Retail_sheet.pdf, Nov 2026) and the deal he may offer.
+// Prices are before tax (GST 5% + PST 7%). Keep in step with the sheet when it changes.
+const NOAH_SHEET = `PRICE SHEET (before tax; BC adds GST 5% + PST 7%)
+Series Three, AquaLux (touchscreen, Bluetooth with subwoofer, LED lighting, waterfall):
+- Zenith: MSRP $31,495, sale $21,895 (save $9,600)
+- Cascade, Serenity, Solstice: MSRP $28,695, sale $19,995 (save $8,700)
+- Available upgrades: in.touch 3+ app control $649, UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149, WaterLab monitoring $899 (total $4,346)
+Series Two, NaturaBalance (dual pumps with flow control, Gecko K506 controls; Aspen and Eden also have dual filters with ozone, Bluetooth with subwoofer, LED waterline, waterfall, LED base and logo):
+- Aspen, Harmony, Eden, Calma: MSRP $18,495, sale $12,895 (save $5,600)
+- Sierra: MSRP $17,795, sale $12,395 (save $5,400)
+- Available upgrades: UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149 (total $2,798)
+Series One, AquaPure (120 V plug-and-play option, Gecko K330 controls):
+- Cove, Cypress, Zephyr: MSRP $16,395, sale $11,395 (save $5,000)
+- Brook: MSRP $14,995, sale $10,495 (save $4,500)
+- Available upgrades: UV + ozone delay chamber $1,649, Bluetooth + subwoofer $1,149 (total $2,798)
+THE HOT TUBS (from src/tubs.json)
+- Brook (Series One): 4 people, 4 seats, 23 jets, 84 x 71 x 31 in, power 15 A 120V, or 40 A 240V. The compact one. Four seats, on a standard outlet. Best for: Couples and small families, and smaller patios. The easiest way to start.
+- Zephyr (Series One): 5 people, 3 seats + 2 lounger, 25 jets, 84 x 84 x 35 in, power 15 A 120V, or 40 A 240V. Two loungers, three seats, room for five. Best for: Two people who both want to stretch out, with room for the kids or friends.
+- Cypress (Series One): 6 people, 5 seats + 1 lounger, 26 jets, 84 x 84 x 35 in, power 15 A 120V, or 40 A 240V. A lounger and five seats, on a standard outlet. Best for: Families who want a lounger without giving up seats.
+- Cove (Series One): 7 people, 7 seats, 27 jets, 84 x 84 x 35 in, power 15 A 120V, or 40 A 240V. Seven upright seats. The most room in Series One. Best for: Bigger families and anyone who has friends over often.
+- Sierra (Series Two): 3 people, 1 seats + 2 lounger, 40 jets, 89 x 71 x 31 in, power 60 A 240V dedicated line. Two loungers and a seat. Zen for two, or three. Best for: Couples who want to lie back side by side, every night.
+- Harmony (Series Two): 5 people, 3 seats + 2 lounger, 42 jets, 84 x 84 x 37 in, power 60 A 240V dedicated line. Two loungers, three seats and 42 jets. Best for: Couples and small families who want two loungers and full power.
+- Eden (Series Two): 6 people, 5 seats + 1 lounger, 42 jets, 84 x 84 x 37 in, power 60 A 240V dedicated line. Six people, one lounger, 42 jets. Best for: Families of four to six who use the tub most nights.
+- Aspen (Series Two): 6 people, 5 seats + 1 lounger, 48 jets, 91 x 79 x 37 in, power 60 A 240V dedicated line. Six people, one lounger and 48 jets, the most in Series Two. Best for: Anyone who wants the deepest massage in the series, with room for six.
+- Calma (Series Two): 7 people, 7 seats, 38 jets, 84 x 84 x 37 in, power 60 A 240V dedicated line. Seven upright seats, for the whole family. Best for: Big families and people who entertain, with full power for every seat.
+- Cascade (Series Three): 5 people, 3 seats + 2 lounger, 45 jets, 91 x 91 x 37 in, power 60 A 240V dedicated line. Two full-length loungers, three seats, 45 jets. Best for: Couples who both want a lounger, with programmable massage.
+- Serenity (Series Three): 6 people, 5 seats + 1 lounger, 49 jets, 91 x 91 x 37 in, power 60 A 240V dedicated line. Six people, a full-length lounger, 49 jets. Best for: Families who want the best water care and a lounger for the end of the day.
+- Zenith (Series Three): 7 people, 6 seats + 1 lounger, 61 jets, 110 x 91 x 37 in, power 60 A 240V dedicated line. Our largest tub. Seven people, 61 jets. Best for: Big families and anyone who wants the most room and the most jets.
+- Solstice (Series Three): 7 people, 7 seats, 41 jets, 91 x 91 x 37 in, power 60 A 240V dedicated line. Seven upright seats, made for gathering. Best for: Families and friends who soak together, with the best water care.
+COLOURS: every AquaSolus comes with a Lunar Grey cabinet. The shell (the inside) comes in two colours: Sterling Silver (light and bright, the water looks clear blue and inviting, shows the LED lighting well) or Odyssey (a deeper grey, modern and moody, hides everyday marks). The team confirms availability of a colour when they lock in the order.
+Accessories and service: AquaSolus steps $399, cover lifter $449, GFCI $599, starter kit $299; standard delivery $549, white glove delivery $649, delivery over 50 km $2.50 a km, old spa removal $399.
+
+THE DEAL YOU CAN OFFER (all real)
+- Every available upgrade for their model is included free.
+- Free local delivery, free cover lifter and free AquaSolus steps.
+- So on top of the sale price, the package adds about $5,743 of value on Series Three ($4,346 upgrades + $549 delivery + $449 lifter + $399 steps) and about $4,195 on Series One and Two ($2,798 + $549 + $449 + $399).
+- If, and only if, price is the last thing standing between them and yes, you may take up to this much MORE off the sale price: Series One $500, Series Two $750, Series Three $1,250. Never more. Never lead with it, never offer it to someone who hasn't chosen a tub, and give it in steps (start with about half, and use the rest only if they still need it to say yes). Present it as a one-time extra to earn their business today, which it is.
+- Delivery beyond 50 km, GFCI, starter kit, white glove delivery and old spa removal are extra at the sheet price unless the team says otherwise.`;
 async function noahPricing(): Promise<string> {
-  const db = admin();
-  const { data: rows } = await db.from("product_costs").select("product_type, model, msrp, sale_price, product_lines(name, sort)");
-  const { data: adds } = await db.from("addons").select("name, kind, sale_price, offered").eq("offered", true);
-  const { data: promo } = await db.from("settings").select("v").eq("k", "noah_promo").maybeSingle();
-  const upgrades = (adds ?? []).filter((a) => a.kind !== "delivery").reduce((t, a) => t + Number(a.sale_price || 0), 0);
-  const delivery = Number((adds ?? []).find((a) => a.kind === "delivery")?.sale_price || 0);
-  const byLine: Record<string, { zen: number[]; msrp: number[]; models: string[]; savings: number[] }> = {};
-  // deno-lint-ignore no-explicit-any
-  for (const r of (rows ?? []) as any[]) {
-    if (!r.sale_price || !r.msrp) continue;
-    const line = r.product_lines?.name || (r.product_type === "swim_spa" ? "Swim spas" : "Other");
-    const b = byLine[line] ??= { zen: [], msrp: [], models: [], savings: [] };
-    b.zen.push(Number(r.sale_price)); b.msrp.push(Number(r.msrp)); b.models.push(r.model);
-    b.savings.push(Number(r.msrp) - Number(r.sale_price) + upgrades + delivery);
-  }
-  const $ = (n: number) => "$" + Math.round(n).toLocaleString("en-CA");
-  const lines = Object.entries(byLine).map(([line, b]) =>
-    `- ${line} (${b.models.join(", ")}): Zen price ${$(Math.min(...b.zen))} to ${$(Math.max(...b.zen))} (MSRP ${$(Math.min(...b.msrp))} to ${$(Math.max(...b.msrp))}). With the promotion, total savings off MSRP of about ${$(Math.min(...b.savings))} to ${$(Math.max(...b.savings))}.`);
-  return `PRICES YOU MAY QUOTE (as ranges, plus tax; exact prices and inventory are confirmed by the team):
-${lines.join("\n")}
-- The upgrades: ${(adds ?? []).filter((a) => a.kind !== "delivery").map((a) => `${a.name} (${$(Number(a.sale_price))})`).join(", ")}. Local delivery: ${$(delivery)}.
-CURRENT PROMOTION: ${promo?.v || "none"}
-Share a range when they ask about price (never dodge it), then bring it back to value: the presentation shows what goes into the tub for that money, the Find your Zen form at the end finds the exact tub, and the team confirms the exact price.`;
+  const { data: promo } = await admin().from("settings").select("v").eq("k", "noah_promo").maybeSingle();
+  return `${NOAH_SHEET}
+CURRENT PROMOTION NOTE FROM SHAUN: ${promo?.v || "none"}
+Before they've been through the presentation, share prices when asked (never dodge), then bring it back to value and the presentation. Exact availability and delivery dates are confirmed by the team.`;
 }
+
+// After someone has been through the presentation, Noah's goal changes: sell the hot tub, or get Shaun on a call.
+// Built from SCP (Act One, Foundations of Professional Selling) until the SCP close module is added here.
+const NOAH_CLOSE = `CLOSING MODE: this person has been through the presentation (or part of it). This overrides "You do NOT close" and "your one job is the presentation". Your goal now is one of two outcomes, in this order:
+1. SELL THE HOT TUB in the chat: help them choose the right model, give the exact price and the deal, and get a yes.
+2. If they're not ready to decide in a chat, or want to talk it through, BOOK A CALL WITH SHAUN: their first name, phone number and a good time today or tomorrow.
+Every message moves toward one of these. Never leave a message without a clear next step.
+
+DISCOVER THE RIGHT HOT TUB, THEN THE COLOUR (one question at a time, only what you don't already know from the chat or Find your Zen)
+- What they want most from it (sleep, sore muscles, time together, a quiet escape), and what stood out in the presentation. Listen; emotion makes the decision, logic justifies it.
+- Who will soak and how often (how many people usually, kids, friends over).
+- Seats or loungers: does anyone want to lie back and stretch out?
+- The spot and the space: where it goes and roughly how big (patio, deck, lawn, how wide the path in is).
+- Power: a regular outlet only (Series One can plug in), or can they run a 240V line (an electrician handles it; Gerry Jansen is our electrical partner).
+- How much massage matters (more jets and the stronger pumps of Series Two and Three).
+Then recommend ONE hot tub with confidence, tied to what they told you, and say why in one line. If two fit, recommend one and name the other only as a step up or down.
+- Colour: ask about where it will sit and their home (siding, deck, stone, a bright or shaded spot) and which feel they like, then recommend Sterling Silver or Odyssey with the Lunar Grey cabinet. Make it feel like their tub.
+
+HOW TO CLOSE (SCP)
+- Certainty transfers: statements, not hedges.
+- The ownership picture: help them see it already theirs (their first evening in it, the people in it with them).
+- Price with value: the sale price, then the deal (every available upgrade included, free delivery, cover lifter and steps) and what that's worth, then the total plus tax. Never just a number.
+- A-C-A every concern: Acknowledge it in your own words, Connect it to something true and positive, then Answer or ask one question. Find the real objection before you solve anything ("Is it the price itself, or making sure it's the right one?").
+- Trial close often and lightly: "Does the Eden feel like the right fit for you two?" "If the numbers work, is this something you'd want in before Christmas?"
+- Ask for the decision plainly when they're there: "Want me to lock it in for you?" Then stop and let them answer.
+- Use the extra discount only as described in the deal, only to get a yes, and in steps.
+- Real urgency only: the current promotion note above, and real timing (delivery takes about three weeks, so ordering soon is how to have it before Christmas). Never invent stock, deadlines or other buyers.
+- If it's a no or not yet, stay warm, find out what would make it a yes, and offer the call with Shaun.
+
+WHEN THEY SAY YES
+- Get their full name, phone number, email, and the delivery address or city, and confirm the model, the shell colour, the price you agreed (and any extra discount), plus tax.
+- Tell them Shaun will send the agreement to sign and a secure payment link, and call to confirm delivery. You never take payment yourself.
+- Set handoff to true, and in lead.summary write the deal exactly: model, shell colour, sale price, any extra discount, the free items, the total before tax, and anything they asked for.
+WHEN THEY WANT A CALL: get first name, phone and best time, set handoff to true, and say Shaun will call them.`;
 
 // deno-lint-ignore no-explicit-any
 async function noahThink(history: { role: string; text: string }[], extra = ""): Promise<any> {
@@ -2467,7 +2519,9 @@ async function noahIncoming(channel: string, psid: string, text: string, mid: st
 
   const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t!.id).order("created_at").limit(60);
   const history = msgs ?? [];
-  const extra = t!.handed_off_at ? "The team already has their details and will call. Keep helping warmly, and don't ask for their details again." : "";
+  // After they've been through the presentation (the private link reports it), Noah moves to closing mode.
+  const { count: seen } = await db.from("page_visits").select("id", { count: "exact", head: true }).eq("thread_id", t!.id).gte("seconds", 8);
+  const extra = [t!.handed_off_at ? "The team already has their details and will call. Keep helping warmly, and don't ask for their details again." : "", (seen ?? 0) > 0 ? NOAH_CLOSE : ""].filter(Boolean).join("\n\n");
   const j = await noahThink(history, extra);
   if (!j.reply) return;
   await db.from("chat_messages").insert({ thread_id: t!.id, role: "noah", text: j.reply, mid: await noahSend(psid, j.reply, ptoken) });
@@ -2660,7 +2714,8 @@ async function route_noah_nudge(req: Request): Promise<Response> {
       const finished = v.furthest_i >= CHAPTERS.indexOf("aquazen");
       const extra = `PRIVATE CONTEXT, NEVER MENTION IT: they opened the ${v.page === "quiz" ? "Find your Zen form" : "How we deliver Zen presentation"} you sent, spent about ${mins} minute${mins === 1 ? "" : "s"}, got as far as ${far}${finished ? " (nearly all of it)" : ""}, and then left without filling out Find your Zen.
 Write ONE short follow-up message, like a curious salesperson checking in naturally a little after sending a link. Ask one inquiry question that invites them to share, for example what stood out, what they learned, or whether it answered what they wondered about. ${finished ? "They saw most of it, so you can ask what stood out and gently mention the Find your Zen form at the end gets them a personal recommendation." : mins <= 2 ? "They didn't get far, so keep it light: ask what they're most curious about, or whether there's one question you can answer for them right here." : "Ask what they've thought of it so far."}
-Never say or hint that you saw them leave, saw which part they read, or know how long they stayed. No "I noticed", no "still there?", no pressure. One or two sentences, one question. Don't resend the link. Set handoff to false.`;
+Never say or hint that you saw them leave, saw which part they read, or know how long they stayed. No "I noticed", no "still there?", no pressure. One or two sentences, one question. Don't resend the link. Set handoff to false.
+Your aim from here is to sell them the hot tub or book a call with Shaun, but this first message is only the question: open the conversation, don't pitch.`;
       const j = await noahThink(msgs ?? [], extra);
       if (!j.reply) { await mark("(skipped: nothing to say)"); continue; }
       const mid = await noahSend(t.psid, j.reply, ptoken);
@@ -2700,7 +2755,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
     try {
       // deno-lint-ignore no-explicit-any
       const history = b.practice.slice(-30).map((m: any) => ({ role: m.role === "noah" ? "noah" : "user", text: String(m.text ?? "").slice(0, 2000) }));
-      const j = await noahThink(history);
+      const j = await noahThink(history, b.closing ? NOAH_CLOSE : "");
       return jsonAuth(req, { reply: j.reply, handoff: !!j.handoff, lead: j.lead });
     } catch (e) { console.error("noah practice", e); return jsonAuth(req, { error: "Noah didn't answer. Please try again." }, 502); }
   }

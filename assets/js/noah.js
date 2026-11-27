@@ -73,7 +73,7 @@
       var input = $('#noahPracticeText'), text = input.value.trim(); if (!text) return;
       practice.push({ role: 'user', text: text }); input.value = '';
       bubbles($('#noahPractice'), practice.concat([{ role: 'noah', text: '...' }]));
-      AZ.api('noah-admin', { practice: practice }).then(function (r) {
+      AZ.api('noah-admin', { practice: practice, closing: $('#noahPracticeClose').checked }).then(function (r) {
         practice.push({ role: 'noah', text: r.reply + (r.handoff ? '\n\n(Noah would now hand this to the team: ' + [r.lead && r.lead.name, r.lead && r.lead.phone].filter(Boolean).join(', ') + ')' : '') });
         bubbles($('#noahPractice'), practice);
       }).catch(function (err) { practice.push({ role: 'team', text: err.message }); bubbles($('#noahPractice'), practice); });
