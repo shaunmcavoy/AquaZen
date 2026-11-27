@@ -53,7 +53,7 @@
     if (page === 'model' && cfg.model) return "What's got you looking at the " + cfg.model + '?';
     return "What's got you thinking about a hot tub?";
   }
-  function opener() { if (!factKey) factKey = pickFact(); return "Hi, I'm Noah, AquaZen's AI assistant. Did you know that " + FACTS[factKey]; }
+  function opener() { if (!factKey) factKey = pickFact(); return "Hi, I'm Noah, AquaZen's Internet Manager. Did you know that " + FACTS[factKey]; }
   function greet() { return opener() + '\n\n' + question(); }
 
   var root, panel, list, input, launch, teaser, busy = false, shown = false;
@@ -65,7 +65,7 @@
       '<button type="button" class="noahw-launch" aria-expanded="false" aria-controls="noahwPanel"><span class="noahw-dot" aria-hidden="true"></span><span class="noahw-label">Questions? Ask Noah</span></button>' +
       '<div class="noahw-teaser" hidden></div>' +
       '<section class="noahw-panel" id="noahwPanel" role="dialog" aria-label="Chat with Noah" hidden>' +
-        '<header><span class="noahw-dot" aria-hidden="true"></span><div><b>Noah</b><small>AquaZen&rsquo;s AI assistant</small></div><button type="button" class="noahw-x" aria-label="Close the chat">&times;</button></header>' +
+        '<header><span class="noahw-dot" aria-hidden="true"></span><div><b>Noah</b><small>AquaZen&rsquo;s Internet Manager</small></div><button type="button" class="noahw-x" aria-label="Close the chat">&times;</button></header>' +
         '<div class="noahw-list" aria-live="polite"></div>' +
         '<form class="noahw-form"><textarea rows="1" maxlength="1000" placeholder="Type a question" aria-label="Your message"></textarea><button type="submit" aria-label="Send">Send</button></form>' +
         '<p class="noahw-note">Noah is an AI. A person on our team reads these chats. <a href="/privacy/">Privacy</a></p>' +
