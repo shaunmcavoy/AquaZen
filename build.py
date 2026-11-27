@@ -579,7 +579,7 @@ MAPS_URL = "https://www.google.com/maps/search/?api=1&query=AquaZen+7049+Russell
 # Paste the content value of Google Search Console's HTML tag here (google-site-verification) and rebuild.
 GOOGLE_SITE_VERIFICATION = ""
 # Meta (Facebook) pixel ID from Events Manager. Empty = no pixel. Loads on public pages only, never the back office.
-META_PIXEL_ID = ""
+META_PIXEL_ID = "1808425697108610"
 # Our delivery crew goes anywhere from Whistler to Hope.
 DELIVERY_AREA = ["Whistler", "Squamish", "West Vancouver", "North Vancouver", "Vancouver", "Burnaby", "New Westminster", "Richmond", "Delta", "Surrey", "White Rock", "Langley", "Coquitlam", "Port Coquitlam", "Port Moody", "Pitt Meadows", "Maple Ridge", "Mission", "Abbotsford", "Chilliwack", "Agassiz", "Harrison Hot Springs", "Hope"]
 STORE = {
