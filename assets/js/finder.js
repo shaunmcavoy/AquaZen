@@ -387,7 +387,7 @@
     };
     fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'send failed'); return j; }); })
-      .then(function () { done(a); })
+      .then(function () { try { if (window.fbq) fbq('track', 'Lead', { content_name: 'Find your Zen' }); } catch (e) {} done(a); })
       .catch(function () {
         sending = false;
         next.disabled = false;

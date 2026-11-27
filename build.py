@@ -578,6 +578,8 @@ ADDRESS = "7049 Russell Ave, Burnaby, BC V5J 4R8"
 MAPS_URL = "https://www.google.com/maps/search/?api=1&query=AquaZen+7049+Russell+Ave+Burnaby+BC+V5J+4R8"
 # Paste the content value of Google Search Console's HTML tag here (google-site-verification) and rebuild.
 GOOGLE_SITE_VERIFICATION = ""
+# Meta (Facebook) pixel ID from Events Manager. Empty = no pixel. Loads on public pages only, never the back office.
+META_PIXEL_ID = ""
 # Our delivery crew goes anywhere from Whistler to Hope.
 DELIVERY_AREA = ["Whistler", "Squamish", "West Vancouver", "North Vancouver", "Vancouver", "Burnaby", "New Westminster", "Richmond", "Delta", "Surrey", "White Rock", "Langley", "Coquitlam", "Port Coquitlam", "Port Moody", "Pitt Meadows", "Maple Ridge", "Mission", "Abbotsford", "Chilliwack", "Agassiz", "Harrison Hot Springs", "Hope"]
 STORE = {
@@ -695,6 +697,11 @@ def seo():
                     '<meta name="twitter:card" content="summary_large_image">',
                     *([f'<meta name="google-site-verification" content="{GOOGLE_SITE_VERIFICATION}">'] if GOOGLE_SITE_VERIFICATION and path == "/" else []),
                     '<meta name="geo.region" content="CA-BC"><meta name="geo.placename" content="Burnaby">']
+            if META_PIXEL_ID:
+                tags.append("<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};"
+                            "if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;"
+                            "s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');"
+                            f"fbq('init','{META_PIXEL_ID}');fbq('track','PageView');</script>")
             tags += [f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in lds]
             tags = "\n".join(tags) + "<!-- /seo -->"
         txt = txt.replace("</head>", tags + "\n</head>", 1)
