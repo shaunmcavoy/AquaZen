@@ -40,7 +40,7 @@
       var what = (v.page === 'quiz' ? 'Opened Find your Zen' : 'Opened the presentation') + ' ' + AZ.esc(AZ.dateTime(v.started_at)) +
         (v.seconds ? ', stayed ' + (v.seconds < 60 ? v.seconds + ' seconds' : 'about ' + mins + ' minute' + (mins === 1 ? '' : 's')) : '') +
         (v.furthest_name ? ', got to ' + AZ.esc(v.furthest_name) : '');
-      var end = v.form_sent ? ' <b>Sent Find your Zen.</b>' : v.nudged_at ? (v.nudge_text && v.nudge_text.charAt(0) === '(' ? ' <span class="muted">No follow-up ' + AZ.esc(v.nudge_text.slice(10, -1)) + '.</span>' : ' Noah followed up.') : '';
+      var end = v.form_sent ? ' <b>Sent Find your Zen.</b>' : v.nudged_at ? (v.nudge_text && v.nudge_text.charAt(0) === '(' ? ' <span class="muted">No follow-up: ' + AZ.esc(v.nudge_text.slice(10, -1)) + '.</span>' : ' Noah followed up.') : '';
       return '<li>' + what + '.' + end + '</li>';
     }).join('') + '</ul>' : '';
   }
