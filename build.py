@@ -152,7 +152,7 @@ def inject_home_header():
 def built(kind):
     """The three things that set AquaSolus apart, written for the Lower Mainland."""
     if kind == "tub":
-        water = ("Water this clean takes more than ozone.", "A typical hot tub takes about 45 minutes to move all its water through the filter and ozone. With four to five times more water flowing through the jets, an AquaSolus does it in under 10. Every series has a double ozonator: ozone held under water in a mixing chamber for at least 45 seconds, then a UV stage. Cleaner water, fewer chemicals.")
+        water = ("Water this clean takes more than ozone.", "A typical hot tub takes about 45 minutes to move all its water through the filter and ozone. With four to five times more water flowing through the jets, an AquaSolus does it in under 10. Then the double ozonator: ozone held under water in a mixing chamber for at least 45 seconds, then a UV stage. Cleaner water, fewer chemicals.")
         build = ("Build quality, second to none.", "A 304 stainless steel frame that won't rot or rust, on a structured ABS base pan that seals and protects the bottom of the tub. Built for the longest life you can get.")
     else:
         water = ("Clean water, simply.", "Ozone water care comes standard, and soft Lower Mainland water keeps the routine short. We show you exactly how before delivery.")
@@ -174,27 +174,30 @@ def comes_with(kind):
     """What every AquaSolus includes, from the AquaSolus 2026 brochure (NA)."""
     if kind == "tub":
         items = [
-            ("Six-colour LED lighting", "Lights above and below the waterline, with six shades from Halo to Ember: cool and clear for a morning soak, warm for the evening."),
-            ("Four kinds of massage", "Targeting jets you dial for your back, a tri-impeller that kneads, a multi-arm star that spreads water across your shoulders and a twin vortex for calves and feet."),
-            ("Two filters, easy to rinse", "Two 50 sq ft cartridges work side by side. Rinse them with a garden hose. No special tools."),
-            ("An insulated cover", "A thick, insulated cover comes with every tub to hold the heat in and keep leaves out. It works with our cover lifter."),
-            ("Heat pump ready", "Ports are already in place to add an air-source heat pump later, for an even lower hydro bill. AquaSolus recommends Aquark, and we can quote one with your tub."),
-            ("A cabinet that stays beautiful", "Luna Grey composite that won't rot, with matching steps. Inside, a composite outer frame and a 304 stainless steel inner frame carry the weight."),
-            ("Two shell finishes", "Aristech acrylic in Sterling Silver (light and architectural) or Odyssey (deep graphite). Both are tough and easy to wipe clean."),
+            ("Six-colour LED lighting", "Lights above and below the waterline, with six shades from Halo to Ember: cool and clear for a morning soak, warm for the evening.", "bro-night"),
+            ("Four kinds of massage", "Targeting jets you dial for your back, a tri-impeller that kneads, a multi-arm star that spreads water across your shoulders and a twin vortex for calves and feet.", "bro-jets-hand"),
+            ("Two filters, easy to rinse", "Two 50 sq ft cartridges work side by side. Rinse them with a garden hose. No special tools.", "bro-filter"),
+            ("An insulated cover", "A thick, insulated cover comes with every tub to hold the heat in and keep leaves out. It works with our cover lifter.", "bro-garden-top"),
+            ("Heat pump ready", "Ports are already in place to add an air-source heat pump later, for an even lower hydro bill. AquaSolus recommends Aquark, and we can quote one with your tub.", "bro-heatpump"),
+            ("A cabinet that stays beautiful", "Luna Grey composite that won't rot, with matching steps. Inside, a composite outer frame and a 304 stainless steel inner frame carry the weight.", "bro-steps"),
+            ("Two shell finishes", "Aristech acrylic in Sterling Silver (light and architectural) or Odyssey (deep graphite). Both are tough and easy to wipe clean.", "bro-relax"),
             ("Designed in England", "AquaSolus is a Superior Wellness brand, designed and engineered in England and sold through specialist dealers like us."),
         ]
         title = "Every AquaSolus hot tub comes with"
     else:
         items = [
-            ("Award winning", "The AquaSolus Swim Spa Series is a WhatSpa? Best Buy award winner."),
-            ("Three ways to set it up", "Professional: a 9-speed turbine for a smooth, deep current, from an easy recovery swim up to a 0:56 per 100 m pace. Standard: three river jets for a broad current. Dual Zone: a swim lane and a separate hot tub, each at its own temperature."),
+            ("Award winning", "The AquaSolus Swim Spa Series is a WhatSpa? Best Buy award winner.", "bro-swim-3"),
+            ("Three ways to set it up", "Professional: a 9-speed turbine for a smooth, deep current, from an easy recovery swim up to a 0:56 per 100 m pace. Standard: three river jets for a broad current. Dual Zone: a swim lane and a separate hot tub, each at its own temperature.", "bro-swim-2"),
             ("Six-colour LED lighting", "Lights above and below the waterline, with six shades from Halo to Ember."),
-            ("Bluetooth sound with a subwoofer", "Stereo speakers and a subwoofer come standard. Drift and Solara add two transducer speakers you feel through the water."),
+            ("Bluetooth sound with a subwoofer", "Stereo speakers and a subwoofer come standard. Drift and Solara add two transducer speakers you feel through the water.", "bro-speaker"),
             ("Two shell finishes", "Aristech acrylic in Sterling Silver or Odyssey, in a Luna Grey composite cabinet with a 304 stainless steel frame inside."),
             ("Designed in England", "AquaSolus is a Superior Wellness brand, designed and engineered in England."),
         ]
         title = "Every AquaSolus swim spa comes with"
-    cells = "".join(f'<div class="incl-item"><h3>{e(t)}</h3><p>{e(d)}</p></div>' for t, d in items)
+    cells = "".join(
+        f'<div class="incl-item">' + (f'<img src="{IMG}{x[2]}.webp" alt="" loading="lazy">' if len(x) > 2 else '') + f'<h3>{e(x[0])}</h3><p>{e(x[1])}</p></div>'
+        for x in items
+    )
     return f"""
 <section class="incl">
   <div class="wrap"><h2 class="h2">{title}</h2><div class="incl-grid">{cells}</div></div>

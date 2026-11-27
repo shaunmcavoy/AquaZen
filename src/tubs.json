@@ -8,7 +8,7 @@
    "range": "AquaPure",
    "headline": "Plug in. Find your Zen.",
    "lede": "Four hot tubs for 4 to 7 people that run on a standard 120V outlet, or a 40 amp line if you have one. The simplest way to start your Zen Time.",
-   "hero": "cove-quarter",
+   "hero": "series-one-hero",
    "stats": [
     [
      "4",
@@ -29,7 +29,7 @@
    ],
    "features": [
     [
-     "feat-headrest",
+     "bro-relax",
      "Sculpted headrests",
      "Soft, shaped headrests that hold your head and neck, so you can actually let go."
     ],
@@ -39,17 +39,17 @@
      "A gentle sheet of water into the tub. The sound alone slows you down."
     ],
     [
-     "feat-diverter",
+     "bro-dial",
      "Diverter control",
      "Move the flow to the seats that need it most, with one turn."
     ],
     [
-     "feat-audio",
+     "bro-speaker",
      "Built-in audio",
      "Bluetooth sound with speakers in the tub. Your playlist, or nothing but the night."
     ],
     [
-     "feat-jets",
+     "bro-jets-hand",
      "Hydrotherapy jets",
      "Small to extra large jets fed by wide plumbing, so a big volume of warm water works your back instead of a sharp, itchy spray."
     ]
@@ -68,7 +68,7 @@
    "range": "NaturaBalance",
    "headline": "Full power, every night.",
    "lede": "Five hot tubs for 3 to 7 people with two pumps on a dedicated 60 amp line, so the heater and the jets run at full power together. Made for nightly Zen Time, all year round.",
-   "hero": "eden-quarter",
+   "hero": "series-two-hero",
    "stats": [
     [
      "5",
@@ -89,12 +89,12 @@
    ],
    "features": [
     [
-     "feat-jets",
+     "bro-jets-hand",
      "Two pumps, full flow",
      "Two 6 BHP pumps push a high volume of water through wide plumbing, so every seat gets a deep, soft massage instead of a sharp spray."
     ],
     [
-     "feat-headrest",
+     "bro-relax",
      "Sculpted headrests",
      "Soft, shaped headrests that hold your head and neck, so you can actually let go."
     ],
@@ -104,12 +104,12 @@
      "A gentle sheet of water into the tub. The sound alone slows you down."
     ],
     [
-     "feat-diverter",
+     "bro-dial",
      "Diverter control",
      "Move the flow to the seats that need it most, with one turn."
     ],
     [
-     "feat-audio",
+     "bro-speaker",
      "Built-in audio",
      "Bluetooth sound with speakers in the tub. Your playlist, or nothing but the night."
     ]
@@ -129,7 +129,7 @@
    "range": "AquaLux",
    "headline": "The peak of Zen.",
    "lede": "Our most advanced hot tubs. Programmable massage, real-time water monitoring and the full EcoPure water system, in four models for 5 to 7 people.",
-   "hero": "serenity-quarter",
+   "hero": "series-three-hero",
    "stats": [
     [
      "4",
@@ -150,27 +150,27 @@
    ],
    "features": [
     [
-     "feat-interior",
+     "bro-s3-pad",
      "Programmable massage",
      "A variable-speed massage pump runs sequences you choose, from slow and soft to deep."
     ],
     [
-     "feat-jets",
+     "bro-touch",
      "Real-time water monitoring",
      "Gecko WaterLab watches the water for you, with UV and ozone keeping it clear."
     ],
     [
-     "feat-waterfall",
+     "bro-s3-waterfall",
      "Infinity waterfall",
      "A gentle sheet of water into the tub. The sound alone slows you down."
     ],
     [
-     "feat-speaker",
+     "bro-s3-corner",
      "Light and sound",
      "Colour lighting inside, glowing corners outside, and built-in Bluetooth audio."
     ],
     [
-     "feat-headrest",
+     "bro-s3-headrest",
      "Sculpted headrests",
      "Soft, shaped headrests that hold your head and neck, so you can actually let go."
     ]
@@ -208,9 +208,17 @@
    "photos": [
     "brook-quarter",
     "brook-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
     "brook-d1",
     "brook-d2",
-    "brook-d3"
+    "brook-d3",
+    "brook-site-quarter",
+    "brook-site-overhead"
    ]
   },
   "zephyr": {
@@ -236,8 +244,16 @@
    "photos": [
     "zephyr-quarter",
     "zephyr-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
     "zephyr-d1",
-    "zephyr-d2"
+    "zephyr-d2",
+    "zephyr-site-quarter",
+    "zephyr-site-overhead"
    ]
   },
   "cypress": {
@@ -263,8 +279,16 @@
    "photos": [
     "cypress-quarter",
     "cypress-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
     "cypress-d1",
-    "cypress-d2"
+    "cypress-d2",
+    "cypress-site-quarter",
+    "cypress-site-overhead"
    ]
   },
   "cove": {
@@ -290,8 +314,16 @@
    "photos": [
     "cove-quarter",
     "cove-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
     "cove-d1",
-    "cove-d2"
+    "cove-d2",
+    "cove-site-quarter",
+    "cove-site-overhead"
    ]
   },
   "sierra": {
@@ -316,7 +348,15 @@
    "panel": "Gecko K506",
    "photos": [
     "sierra-quarter",
-    "sierra-overhead"
+    "sierra-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
+    "sierra-site-quarter",
+    "sierra-site-overhead"
    ]
   },
   "harmony": {
@@ -341,7 +381,15 @@
    "panel": "Gecko K506",
    "photos": [
     "harmony-quarter",
-    "harmony-overhead"
+    "harmony-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
+    "harmony-site-quarter",
+    "harmony-site-overhead"
    ]
   },
   "eden": {
@@ -366,7 +414,15 @@
    "panel": "Gecko K506",
    "photos": [
     "eden-quarter",
-    "eden-overhead"
+    "eden-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
+    "eden-site-quarter",
+    "eden-site-overhead"
    ]
   },
   "aspen": {
@@ -392,9 +448,17 @@
    "photos": [
     "aspen-quarter",
     "aspen-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
     "aspen-d1",
     "aspen-d2",
-    "aspen-d3"
+    "aspen-d3",
+    "aspen-site-quarter",
+    "aspen-site-overhead"
    ]
   },
   "calma": {
@@ -420,8 +484,16 @@
    "photos": [
     "calma-quarter",
     "calma-overhead",
+    "bro-relax",
+    "bro-dial",
+    "bro-jets-hand",
+    "bro-jets",
+    "bro-speaker",
+    "bro-filter",
     "calma-d1",
-    "calma-d2"
+    "calma-d2",
+    "calma-site-quarter",
+    "calma-site-overhead"
    ]
   },
   "cascade": {
@@ -446,7 +518,17 @@
    "panel": "Gecko K1001",
    "photos": [
     "cascade-quarter",
-    "cascade-overhead"
+    "cascade-overhead",
+    "bro-touch",
+    "bro-s3-headrest",
+    "bro-s3-corner",
+    "bro-s3-waterfall",
+    "bro-s3-jets",
+    "bro-s3-cup",
+    "bro-s3-lightbar",
+    "bro-night",
+    "cascade-site-quarter",
+    "cascade-site-overhead"
    ]
   },
   "serenity": {
@@ -471,7 +553,17 @@
    "panel": "Gecko K1001",
    "photos": [
     "serenity-quarter",
-    "serenity-overhead"
+    "serenity-overhead",
+    "bro-touch",
+    "bro-s3-headrest",
+    "bro-s3-corner",
+    "bro-s3-waterfall",
+    "bro-s3-jets",
+    "bro-s3-cup",
+    "bro-s3-lightbar",
+    "bro-night",
+    "serenity-site-quarter",
+    "serenity-site-overhead"
    ]
   },
   "zenith": {
@@ -496,7 +588,17 @@
    "panel": "Gecko K1001",
    "photos": [
     "zenith-quarter",
-    "zenith-overhead"
+    "zenith-overhead",
+    "bro-touch",
+    "bro-s3-headrest",
+    "bro-s3-corner",
+    "bro-s3-waterfall",
+    "bro-s3-jets",
+    "bro-s3-cup",
+    "bro-s3-lightbar",
+    "bro-night",
+    "zenith-site-quarter",
+    "zenith-site-overhead"
    ]
   },
   "solstice": {
@@ -521,7 +623,17 @@
    "panel": "Gecko K1001",
    "photos": [
     "solstice-quarter",
-    "solstice-overhead"
+    "solstice-overhead",
+    "bro-touch",
+    "bro-s3-headrest",
+    "bro-s3-corner",
+    "bro-s3-waterfall",
+    "bro-s3-jets",
+    "bro-s3-cup",
+    "bro-s3-lightbar",
+    "bro-night",
+    "solstice-site-quarter",
+    "solstice-site-overhead"
    ]
   }
  },
@@ -531,7 +643,7 @@
   "range": "AquaSolus Swim Spa Series",
   "headline": "Swim, train and soak. At home.",
   "lede": "Six AquaSolus swim spas, 14 to 19 ft long, for 2 to 12 people. Swim against river jets or a 9-speed turbine, then sit back under the hydrotherapy jets when you're done.",
-  "hero": "solara-quarter",
+  "hero": "swim-hero",
   "stats": [
    [
     "6",
@@ -552,7 +664,7 @@
   ],
   "features": [
    [
-    "flow-d1",
+    "bro-swim-2",
     "Two ways to swim",
     "River jets give a smooth, adjustable current. Professional models use a 9-speed hydraulic turbine for a wider, deeper flow."
    ],
@@ -562,12 +674,12 @@
     "When the workout is done, sit back under the jets and let your muscles recover."
    ],
    [
-    "flow-d2",
+    "bro-touch",
     "Gecko K1001 controls",
     "One panel for the current, the jets, the lights and the temperature."
    ],
    [
-    "flow-d3",
+    "bro-speaker",
     "Light and sound",
     "Colour lighting and Bluetooth audio come standard on every swim spa."
    ],
@@ -611,7 +723,12 @@
    "panel": "Gecko K1001",
    "photos": [
     "solara-quarter",
-    "solara-overhead"
+    "solara-overhead",
+    "bro-swim-2",
+    "bro-swim-3",
+    "bro-touch",
+    "bro-speaker",
+    "bro-filter"
    ]
   },
   "drift": {
@@ -637,7 +754,12 @@
    "panel": "Gecko K1001",
    "photos": [
     "drift-quarter",
-    "drift-overhead"
+    "drift-overhead",
+    "bro-swim-2",
+    "bro-swim-3",
+    "bro-touch",
+    "bro-speaker",
+    "bro-filter"
    ]
   },
   "fusion": {
@@ -663,7 +785,12 @@
    "panel": "Gecko K1001",
    "photos": [
     "fusion-quarter",
-    "fusion-overhead"
+    "fusion-overhead",
+    "bro-swim-2",
+    "bro-swim-3",
+    "bro-touch",
+    "bro-speaker",
+    "bro-filter"
    ]
   },
   "fusion-professional": {
@@ -689,7 +816,12 @@
    "panel": "Gecko K1001",
    "photos": [
     "fusion-professional-quarter",
-    "fusion-professional-overhead"
+    "fusion-professional-overhead",
+    "bro-swim-2",
+    "bro-swim-3",
+    "bro-touch",
+    "bro-speaker",
+    "bro-filter"
    ]
   },
   "flow": {
@@ -715,7 +847,12 @@
    "panel": "Gecko K1001",
    "photos": [
     "flow-quarter",
-    "flow-overhead"
+    "flow-overhead",
+    "bro-swim-2",
+    "bro-swim-3",
+    "bro-touch",
+    "bro-speaker",
+    "bro-filter"
    ]
   },
   "flow-professional": {
@@ -740,14 +877,14 @@
    "heater": "Gecko 4 kW, 240V",
    "panel": "Gecko K1001",
    "photos": [
-    "flow-quarter",
-    "flow-overhead",
-    "flow-d1",
-    "flow-d2",
-    "flow-d3"
-   ],
-   "overhead": "flow-overhead",
-   "quarter": "flow-quarter"
+    "flow-professional-quarter",
+    "flow-professional-overhead",
+    "bro-swim-2",
+    "bro-swim-3",
+    "bro-touch",
+    "bro-speaker",
+    "bro-filter"
+   ]
   }
  }
 }

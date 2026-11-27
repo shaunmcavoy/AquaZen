@@ -976,3 +976,5 @@ html[data-goal="sleep"] .g[data-g="sleep"],html[data-goal="muscles"] .g[data-g="
 .solus-note{color:var(--dim);font-size:15px;margin-top:24px}
 @media (max-width:1000px){.incl-grid{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:600px){.incl-grid{grid-template-columns:1fr}.incl{padding:64px 0}.solus{padding:64px 0}.solus-row{grid-template-columns:80px 1fr}}
+.incl-item{overflow:hidden}
+.incl-item img{display:block;width:calc(100% + 56px);margin:-28px -28px 20px;aspect-ratio:4/3;object-fit:cover}

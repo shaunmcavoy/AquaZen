@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/site.css?v=1b117d9d">
+<link rel="stylesheet" href="assets/css/site.css?v=de80933a">
 <!-- seo -->
 <link rel="canonical" href="https://aquazen.ca/">
 <meta property="og:type" content="website">
@@ -34,7 +34,7 @@
     <a class="nav-logo" href="/" aria-label="AquaZen home"><img src="/assets/img/logo-word.png" alt="AquaZen" width="112" height="32"></a>
     <nav class="nav-links" aria-label="Main">
       <button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-tubs">Hot tubs</button>
-      <a href="/#water">Swim spas</a>
+      <button class="nav-drop" type="button" aria-expanded="false" aria-controls="mega-swim">Swim spas</button>
       <a href="/#water">Mini pools</a>
       <a href="/how-we-deliver-zen/">How we deliver Zen</a>
       <a href="/visit/">Visit</a>
@@ -64,9 +64,27 @@
       </div>
     </div>
   </div>
+  <div class="mega" id="mega-swim" hidden>
+    <div class="mega-in">
+      <div class="mega-col">
+          <a class="mega-head" href="/swim-spas/">River jets</a>
+          <p class="mega-sub">A smooth, adjustable current</p>
+          <ul><li><a href="/swim-spas/solara/">Solara<span>14 ft &middot; 12 people</span></a></li><li><a href="/swim-spas/drift/">Drift<span>14 ft &middot; 2 people</span></a></li><li><a href="/swim-spas/fusion/">Fusion<span>19 ft &middot; 3 people</span></a></li><li><a href="/swim-spas/flow/">Flow<span>19 ft &middot; 2 people</span></a></li></ul>
+        </div>
+        <div class="mega-col">
+          <a class="mega-head" href="/swim-spas/">9-speed turbine</a>
+          <p class="mega-sub">A wider, deeper current for training</p>
+          <ul><li><a href="/swim-spas/fusion-professional/">Fusion Professional<span>19 ft &middot; 3 people</span></a></li><li><a href="/swim-spas/flow-professional/">Flow Professional<span>19 ft &middot; 2 people</span></a></li></ul>
+        </div>
+      <div class="mega-col mega-side">
+        <a class="mega-promo" href="/swim-spas/"><img src="/assets/img/models/solara-quarter.webp" alt="" loading="lazy"><span class="mega-promo-t">All swim spas</span><span class="mega-promo-d">Six swim spas, 14 to 19 ft. Swim, train and soak.</span></a>
+        <a class="mega-zen" href="/find-your-zen/">Not sure? Find your Zen</a>
+      </div>
+    </div>
+  </div>
   <div class="mmenu" id="mmenu" hidden>
     <details><summary>Hot tubs</summary><ul><li><a href="/hot-tubs/series-one/">Series One <span>AquaPure</span></a></li><li><a href="/hot-tubs/series-two/">Series Two <span>NaturaBalance</span></a></li><li><a href="/hot-tubs/series-three/">Series Three <span>AquaLux</span></a></li><li><a href="/hot-tubs/">All hot tubs</a></li></ul></details>
-    <a href="/#water">Swim spas</a>
+    <details><summary>Swim spas</summary><ul><li><a href="/swim-spas/solara/">Solara</a></li><li><a href="/swim-spas/drift/">Drift</a></li><li><a href="/swim-spas/fusion/">Fusion</a></li><li><a href="/swim-spas/fusion-professional/">Fusion Professional</a></li><li><a href="/swim-spas/flow/">Flow</a></li><li><a href="/swim-spas/flow-professional/">Flow Professional</a></li><li><a href="/swim-spas/">All swim spas</a></li></ul></details>
     <a href="/#water">Mini pools</a>
     <a href="/how-we-deliver-zen/">How we deliver Zen</a>
     <a href="/visit/">Visit</a>
@@ -185,15 +203,16 @@
         <div class="big-copy">
           <h2 class="h2">Swim spas.</h2>
           <p>Swim, train and soak in one. An adjustable current and hydrotherapy jets, all year round.</p>
+          <a class="link" href="/swim-spas/">See the swim spas</a>
         </div>
-        <img src="assets/img/aquazen-swimspa-overhead.webp" alt="Overhead view of a swim spa surrounded by garden" loading="lazy">
+        <img src="assets/img/models/swim-hero.webp" alt="An AquaSolus swim spa on a deck in a garden at sunset" loading="lazy">
       </article>
       <article class="big">
         <div class="big-copy">
           <h2 class="h2">Mini pools.</h2>
           <p>A six metre pool with river jets or a turbine current. Summer at home, without the full dig.</p>
         </div>
-        <img src="assets/img/aquazen-minipool-overhead.webp" alt="Overhead view of a mini pool on a patio" loading="lazy">
+        <img src="assets/img/models/bro-mini-4.webp" alt="An AquaSolus mini pool set into a deck in a garden" loading="lazy">
       </article>
     </div>
   </section>
@@ -253,6 +272,9 @@
     <p>Aqua Zen Wellness Consulting, operating as AquaZen. 7049 Russell Ave, Burnaby, BC V5J 4R8.</p>
     <p><a class="plain" href="tel:+12363044424">236-304-4424</a> &nbsp; <a class="plain" href="mailto:shaun@aquazen.ca">shaun@aquazen.ca</a></p>
     <!-- social --><p class="foot-social"><a class="foot-soc" href="https://www.facebook.com/1507596002430176" target="_blank" rel="noopener" aria-label="AquaZen on Facebook"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.9v3h2.5V21h3.1z"/></svg><span>Facebook</span></a><a class="foot-soc" href="https://www.instagram.com/aquazenhottubs/" target="_blank" rel="noopener" aria-label="AquaZen on Instagram"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM21 8.1c-.1-1.4-.4-2.7-1.4-3.7S17.3 3 15.9 3C14.4 2.9 9.6 2.9 8.1 3 6.7 3.1 5.4 3.4 4.4 4.4S3 6.7 3 8.1C2.9 9.6 2.9 14.4 3 15.9c.1 1.4.4 2.7 1.4 3.7S6.7 21 8.1 21c1.5.1 6.3.1 7.8 0 1.4-.1 2.7-.4 3.7-1.4s1.3-2.3 1.4-3.7c.1-1.5.1-6.3 0-7.8zm-2 9.6c-.3.8-.9 1.4-1.7 1.7-1.2.5-3.9.4-5.3.4s-4.1.1-5.3-.4c-.8-.3-1.4-.9-1.7-1.7-.5-1.2-.4-3.9-.4-5.3s-.1-4.1.4-5.3c.3-.8.9-1.4 1.7-1.7 1.2-.5 3.9-.4 5.3-.4s4.1-.1 5.3.4c.8.3 1.4.9 1.7 1.7.5 1.2.4 3.9.4 5.3s.1 4.1-.4 5.3z"/></svg><span>Instagram</span></a></p><!-- /social -->
+    
+    
+    
     
     
     
