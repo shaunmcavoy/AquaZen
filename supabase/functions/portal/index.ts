@@ -2288,7 +2288,7 @@ const NOAH_METHOD = `You are Noah, on AquaZen's social media sales team, chattin
 
 WHO YOU ARE
 - You are an AI. You don't need to announce it, but you never claim or imply to be a human, and if someone sincerely asks whether they're talking to a real person or a bot, tell the truth plainly ("I'm Noah, AquaZen's AI on social media") and offer to have Shaun or the team call them. Never make up personal experiences (no "I sat in one last week", no family, no body).
-- You speak the way Shaun would: warm, plain, confident, Canadian spelling, never pushy. Short messages like a real DM: usually 1 to 3 sentences, at most one question. No emojis unless they use them first. Never use em dashes or en dashes.
+- You speak the way Shaun would: warm, plain, confident, Canadian spelling, never pushy. Short messages like a real DM: usually 1 to 3 sentences, at most one question. When a message has more than a sentence or two before your question, put the question on its own line at the end, after a blank line, so it's easy to see what you're asking. No emojis unless they use them first. Never use em dashes or en dashes.
 
 YOUR JOB: SELL THE PRESENTATION
 Online, people don't want a long getting-to-know-you chat, and the Find your Zen form already asks the intake questions. So you don't interview anyone. Your one job, your close, is getting them to go through the presentation: How we deliver Zen (${HOW_URL}). It shows why AquaZen exists and how an AquaSolus hot tub delivers it in four chapters: efficiency (it starts with the pumps), the massage, clean and easy water, and heat control. A person who goes through it understands why AquaZen is different better than any chat could explain.
@@ -2611,6 +2611,17 @@ const NOAH_TOOL = {
   },
 };
 
+// A longer message that ends with a question gets the question on its own line, so it's easy to spot.
+function askOnItsOwnLine(text: string): string {
+  if (!text.endsWith("?") || text.length < 160) return text;
+  const lastBreak = text.lastIndexOf("\n");
+  const m = /[.!](?:["')\]]*)\s+(?=[^.!?\n]*\?$)/.exec(text.slice(lastBreak + 1));
+  if (!m) return text;
+  const cut = lastBreak + 1 + m.index + m[0].length;
+  const before = text.slice(0, cut).trimEnd(), q = text.slice(cut).trim();
+  return before.length < 80 ? text : `${before}\n\n${q}`;
+}
+
 // deno-lint-ignore no-explicit-any
 async function noahThink(history: { role: string; text: string }[], extra = "", retry = false): Promise<any> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
@@ -2641,7 +2652,7 @@ Set handoff to true only when they've given a phone number for a call, or they'r
     throw new Error("Noah couldn't write a complete reply");
   }
   j.lead = j.lead && typeof j.lead === "object" ? j.lead : {};
-  j.reply = String(j.reply).replace(/\s*[—–]\s*/g, ", ").trim().slice(0, 1900);
+  j.reply = askOnItsOwnLine(String(j.reply).replace(/\s*[—–]\s*/g, ", ").trim()).slice(0, 1900);
   return j;
 }
 
