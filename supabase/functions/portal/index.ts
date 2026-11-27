@@ -658,6 +658,44 @@ async function adminOnly(req: Request) {
   return me && me.profile.role === "admin" ? me : null;
 }
 
+// ---- Menu access: what each person can open in the staff portal (profiles.menus, NULL = role default) ----
+// Keep in step with MENUS in assets/js/staff.js and has_menu() in 011_menu_access.sql.
+const MENU_DEFAULTS: Record<string, string[]> = {
+  staff: ["customers", "sales", "new", "deliveries", "service", "resources"],
+  delivery: ["deliveries", "resources"],
+};
+// What an admin can give each role. Financials, Products and Team stay admin only (true costs, team settings).
+const MENU_ALLOWED: Record<string, string[]> = {
+  staff: ["customers", "sales", "new", "deliveries", "service", "resources", "ads", "noah"],
+  delivery: ["deliveries", "service", "resources"],
+};
+// deno-lint-ignore no-explicit-any
+function hasMenu(me: any, key: string) {
+  if (!me) return false;
+  if (me.profile.role === "admin") return true;
+  const list: string[] = me.profile.menus ?? MENU_DEFAULTS[me.profile.role] ?? [];
+  return list.includes(key) && (MENU_ALLOWED[me.profile.role] ?? []).includes(key);
+}
+async function menuOnly(req: Request, key: string) {
+  const me = await caller(req);
+  return hasMenu(me, key) ? me : null;
+}
+
+// POST {user_id, menus: string[] | null}  Admin chooses which menus a team member sees (null = back to the default).
+async function route_team_menus(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Only an admin can change what people see." }, 403);
+  const b = await req.json().catch(() => ({}));
+  const db = admin();
+  const { data: p } = await db.from("profiles").select("id, role").eq("id", String(b.user_id ?? "")).maybeSingle();
+  if (!p || !MENU_ALLOWED[p.role]) return jsonAuth(req, { error: "Admins always see everything. Choose a salesperson or delivery team member." }, 400);
+  const menus = b.menus === null ? null : (Array.isArray(b.menus) ? b.menus : []).map(String).filter((k: string) => MENU_ALLOWED[p.role].includes(k));
+  const { error } = await db.from("profiles").update({ menus: menus && [...new Set(menus)] }).eq("id", p.id);
+  if (error) return jsonAuth(req, { error: "Couldn't save that. Please try again." }, 500);
+  return jsonAuth(req, { ok: true, menus });
+}
+
 async function route_qb_status(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
   const me = await adminOnly(req);
@@ -1064,7 +1102,7 @@ async function route_qb_sync(req: Request): Promise<Response> {
 // deno-lint-ignore no-explicit-any
 async function deliveryCaller(req: Request): Promise<any> {
   const me = await caller(req);
-  if (!me || !["admin", "staff", "delivery"].includes(me.profile.role)) return null;
+  if (!me || !["admin", "staff", "delivery"].includes(me.profile.role) || !hasMenu(me, "deliveries")) return null;
   return me;
 }
 // deno-lint-ignore no-explicit-any
@@ -1233,12 +1271,12 @@ ${button(`${SITE_URL}/staff/#service`, "Open in the staff portal")}` }),
 async function route_service_list(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
   const me = await caller(req);
-  if (!me || !["admin", "staff"].includes(me.profile.role)) return jsonAuth(req, { error: "Please sign in as staff." }, 401);
+  if (!hasMenu(me, "service")) return jsonAuth(req, { error: "You don't have the Service menu." }, 403);
   const db = admin();
   const { data, error } = await db.from("service_requests").select("*, customers(name, cell, email, address, city_pc, created_by), sales(number, product_type, tub_model, serial_number, delivered_at)").order("created_at", { ascending: false }).limit(300);
   if (error) return jsonAuth(req, { error: "Couldn't load service requests." }, 500);
   // deno-lint-ignore no-explicit-any
-  const rows = (data ?? []).filter((r: any) => me.profile.role === "admin" || r.customers?.created_by === me.user.id);
+  const rows = (data ?? []).filter((r: any) => me!.profile.role !== "staff" || r.customers?.created_by === me!.user.id);
   const out = [];
   for (const r of rows) out.push({ ...r, photos: await signedUrls(r.photo_paths ?? []) });
   return jsonAuth(req, { requests: out });
@@ -1248,11 +1286,11 @@ async function route_service_list(req: Request): Promise<Response> {
 async function route_service_update(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
   const me = await caller(req);
-  if (!me || !["admin", "staff"].includes(me.profile.role)) return jsonAuth(req, { error: "Please sign in as staff." }, 401);
+  if (!me || !hasMenu(me, "service")) return jsonAuth(req, { error: "You don't have the Service menu." }, 403);
   const b = await req.json().catch(() => ({}));
   const db = admin();
   const { data: r } = await db.from("service_requests").select("*, customers(created_by)").eq("id", String(b.id ?? "")).maybeSingle();
-  if (!r || (me.profile.role !== "admin" && r.customers?.created_by !== me.user.id)) return jsonAuth(req, { error: "Not found." }, 404);
+  if (!r || (me.profile.role === "staff" && r.customers?.created_by !== me.user.id)) return jsonAuth(req, { error: "Not found." }, 404);
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (["new", "booked", "done"].includes(b.status)) patch.status = b.status;
   if (b.staff_notes !== undefined) patch.staff_notes = String(b.staff_notes ?? "").slice(0, 3000) || null;
@@ -1391,8 +1429,8 @@ async function adsClaude(key: string, content: any[], maxTokens = 4000): Promise
 // POST {action: "plan" | "write", brief, plan?, note?, image?}  Admins. Plans, then writes, four ads from Shaun's brief.
 async function route_ads_write(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await adminOnly(req);
-  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const me = await menuOnly(req, "ads");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ads menu." }, 403);
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) return jsonAuth(req, { error: "AI writing isn't switched on yet. Add an ANTHROPIC_API_KEY secret in Supabase." }, 400);
   const b = await req.json().catch(() => ({}));
@@ -1469,8 +1507,8 @@ Reply with only JSON: {"hooks":[{"h":"","s":"","cta":"","post":"","factor":"","t
 // POST {prompt}  Admins. An AI background image (OpenAI), returned as a data URL. Needs the OPENAI_API_KEY secret.
 async function route_ads_image(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await adminOnly(req);
-  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const me = await menuOnly(req, "ads");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ads menu." }, 403);
   const key = Deno.env.get("OPENAI_API_KEY");
   if (!key) return jsonAuth(req, { error: "AI images aren't switched on yet. Add an OPENAI_API_KEY secret in Supabase." }, 400);
   const b = await req.json().catch(() => ({}));
@@ -1537,11 +1575,12 @@ async function metaSettings() {
 // GET/POST {page_id?, ig_id?, ad_account?}  What's connected, and save which Page, Instagram and ad account to use.
 async function route_meta_status(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await adminOnly(req);
-  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const me = await menuOnly(req, "ads");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ads menu." }, 403);
   const token = Deno.env.get("META_TOKEN");
   if (!token) return jsonAuth(req, { configured: false });
   const b = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  if (req.method === "POST" && me.profile.role !== "admin") return jsonAuth(req, { error: "Only an admin can change the connected Page or ad account." }, 403);
   const db = admin();
   for (const [k, f] of [["meta_page_id", "page_id"], ["meta_ig_id", "ig_id"], ["meta_ad_account", "ad_account"]]) {
     if (b[f] !== undefined) await db.from("settings").upsert({ k, v: String(b[f] ?? "").replace(/[^0-9a-z_]/gi, "").slice(0, 40) });
@@ -1577,8 +1616,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // POST {image, video?, caption, facebook, instagram}  Publish an approved ad as a post on the Page and/or Instagram.
 async function route_meta_post(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await adminOnly(req);
-  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const me = await menuOnly(req, "ads");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ads menu." }, 403);
   const token = Deno.env.get("META_TOKEN");
   if (!token) return jsonAuth(req, { error: "Meta isn't connected yet." }, 400);
   const b = await req.json().catch(() => ({}));
@@ -1623,8 +1662,8 @@ async function route_meta_post(req: Request): Promise<Response> {
 // POST {image, video?, headline, caption, link, budget}  Create a complete ad in the ad account, PAUSED. Nothing spends until Shaun turns it on.
 async function route_meta_ad(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await adminOnly(req);
-  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const me = await menuOnly(req, "ads");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ads menu." }, 403);
   const token = Deno.env.get("META_TOKEN");
   if (!token) return jsonAuth(req, { error: "Meta isn't connected yet." }, 400);
   const b = await req.json().catch(() => ({}));
@@ -1973,8 +2012,8 @@ async function route_noah_followup(req: Request): Promise<Response> {
 // Admins: Noah's switch, the promotion, conversations, pausing a chat, and a practice chat.
 async function route_noah_admin(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await adminOnly(req);
-  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  const me = await menuOnly(req, "noah");
+  if (!me) return jsonAuth(req, { error: "You don't have the Noah menu." }, 403);
   const db = admin();
   const b = req.method === "POST" ? await req.json().catch(() => ({})) : {};
   if (b.on !== undefined) await db.from("settings").upsert({ k: "noah_on", v: b.on ? "on" : "off" });
@@ -2011,7 +2050,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
-  "login-link": route_login_link, "invite-staff": route_invite_staff, "send-for-signature": route_send_for_signature,
+  "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,
   "sale-progress": route_sale_progress, "customer-delete": route_customer_delete, "sale-delete": route_sale_delete, "sale-reopen": route_sale_reopen, "past-sale": route_past_sale, "lead-assign": route_lead_assign,

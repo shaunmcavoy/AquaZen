@@ -4,19 +4,7 @@
     <div class="appbar-right"><span id="whoami" class="who"></span><a class="btn btn-ghost btn-sm" href="/login/?setpw=1">Password</a><button class="btn btn-ghost btn-sm" type="button" id="signOut">Sign out</button></div>
   </div>
   <div class="wrap">
-    <nav class="tabs" aria-label="Staff sections">
-      <a href="#sales" data-tab="sales" aria-current="page">Sales</a>
-      <a href="#customers" data-tab="customers">Customers</a>
-      <a href="#new" data-tab="new">New sale</a>
-      <a href="#deliveries" data-tab="deliveries">Deliveries</a>
-      <a href="#service" data-tab="service">Service</a>
-      <a href="#resources" data-tab="resources">Documents</a>
-      <a href="#money" data-tab="money" class="admin-only" hidden>Financials</a>
-      <a href="#products" data-tab="products" class="admin-only" hidden>Products</a>
-      <a href="#ads" data-tab="ads" class="admin-only" hidden>Ads</a>
-      <a href="#noah" data-tab="noah" class="admin-only" hidden>Noah</a>
-      <a href="#team" data-tab="team" class="admin-only" hidden>Team</a>
-    </nav>
+    <nav class="tabs menu" id="staffMenu" aria-label="Staff sections"></nav>
   </div>
 </section>
 
@@ -78,6 +66,8 @@
     </div>
 
     <!-- Sales list -->
+    <div id="view-none" class="view" hidden><div class="card"><h3>Nothing to show yet</h3><p class="muted">Your account doesn't have any menus turned on. Ask Shaun to choose what you can see.</p></div></div>
+
     <div id="view-sales" class="view">
       <div class="listhead">
         <div class="filters" role="group" aria-label="Filter by status">
@@ -627,7 +617,7 @@
             <p class="formmsg" role="status" aria-live="polite"></p>
           </form>
         </div>
-        <div class="card"><h3>Team</h3><ul class="teamlist" id="teamList"><li>Loading...</li></ul></div>
+        <div class="card"><h3>Team</h3><p class="muted">Tap Menus to choose what each person sees in the portal. Admins always see everything. Financials, Products and Team are for admins only, because they show true costs and team settings.</p><ul class="teamlist" id="teamList"><li>Loading...</li></ul></div>
         <div class="card span2" id="qbCard">
           <h3>QuickBooks</h3>
           <p class="muted">When a customer signs, the website creates their invoice in QuickBooks, for the deposit or the full amount as agreed, and puts a Pay button right on the signing page and in their welcome email. For deposits, you send the balance invoice from the sale when delivery gets close. When they pay, the sale updates automatically and you get an email.</p>

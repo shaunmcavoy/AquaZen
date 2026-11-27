@@ -200,26 +200,93 @@
   prodOther.addEventListener('input', function () { sums(); checkFloor(); });
   prodType.addEventListener('change', function () { floorAt = null; showFloor(); });
 
+  // ---------- Menu ----------
+  // Keep in step with MENU_DEFAULTS / MENU_ALLOWED in supabase/functions/portal/index.ts and has_menu() in 011_menu_access.sql.
+  var GROUPS = [
+    { key: 'selling', label: 'Selling' },
+    { key: 'after', label: 'Delivery & service' },
+    { key: 'marketing', label: 'Marketing' },
+    { key: 'business', label: 'Business' }
+  ];
+  var MENUS = [
+    { key: 'customers', group: 'selling', label: 'Customers', hint: 'Leads and customers, and where each one is at' },
+    { key: 'sales', group: 'selling', label: 'Sales', hint: 'Every deal, from draft to delivered' },
+    { key: 'new', group: 'selling', label: 'New sale', hint: 'Write up a deal and get it signed' },
+    { key: 'deliveries', group: 'after', label: 'Deliveries', hint: 'What is going out, serial numbers and photos' },
+    { key: 'service', group: 'after', label: 'Service', hint: 'Owner service requests' },
+    { key: 'resources', group: 'after', label: 'Documents', hint: 'The AquaSolus book and owner guides' },
+    { key: 'ads', group: 'marketing', label: 'Ads', hint: 'Make ads and send them to Facebook and Instagram' },
+    { key: 'noah', group: 'marketing', label: 'Noah', hint: 'Our Messenger and Instagram salesperson' },
+    { key: 'money', group: 'business', label: 'Financials', hint: 'Profit, commissions and what is owed', admin: true },
+    { key: 'products', group: 'business', label: 'Products', hint: 'Costs, prices and add-ons', admin: true },
+    { key: 'team', group: 'business', label: 'Team', hint: 'Invite people and choose what they see', admin: true }
+  ];
+  var MENU_DEFAULTS = { staff: ['customers', 'sales', 'new', 'deliveries', 'service', 'resources'], delivery: ['deliveries', 'resources'] };
+  var MENU_ALLOWED = { staff: ['customers', 'sales', 'new', 'deliveries', 'service', 'resources', 'ads', 'noah'], delivery: ['deliveries', 'service', 'resources'] };
+  function menusFor(p) {
+    if (p.role === 'admin') return MENUS.map(function (m) { return m.key; });
+    var allowed = MENU_ALLOWED[p.role] || [];
+    return (p.menus || MENU_DEFAULTS[p.role] || []).filter(function (k) { return allowed.indexOf(k) >= 0; });
+  }
+  function can(key) { return menusFor(me.profile).indexOf(key) >= 0; }
+  function firstMenu() {
+    var mine = menusFor(me.profile);
+    return mine.indexOf('sales') >= 0 ? 'sales' : MENUS.map(function (m) { return m.key; }).filter(function (k) { return mine.indexOf(k) >= 0; })[0] || '';
+  }
+  function closeMenus(except) {
+    $$('.menu-group').forEach(function (g) { if (g !== except) { g.classList.remove('open'); var b = g.querySelector('.menu-btn'); if (b) b.setAttribute('aria-expanded', 'false'); } });
+  }
+  function buildMenu() {
+    var mine = menusFor(me.profile), nav = $('#staffMenu');
+    nav.innerHTML = GROUPS.map(function (g) {
+      var items = MENUS.filter(function (m) { return m.group === g.key && mine.indexOf(m.key) >= 0; });
+      if (!items.length) return '';
+      if (items.length === 1) return '<div class="menu-group single"><a class="menu-btn" href="#' + items[0].key + '" data-tab="' + items[0].key + '">' + items[0].label + '</a></div>';
+      return '<div class="menu-group"><button class="menu-btn" type="button" aria-expanded="false" aria-haspopup="true">' + g.label + ' <span aria-hidden="true">&#9662;</span></button>' +
+        '<div class="menu-pop">' + items.map(function (m) { return '<a href="#' + m.key + '" data-tab="' + m.key + '"><b>' + m.label + '</b><span>' + m.hint + '</span></a>'; }).join('') + '</div></div>';
+    }).join('');
+    $$('.menu-group:not(.single) .menu-btn').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var g = b.parentNode, open = !g.classList.contains('open');
+        closeMenus(g); g.classList.toggle('open', open); b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    });
+    document.addEventListener('click', function (e) { if (!e.target.closest('.menu-group')) closeMenus(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
+  }
+
   function show(view) {
     $$('.view').forEach(function (v) { v.hidden = v.id !== 'view-' + view; });
     $$('.tabs a').forEach(function (a) { a.removeAttribute('aria-current'); });
     var tab = view === 'sale' ? (current && current.id ? 'sales' : 'new') : view === 'customer' ? 'customers' : view;
     var t = $('.tabs a[data-tab="' + tab + '"]'); if (t) t.setAttribute('aria-current', 'page');
-    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', resources: 'Documents', money: 'Financials', ads: 'Ad studio', noah: 'Noah', customers: 'Customers', customer: 'Customer' }[view] || 'Sales';
+    $$('.menu-group').forEach(function (g) { g.classList.toggle('is-current', !!g.querySelector('[data-tab="' + tab + '"]')); });
+    closeMenus();
+    $('#staffTitle').textContent = { sales: 'Sales', sale: current && current.id ? 'Sale #' + current.number : 'New sale', team: 'Team', products: 'Products', deliveries: 'Deliveries', service: 'Service', resources: 'Documents', money: 'Financials', ads: 'Ad studio', noah: 'Noah', customers: 'Customers', customer: 'Customer', none: 'Nothing here yet' }[view] || 'Sales';
     window.scrollTo(0, 0);
   }
 
+  // Which menu a hash belongs to, so people only open what they've been given.
+  function menuOf(h) {
+    if (h === 'new' || h.indexOf('new-c-') === 0) return 'new';
+    if (h === 'lead' || h.indexOf('cust-') === 0) return 'customers';
+    if (h.indexOf('sale-') === 0) return 'sales';
+    return MENUS.some(function (m) { return m.key === h; }) ? h : 'sales';
+  }
   function route() {
-    var h = location.hash.slice(1) || (me.profile.role === 'delivery' ? 'deliveries' : 'sales');
-    if (me.profile.role === 'delivery' && h !== 'deliveries' && h !== 'resources') { location.hash = 'deliveries'; return; }
+    var h = location.hash.slice(1) || firstMenu();
+    // Opening a sale from Customers or Deliveries is fine as long as they have one of those menus.
+    var key = menuOf(h), ok = can(key) || (key === 'sales' && h.indexOf('sale-') === 0 && (can('customers') || can('new')));
+    if (!ok) { var f = firstMenu(); if (f && f !== h) location.hash = f; else show('none'); return; }
     if (h === 'deliveries') { show('deliveries'); loadDeliveries(); }
     else if (h === 'resources') { show('resources'); }
-    else if (h === 'service' && me.profile.role !== 'delivery') { show('service'); loadService(); }
-    else if (h === 'team' && me.profile.role === 'admin') { show('team'); loadTeam(); loadQb(); }
-    else if (h === 'products' && me.profile.role === 'admin') { show('products'); loadProducts(); }
-    else if (h === 'money' && me.profile.role === 'admin') { show('money'); loadMoney(); }
-    else if (h === 'ads' && me.profile.role === 'admin') { show('ads'); if (window.AZAds) window.AZAds.open(); }
-    else if (h === 'noah' && me.profile.role === 'admin') { show('noah'); if (window.AZNoah) window.AZNoah.open(); }
+    else if (h === 'service') { show('service'); loadService(); }
+    else if (h === 'team') { show('team'); loadTeam(); loadQb(); }
+    else if (h === 'products') { show('products'); loadProducts(); }
+    else if (h === 'money') { show('money'); loadMoney(); }
+    else if (h === 'ads') { show('ads'); if (window.AZAds) window.AZAds.open(); }
+    else if (h === 'noah') { show('noah'); if (window.AZNoah) window.AZNoah.open(); }
     else if (h === 'new') { openSale(null); }
     else if (h.indexOf('new-c-') === 0) { openSale(null, h.slice(6)); }
     else if (h === 'customers') { show('customers'); loadCustomers(); }
@@ -855,13 +922,46 @@
   }
 
   // ---------- Team ----------
+  var teamRows = [];
+  var ROLE_NAME = { admin: 'Admin', staff: 'Salesperson', delivery: 'Delivery team' };
   function loadTeam() {
-    sb.from('profiles').select('full_name,email,role,active').in('role', ['admin', 'staff']).order('role').then(function (r) {
-      $('#teamList').innerHTML = (r.data || []).map(function (p) {
-        return '<li><b>' + AZ.esc(p.full_name || p.email) + '</b><span>' + AZ.esc(p.email) + ' · ' + (p.role === 'admin' ? 'Admin' : 'Salesperson') + (p.active ? '' : ' · inactive') + '</span></li>';
+    sb.from('profiles').select('id,full_name,email,role,active,menus').in('role', ['admin', 'staff', 'delivery']).order('role').order('full_name').then(function (r) {
+      teamRows = r.data || [];
+      $('#teamList').innerHTML = teamRows.map(function (p) {
+        var mine = menusFor(p), names = MENUS.filter(function (m) { return mine.indexOf(m.key) >= 0; }).map(function (m) { return m.label; });
+        return '<li data-pid="' + p.id + '"><div class="teamrow"><div><b>' + AZ.esc(p.full_name || p.email) + '</b><span>' + AZ.esc(p.email) + ' · ' + (ROLE_NAME[p.role] || p.role) + (p.active ? '' : ' · inactive') + '</span>' +
+          '<span class="teammenus">' + (p.role === 'admin' ? 'Sees everything' : 'Sees: ' + AZ.esc(names.join(', ') || 'nothing yet') + (p.menus ? '' : ' (the default)')) + '</span></div>' +
+          (p.role === 'admin' ? '' : '<button class="btn btn-line btn-sm" type="button" data-menus>Menus</button>') + '</div></li>';
       }).join('') || '<li>No team members yet.</li>';
     });
   }
+  $('#teamList').addEventListener('click', function (e) {
+    var li = e.target.closest('li[data-pid]'); if (!li) return;
+    var p = teamRows.filter(function (x) { return x.id === li.dataset.pid; })[0]; if (!p) return;
+    if (e.target.closest('[data-menus]')) {
+      var ed = li.querySelector('.menuedit'); if (ed) { ed.remove(); return; }
+      var mine = menusFor(p), allowed = MENU_ALLOWED[p.role] || [];
+      ed = document.createElement('div'); ed.className = 'menuedit';
+      ed.innerHTML = '<p class="muted">What ' + AZ.esc((p.full_name || p.email).split(' ')[0]) + ' sees in the portal:</p>' +
+        GROUPS.map(function (g) {
+          var items = MENUS.filter(function (m) { return m.group === g.key; });
+          return '<fieldset><legend>' + g.label + '</legend>' + items.map(function (m) {
+            var ok = allowed.indexOf(m.key) >= 0;
+            return '<label class="check' + (ok ? '' : ' off') + '"><input type="checkbox" value="' + m.key + '"' + (mine.indexOf(m.key) >= 0 ? ' checked' : '') + (ok ? '' : ' disabled') + '> ' + m.label + (ok ? '' : ' <small>' + (m.admin ? 'admins only' : 'not for this role') + '</small>') + '</label>';
+          }).join('') + '</fieldset>';
+        }).join('') +
+        '<div class="formactions"><button class="btn btn-gold btn-sm" type="button" data-msave>Save</button><button class="btn btn-line btn-sm" type="button" data-mdefault>Back to the default</button><p class="formmsg" role="status" aria-live="polite"></p></div>';
+      li.appendChild(ed);
+      return;
+    }
+    var save = e.target.closest('[data-msave]'), def = e.target.closest('[data-mdefault]');
+    if (!save && !def) return;
+    var box = li.querySelector('.menuedit'), msg = box.querySelector('.formmsg');
+    var menus = def ? null : $$('input[type=checkbox]:checked:not(:disabled)', box).map(function (c) { return c.value; });
+    if (menus && !menus.length && !confirm('With nothing ticked, they will see an empty portal. Save anyway?')) return;
+    msg.textContent = 'Saving...';
+    AZ.api('team-menus', { user_id: p.id, menus: menus }).then(function () { AZ.toast('Saved'); loadTeam(); }).catch(function (err) { msg.textContent = err.message; });
+  });
   $('#inviteForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var f = e.target, m = f.querySelector('.formmsg');
@@ -1532,8 +1632,7 @@
     me = m;
     $('#whoami').textContent = me.profile.full_name || me.profile.email;
     if (me.profile.role === 'admin') $$('.admin-only').forEach(function (el) { el.hidden = false; });
-    // The delivery team only sees Deliveries.
-    if (me.profile.role === 'delivery') $$('.tabs a').forEach(function (a) { a.hidden = a.dataset.tab !== 'deliveries' && a.dataset.tab !== 'resources'; });
+    buildMenu();
     $('#signOut').addEventListener('click', AZ.signOut);
     window.addEventListener('hashchange', route); route();
     // First time in: ask for a display name for agreements.
