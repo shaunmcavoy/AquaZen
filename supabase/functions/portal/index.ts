@@ -2586,6 +2586,31 @@ async function route_noah_learn(req: Request): Promise<Response> {
   return new Response(JSON.stringify(await noahLearn("auto")));
 }
 
+// Noah's answer comes back through a tool, so it's always a complete, valid object (never raw text in a customer's chat).
+const NOAH_TOOL = {
+  name: "noah_reply",
+  description: "Send Noah's next message and what he learned in the chat.",
+  input_schema: {
+    type: "object",
+    properties: {
+      reply: { type: "string", description: "Noah's next message, exactly as the customer will see it." },
+      stage: { type: "string", enum: NOAH_STAGES, description: "Where the chat is after this message." },
+      move: { type: "string", description: "2 to 5 words naming the SCP move made in this message." },
+      handoff: { type: "boolean" },
+      lead: {
+        type: "object",
+        properties: {
+          name: { type: "string" }, phone: { type: "string" }, email: { type: "string" }, best_time: { type: "string" },
+          interest: { type: "string" }, summary: { type: "string", description: "Short: the deal or the call, and anything they asked for. Under 80 words." },
+          address: { type: "string" }, city: { type: "string" },
+          deal: { type: "object", properties: { model: { type: "string" }, shell_colour: { type: "string" }, extra_discount: { type: "number" }, payment: { type: "string", enum: ["full", "deposit", ""] } } },
+        },
+      },
+    },
+    required: ["reply", "stage", "move", "handoff"],
+  },
+};
+
 // deno-lint-ignore no-explicit-any
 async function noahThink(history: { role: string; text: string }[], extra = "", retry = false): Promise<any> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
@@ -2596,28 +2621,27 @@ async function noahThink(history: { role: string; text: string }[], extra = "", 
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
-      model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 2000, system,
+      model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 6000, system,
+      tools: [NOAH_TOOL], tool_choice: { type: "tool", name: "noah_reply" },
       messages: [{ role: "user", content: `THE CONVERSATION SO FAR:\n${convo || "(none)"}\n\n${extra || "Write Noah's next message."}
-${retry ? "IMPORTANT: your last answer was not valid JSON. Answer with the JSON object only, nothing before or after it.\n" : ""}Reply with only JSON: {"reply":"Noah's message","stage":"","move":"","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0,"payment":""}}}
+Answer with the noah_reply tool.
 Fill lead.deal ONLY when they have said yes to buying a specific hot tub: model (exact model name), shell_colour (Sterling Silver or Odyssey, or "" if not chosen), extra_discount (dollars of extra discount you agreed, 0 if none), payment ("full" or "deposit", "" if not discussed). Otherwise leave model "".
-stage: where the chat is after your message, one of ${NOAH_STAGES.join(", ")} (presentation_done means they've been through it; chosen means they've said which tub; price means you've shown the price; ask means you've asked for the decision). move: 2 to 5 words naming the SCP move you made in this message (for example "pattern interrupt", "true hook", "takeaway", "sold the presentation", "bridge statement", "ownership question", "full value ask", "1 to 10 question", "A-C-A steer back", "extra discount step").
+stage: where the chat is after your message (presentation_done means they've been through it; chosen means they've said which tub; price means you've shown the price; ask means you've asked for the decision). move: 2 to 5 words naming the SCP move you made (for example "pattern interrupt", "true hook", "takeaway", "sold the presentation", "bridge statement", "ownership question", "full value ask", "1 to 10 question", "A-C-A steer back", "extra discount step").
 Set handoff to true only when they've given a phone number for a call, or they're ready to buy and gave their details, or they asked for a person. Fill lead with whatever they've told you so far.` }],
     }),
   });
   if (!res.ok) throw new Error(`claude ${res.status} ${await res.text().catch(() => "")}`);
   const out = await res.json();
   // deno-lint-ignore no-explicit-any
-  const text = (out.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("");
-  // deno-lint-ignore no-explicit-any
-  let j: any;
-  try { j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); } catch {
-    // Claude sometimes answers in plain words (or runs long). Try once more, then use its words as the reply.
-    console.error("noah json", out.stop_reason, text.slice(0, 300));
+  const j = (out.content ?? []).find((c: any) => c.type === "tool_use" && c.name === "noah_reply")?.input;
+  if (!j || typeof j.reply !== "string" || !j.reply.trim() || out.stop_reason === "max_tokens") {
+    // Never send anything half-finished. Try once more; if that fails too, Noah stays quiet and it's logged.
+    console.error("noah reply missing", out.stop_reason, JSON.stringify(out.content ?? []).slice(0, 300));
     if (!retry) return noahThink(history, extra, true);
-    if (!text.trim()) throw new Error("empty reply");
-    j = { reply: text.replace(/```(json)?/g, "").trim(), handoff: false, lead: {} };
+    throw new Error("Noah couldn't write a complete reply");
   }
-  j.reply = String(j.reply ?? "").replace(/\s*[—–]\s*/g, ", ").trim().slice(0, 1900);
+  j.lead = j.lead && typeof j.lead === "object" ? j.lead : {};
+  j.reply = String(j.reply).replace(/\s*[—–]\s*/g, ", ").trim().slice(0, 1900);
   return j;
 }
 
