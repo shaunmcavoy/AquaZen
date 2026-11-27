@@ -367,6 +367,69 @@
     $('#adCount').textContent = n ? n + ' approved.' : 'Tap Approve on the ads you like.';
     $('#adSave').disabled = !n;
     if ($('#metaPostBtn')) { $('#metaPostBtn').disabled = !n || !META.ok; $('#metaAdBtn').disabled = !n || !META.ok; }
+    if ($('#metaAdList')) adList();
+  }
+
+  // ---------- Run it as an ad: where each ad goes, its button, and who sees it ----------
+  var DESTS = [['zen', 'How we deliver Zen presentation'], ['messages', 'Messenger chat with Noah'], ['visit', 'Book a visit page'], ['quiz', 'Find your Zen quiz'], ['home', 'aquazen.ca home page']];
+  // Meta's button choices. Website ads and Messenger ads allow different ones.
+  var WEB_CTAS = [['LEARN_MORE', 'Learn more'], ['SHOP_NOW', 'Shop now'], ['BOOK_TRAVEL', 'Book now'], ['GET_QUOTE', 'Get quote'], ['CONTACT_US', 'Contact us'], ['SIGN_UP', 'Sign up'], ['GET_OFFER', 'Get offer'], ['APPLY_NOW', 'Apply now'], ['SUBSCRIBE', 'Subscribe']];
+  var MSG_CTAS = [['MESSAGE_PAGE', 'Send message'], ['LEARN_MORE', 'Learn more'], ['SHOP_NOW', 'Shop now']];
+  var AUD = { age_min: 30, age_max: 65, showroom_km: 60, cities: [] };
+  function opts(list, val) { return list.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === val ? ' selected' : '') + '>' + o[1] + '</option>'; }).join(''); }
+  function adList() {
+    var box = $('#metaAdList'), ads = S.variants.filter(function (v) { return v.approved; });
+    if (!ads.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '<p class="abl">Each approved ad</p>' + ads.map(function (v) {
+      var i = S.variants.indexOf(v);
+      if (!v.dest) v.dest = $('#metaLink').value;
+      var msg = v.dest === 'messages', list = msg ? MSG_CTAS : WEB_CTAS;
+      if (!v.cta || !list.some(function (o) { return o[0] === v.cta; })) v.cta = msg ? 'MESSAGE_PAGE' : 'LEARN_MORE';
+      return '<div class="metaadrow" data-vi="' + i + '"><b>' + AZ.esc(v.hook.h) + '</b><div class="form abrow">' +
+        '<label>Goes to<select data-f="dest">' + opts(DESTS, v.dest) + '</select></label>' +
+        '<label>Button<select data-f="cta">' + opts(list, v.cta) + '</select></label></div>' +
+        (msg ? '<p class="muted small">Opens a Messenger chat with the AquaZen Page, where Noah answers. Keep Noah switched on.</p>' : '') + '</div>';
+    }).join('');
+  }
+  function audRead() {
+    AUD.age_min = Math.max(18, Math.min(65, +$('#audMin').value || 30));
+    AUD.age_max = Math.max(AUD.age_min, Math.min(65, +$('#audMax').value || 65));
+    AUD.showroom_km = Math.max(0, Math.min(80, +$('#audKm').value || 0));
+    audShow();
+  }
+  function audShow() {
+    $('#audCities').innerHTML = AUD.cities.map(function (c, i) {
+      return '<span class="audcity">' + AZ.esc(c.name) + ' <select data-ci="' + i + '" aria-label="Distance around ' + AZ.esc(c.name) + '">' + [17, 25, 40, 60, 80].map(function (k) { return '<option value="' + k + '"' + (k === c.radius ? ' selected' : '') + '>' + k + ' km</option>'; }).join('') + '</select><button type="button" data-cx="' + i + '" aria-label="Remove ' + AZ.esc(c.name) + '">&times;</button></span>';
+    }).join('');
+    var where = [AUD.showroom_km ? AUD.showroom_km + ' km around the Burnaby showroom' : ''].concat(AUD.cities.map(function (c) { return c.radius + ' km around ' + c.name; })).filter(Boolean);
+    $('#audSummary').textContent = where.length ? 'Ages ' + AUD.age_min + ' to ' + (AUD.age_max === 65 ? '65 and up' : AUD.age_max) + ', ' + where.join(', ') + '. This becomes the starting audience next time too.' : 'Choose at least one place: the area around the showroom or a city.';
+  }
+  var geoTimer = null;
+  function wireAudience() {
+    ['#audMin', '#audMax', '#audKm'].forEach(function (id) { $(id).addEventListener('change', audRead); });
+    $('#audQ').addEventListener('input', function () {
+      clearTimeout(geoTimer); var q = $('#audQ').value.trim();
+      if (q.length < 2) { $('#audResults').innerHTML = ''; return; }
+      geoTimer = setTimeout(function () {
+        AZ.api('meta-geo?q=' + encodeURIComponent(q), null, 'GET').then(function (r) {
+          $('#audResults').innerHTML = (r.places || []).map(function (p) { return '<button type="button" class="chip" data-key="' + p.key + '" data-name="' + AZ.esc(p.name) + '">' + AZ.esc(p.name) + '</button>'; }).join('') || '<span class="muted small">No Canadian city by that name.</span>';
+        }).catch(function (e) { $('#audResults').textContent = e.message; });
+      }, 300);
+    });
+    $('#audResults').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-key]'); if (!b) return;
+      if (!AUD.cities.some(function (c) { return c.key === b.dataset.key; })) AUD.cities.push({ key: b.dataset.key, name: b.dataset.name, radius: 25 });
+      $('#audQ').value = ''; $('#audResults').innerHTML = ''; audShow();
+    });
+    $('#audCities').addEventListener('click', function (e) { var x = e.target.closest('[data-cx]'); if (x) { AUD.cities.splice(+x.dataset.cx, 1); audShow(); } });
+    $('#audCities').addEventListener('change', function (e) { var c = e.target.closest('[data-ci]'); if (c) { AUD.cities[+c.dataset.ci].radius = +c.value; audShow(); } });
+    $('#metaAdList').addEventListener('change', function (e) {
+      var row = e.target.closest('[data-vi]'); if (!row) return;
+      var v = S.variants[+row.dataset.vi];
+      if (e.target.dataset.f === 'dest') { v.dest = e.target.value; v.cta = ''; adList(); }
+      if (e.target.dataset.f === 'cta') v.cta = e.target.value;
+    });
+    $('#metaLink').addEventListener('change', function () { S.variants.forEach(function (v) { if (v.approved) { v.dest = $('#metaLink').value; v.cta = ''; } }); adList(); });
   }
 
   // ---------- Motion ----------
@@ -729,6 +792,7 @@
       if (!r.configured) { st.textContent = "Not connected yet. Once the Meta app's token is saved in Supabase, you can post and create ads from here."; return; }
       if (r.error) { st.textContent = r.error; return; }
       META = { ok: true, pages: r.pages, acts: r.adAccounts, chosen: r.chosen };
+      if (r.audience) { AUD = { age_min: r.audience.age_min, age_max: r.audience.age_max, showroom_km: r.audience.showroom_km, cities: r.audience.cities || [] }; $('#audMin').value = AUD.age_min; $('#audMax').value = AUD.age_max; $('#audKm').value = AUD.showroom_km; audShow(); }
       $('#metaPage').innerHTML = r.pages.map(function (p) { return '<option value="' + p.id + '"' + (p.id === r.chosen.page ? ' selected' : '') + '>' + AZ.esc(p.name) + (p.ig ? ' (Instagram @' + AZ.esc(p.ig.username) + ')' : ' (no Instagram linked)') + '</option>'; }).join('') || '<option value="">No Pages found</option>';
       $('#metaAct').innerHTML = r.adAccounts.map(function (a) { return '<option value="' + a.id + '"' + (a.id === r.chosen.adAccount ? ' selected' : '') + '>' + AZ.esc(a.name) + ' (' + AZ.esc(a.currency) + ')' + (a.active ? '' : ', not active') + '</option>'; }).join('') || '<option value="">No ad accounts found</option>';
       var pg = r.pages.filter(function (p) { return p.id === r.chosen.page; })[0];
@@ -785,11 +849,13 @@
   function metaAd() {
     var ads = S.variants.filter(function (v) { return v.approved; }), btn = $('#metaAdBtn'), msg = $('#metaMsg');
     btn.disabled = true; btn.textContent = 'Creating paused ads...';
-    var out = [], link = $('#metaLink').value, budget = +$('#metaBudget').value || 20, last = '';
+    audRead();
+    if (!AUD.showroom_km && !AUD.cities.length) { msg.textContent = 'Choose at least one place for the audience.'; btn.disabled = false; btn.textContent = 'Create paused ads'; return; }
+    var out = [], budget = +$('#metaBudget').value || 20, last = '';
     pool(ads, 1, function (v) {
       return uploadAd(v).then(function (m) {
-        return AZ.api('meta-ad', { image: m.image, video: m.video, headline: v.hook.h, caption: v.hook.post, link: link, budget: budget });
-      }).then(function (r) { last = r.manager; out.push('"' + v.hook.h + '": created, paused'); }, function (e) { out.push('"' + v.hook.h + '": ' + e.message); });
+        return AZ.api('meta-ad', { image: m.image, video: m.video, headline: v.hook.h, caption: v.hook.post, link: v.dest || $('#metaLink').value, cta: v.cta, budget: budget, audience: AUD });
+      }).then(function (r) { last = r.manager; out.push('"' + v.hook.h + '": created, paused' + (v.dest === 'messages' ? ' (Messenger)' : '')); }, function (e) { out.push('"' + v.hook.h + '": ' + e.message); });
     }).then(function () {
       msg.innerHTML = AZ.esc(out.join(' | ')) + (last ? ' <a href="' + last + '" target="_blank" rel="noopener">Open Ads Manager</a>' : '');
       btn.textContent = 'Create paused ads'; count();
@@ -802,6 +868,7 @@
     $('#metaAdBtn').addEventListener('click', metaAd);
     // Default the ad's destination to the brief's purpose.
     $('#abPurpose').addEventListener('click', function () { $('#metaLink').value = B.purpose === 'quiz' ? 'quiz' : B.purpose === 'visit' ? 'visit' : 'zen'; });
+    wireAudience(); audShow();
     metaLoad();
   }
 

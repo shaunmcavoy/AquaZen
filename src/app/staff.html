@@ -539,9 +539,21 @@
               <div class="formactions"><button class="btn btn-line" type="button" id="metaPostBtn" disabled>Post approved ads</button></div>
             </div>
             <div class="abq"><p class="abl">Run it as an ad <span class="muted">created paused; nothing spends until you turn it on in Ads Manager</span></p>
-              <div class="form abrow"><label>Daily budget ($)<input id="metaBudget" type="number" min="5" max="500" step="1" value="20"></label>
-              <label>Where the ad goes<select id="metaLink"><option value="zen">How we deliver Zen presentation (best)</option><option value="visit">Book a visit page</option><option value="quiz">Find your Zen quiz</option><option value="home">aquazen.ca home page</option></select></label></div>
-              <p class="muted small abhelp">Audience to start: ages 30 to 65 within about 60 km of the Burnaby showroom. Change anything in Ads Manager before you turn it on.</p>
+              <div class="form abrow"><label>Daily budget per ad ($)<input id="metaBudget" type="number" min="5" max="500" step="1" value="20"></label>
+              <label>Where ads go by default<select id="metaLink"><option value="zen">How we deliver Zen presentation (best)</option><option value="messages">Messenger chat with Noah</option><option value="visit">Book a visit page</option><option value="quiz">Find your Zen quiz</option><option value="home">aquazen.ca home page</option></select></label></div>
+              <div id="metaAdList" class="metaadlist"></div>
+              <div class="metaaud">
+                <p class="abl">Who sees the ads</p>
+                <div class="form abrow">
+                  <label>Youngest<input id="audMin" type="number" min="18" max="65" step="1" value="30"></label>
+                  <label>Oldest <span class="muted">(65 means 65 and up)</span><input id="audMax" type="number" min="18" max="65" step="1" value="65"></label>
+                  <label>Around the Burnaby showroom (km, 0 for off)<input id="audKm" type="number" min="0" max="80" step="5" value="60"></label>
+                </div>
+                <div class="audcities" id="audCities"></div>
+                <div class="form abrow audsearch"><label>Add a city<input id="audQ" type="search" placeholder="e.g. Kelowna" autocomplete="off"></label></div>
+                <div class="audresults" id="audResults"></div>
+                <p class="muted small abhelp" id="audSummary"></p>
+              </div>
               <div class="formactions"><button class="btn btn-gold" type="button" id="metaAdBtn" disabled>Create paused ads</button></div>
             </div>
           </div>

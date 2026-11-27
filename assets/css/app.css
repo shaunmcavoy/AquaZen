@@ -552,3 +552,13 @@ body.presenting .appbar,body.presenting #view-sale>*:not(#presentBar):not(#prese
 .adfund-add label{display:grid;gap:4px;font-weight:600;font-size:.88rem}
 .adfund-amt{display:flex;align-items:center;gap:4px;font-size:1rem}
 .adfund-amt input{width:120px}
+
+/* Ad studio: each ad's destination and button, and the audience */
+.metaadlist{display:grid;gap:10px;margin:10px 0}
+.metaadrow{background:var(--paper);border-radius:12px;padding:10px 12px;display:grid;gap:6px}
+.metaaud{display:grid;gap:8px;margin:12px 0;padding-top:10px;border-top:1px solid var(--line)}
+.audcities{display:flex;flex-wrap:wrap;gap:8px}
+.audcity{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border-radius:999px;padding:4px 6px 4px 12px;font-size:.9rem;font-weight:600}
+.audcity select{font:inherit;font-size:.82rem;border:1px solid var(--line);border-radius:8px;padding:2px 4px;background:#fff}
+.audcity button{border:0;background:none;font-size:1.1rem;cursor:pointer;color:var(--muted);padding:0 4px}
+.audresults{display:flex;flex-wrap:wrap;gap:6px}

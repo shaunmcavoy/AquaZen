@@ -1599,7 +1599,8 @@ async function route_meta_status(req: Request): Promise<Response> {
     // deno-lint-ignore no-explicit-any
     const adList = (ads.data ?? []).map((a: any) => ({ id: a.id, name: a.name, currency: a.currency, active: a.account_status === 1 }));
     if (!s.adAccount && adList.length === 1) { s.adAccount = adList[0].id; await db.from("settings").upsert({ k: "meta_ad_account", v: s.adAccount }); }
-    return jsonAuth(req, { configured: true, pages: pageList, adAccounts: adList, chosen: s });
+    const savedAud = (await db.from("settings").select("v").eq("k", "meta_audience").maybeSingle()).data?.v;
+    return jsonAuth(req, { configured: true, pages: pageList, adAccounts: adList, chosen: s, audience: savedAud ? JSON.parse(savedAud) : DEFAULT_AUDIENCE });
   } catch (e) {
     return jsonAuth(req, { configured: true, error: `Meta said: ${(e as Error).message}` }, 502);
   }
@@ -1874,6 +1875,50 @@ async function route_ads_apply(req: Request): Promise<Response> {
   }
 }
 
+
+// ---- Ad audience and buttons (Ad studio) ----
+// Buttons Meta allows: website ads (traffic) and Messenger ads (click to message).
+const WEB_CTAS = ["LEARN_MORE", "SHOP_NOW", "BOOK_TRAVEL", "GET_QUOTE", "CONTACT_US", "SIGN_UP", "GET_OFFER", "APPLY_NOW", "SUBSCRIBE"];
+const MSG_CTAS = ["MESSAGE_PAGE", "LEARN_MORE", "SHOP_NOW"];
+const SHOWROOM = { latitude: 49.2245, longitude: -122.9932 };
+const DEFAULT_AUDIENCE = { age_min: 30, age_max: 65, showroom_km: 60, cities: [] as { key: string; name: string; radius: number }[] };
+// deno-lint-ignore no-explicit-any
+function cleanAudience(a: any) {
+  const x = a && typeof a === "object" ? a : DEFAULT_AUDIENCE;
+  const age_min = Math.max(18, Math.min(65, Math.round(Number(x.age_min) || 30)));
+  const age_max = Math.max(age_min, Math.min(65, Math.round(Number(x.age_max) || 65)));
+  const showroom_km = Math.max(0, Math.min(80, Math.round(Number(x.showroom_km) || 0)));
+  // deno-lint-ignore no-explicit-any
+  const cities = (Array.isArray(x.cities) ? x.cities : []).slice(0, 25).map((c: any) => ({ key: String(c.key ?? "").replace(/\D/g, ""), name: String(c.name ?? "").slice(0, 80), radius: Math.max(17, Math.min(80, Math.round(Number(c.radius) || 25))) })).filter((c: { key: string }) => c.key);
+  if (!showroom_km && !cities.length) return "Choose at least one place: the area around the showroom or a city.";
+  const geo: Record<string, unknown> = {};
+  if (showroom_km) geo.custom_locations = [{ ...SHOWROOM, radius: Math.max(1, showroom_km), distance_unit: "kilometer" }];
+  if (cities.length) geo.cities = cities.map((c: { key: string; radius: number }) => ({ key: c.key, radius: c.radius, distance_unit: "kilometer" }));
+  const where = [showroom_km ? `${showroom_km} km around Burnaby` : "", ...cities.map((c: { name: string }) => c.name)].filter(Boolean).join(", ");
+  return {
+    targeting: { geo_locations: geo, age_min, age_max, targeting_automation: { advantage_audience: 0 } },
+    label: `${where.slice(0, 120)}, ${age_min} to ${age_max === 65 ? "65+" : age_max}`,
+    saved: { age_min, age_max, showroom_km, cities },
+  };
+}
+
+// GET ?q=  Find Canadian cities for the ad audience.
+async function route_meta_geo(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await menuOnly(req, "ads");
+  if (!me) return jsonAuth(req, { error: "You don't have the Ads menu." }, 403);
+  const token = Deno.env.get("META_TOKEN");
+  const q = (new URL(req.url).searchParams.get("q") || "").trim().slice(0, 60);
+  if (!token || q.length < 2) return jsonAuth(req, { places: [] });
+  try {
+    const r = await graph("search", token, { type: "adgeolocation", q, location_types: ["city"], country_code: "CA", limit: 8 });
+    // deno-lint-ignore no-explicit-any
+    return jsonAuth(req, { places: (r.data ?? []).map((p: any) => ({ key: String(p.key), name: [p.name, p.region].filter(Boolean).join(", ") })) });
+  } catch (e) {
+    return jsonAuth(req, { error: `Meta said: ${(e as Error).message}` }, 502);
+  }
+}
+
 async function signedAdUrl(path: string): Promise<string> {
   const { data, error } = await admin().storage.from("ads").createSignedUrl(path, 3600);
   if (error || !data?.signedUrl) throw new Error("Couldn't prepare the file for Meta.");
@@ -1944,7 +1989,12 @@ async function route_meta_ad(req: Request): Promise<Response> {
   const message = String(b.caption ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 2000);
   // ?from=fbad tags Find your Zen leads as "from a Facebook ad" so Ad results can count them.
   const links: Record<string, string> = { zen: "https://aquazen.ca/how-we-deliver-zen/?from=fbad", visit: "https://aquazen.ca/visit/?from=fbad", quiz: "https://aquazen.ca/find-your-zen/?from=fbad" };
-  const link = links[String(b.link)] || "https://aquazen.ca/?from=fbad";
+  // "messages" opens a Messenger chat with the Page, where Noah answers. Everything else goes to a page on aquazen.ca.
+  const toMessages = String(b.link) === "messages";
+  const link = toMessages ? "https://fb.com/messenger_doc/" : links[String(b.link)] || "https://aquazen.ca/?from=fbad";
+  const ctaType = (toMessages ? MSG_CTAS : WEB_CTAS).includes(String(b.cta)) ? String(b.cta) : toMessages ? "MESSAGE_PAGE" : "LEARN_MORE";
+  const aud = cleanAudience(b.audience);
+  if (typeof aud === "string") return jsonAuth(req, { error: aud }, 400);
   const budget = Math.max(5, Math.min(500, Math.round(Number(b.budget) || 20))); // dollars a day
   const act = s.adAccount.startsWith("act_") ? s.adAccount : `act_${s.adAccount}`;
   const day = new Date().toISOString().slice(0, 10);
@@ -1961,18 +2011,26 @@ async function route_meta_ad(req: Request): Promise<Response> {
     if (video) videoId = (await graph(`${act}/advideos`, token, { file_url: await signedAdUrl(video), name: headline }, "POST")).id;
 
     const camp = await graph(`${act}/campaigns`, token, {
-      name: `AquaZen: ${headline} (${day})`, objective: "OUTCOME_TRAFFIC", status: "PAUSED",
+      name: `AquaZen: ${headline}${toMessages ? " (Messenger)" : ""} (${day})`, objective: toMessages ? "OUTCOME_ENGAGEMENT" : "OUTCOME_TRAFFIC", status: "PAUSED",
       special_ad_categories: [], is_adset_budget_sharing_enabled: false,
     }, "POST");
     steps.campaign = camp.id;
-    const set = await graph(`${act}/adsets`, token, {
-      name: `Lower Mainland, 30 to 65 (${day})`, campaign_id: camp.id, status: "PAUSED",
-      daily_budget: budget * 100, billing_event: "IMPRESSIONS", optimization_goal: "LINK_CLICKS", bid_strategy: "LOWEST_COST_WITHOUT_CAP",
-      // About 60 km around the Burnaby showroom. Shaun can change the audience in Ads Manager before turning it on.
-      targeting: { geo_locations: { custom_locations: [{ latitude: 49.2245, longitude: -122.9932, radius: 60, distance_unit: "kilometer" }] }, age_min: 30, age_max: 65, targeting_automation: { advantage_audience: 0 } },
-    }, "POST");
+    const setBase = {
+      name: `${aud.label} (${day})`, campaign_id: camp.id, status: "PAUSED",
+      daily_budget: budget * 100, billing_event: "IMPRESSIONS", bid_strategy: "LOWEST_COST_WITHOUT_CAP", targeting: aud.targeting,
+    };
+    let set;
+    if (toMessages) {
+      // Click to Messenger: the chat opens with our Page, and Noah answers.
+      set = await graph(`${act}/adsets`, token, { ...setBase, destination_type: "MESSENGER", optimization_goal: "CONVERSATIONS", promoted_object: { page_id: s.page } }, "POST");
+    } else {
+      // Aim for people who actually load the page (the pixel sees it), not just taps. Fall back to taps if Meta won't allow it.
+      try { set = await graph(`${act}/adsets`, token, { ...setBase, destination_type: "WEBSITE", optimization_goal: "LANDING_PAGE_VIEWS" }, "POST"); }
+      catch { set = await graph(`${act}/adsets`, token, { ...setBase, optimization_goal: "LINK_CLICKS" }, "POST"); }
+    }
     steps.adset = set.id;
-    const cta = { type: "LEARN_MORE", value: { link } };
+    await admin().from("settings").upsert({ k: "meta_audience", v: JSON.stringify(aud.saved) });
+    const cta = toMessages ? { type: ctaType, value: { app_destination: "MESSENGER" } } : { type: ctaType, value: { link } };
     const story: Record<string, unknown> = { page_id: s.page };
     if (s.ig) story.instagram_user_id = s.ig;
     if (videoId) story.video_data = { video_id: videoId, image_hash: hash, message, title: headline, call_to_action: cta };
@@ -2319,7 +2377,7 @@ async function route_noah_admin(req: Request): Promise<Response> {
 }
 
 const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
-  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
+  "ads-write": route_ads_write, "ads-image": route_ads_image, "meta-status": route_meta_status, "meta-geo": route_meta_geo, "ads-stats": route_ads_stats, "ads-control": route_ads_control, "ads-advice": route_ads_advice, "ads-apply": route_ads_apply, "meta-post": route_meta_post, "meta-ad": route_meta_ad, "meta-webhook": route_meta_webhook, "noah-followup": route_noah_followup, "noah-admin": route_noah_admin,
   "login-link": route_login_link, "invite-staff": route_invite_staff, "team-menus": route_team_menus, "send-for-signature": route_send_for_signature,
   "signing": route_signing, "agreement-pdf": route_agreement_pdf,
   "agreement-print": route_agreement_print, "paper-signed": route_paper_signed,
