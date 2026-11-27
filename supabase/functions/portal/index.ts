@@ -224,7 +224,7 @@ function payWhy(sale: any, link: string | null) {
   const p = payTerms(sale);
   const why = p.full
     ? `Your total is ${money(sale.deposit)}, paid in full as we agreed. Paying it confirms your order with ${escapeHtml(productMaker(sale))} so your ${productNoun(sale)} can be built and shipped to us, and there's nothing left to pay on delivery day.`
-    : `Your deposit is ${money(sale.deposit)}, as we agreed. Paying it confirms your order with ${escapeHtml(productMaker(sale))} so your ${productNoun(sale)} can be built and shipped to us. ${sale.balance_method && sale.balance_method !== "before_delivery" ? `Your remaining balance of ${money(sale.balance)} will be paid ${balanceHow(sale)}, as we agreed.` : `Your remaining balance of ${money(sale.balance)} is due before delivery.`}`;
+    : `Your deposit is ${money(sale.deposit)}, as we agreed. Paying it confirms your order with ${escapeHtml(productMaker(sale))} so your ${productNoun(sale)} can be built and shipped to us. ${sale.balance_method && sale.balance_method !== "before_delivery" ? `Your remaining balance of ${money(sale.balance)} will be paid ${balanceHow(sale)}, as we agreed.` : `Your remaining balance of ${money(sale.balance)} is due two weeks before delivery.`}`;
   return link
     ? `<p>${why} You can pay securely online by card, right from your phone or computer:</p>${button(link, p.button)}`
     : `<p>${why} I'll be in touch about payment.</p>`;
@@ -454,7 +454,7 @@ async function route_sale_progress(req: Request): Promise<Response> {
           `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p><p>Your ${escapeHtml(productWhat(sale))} is booked for delivery on <b>${escapeHtml(day)}</b>. I'll confirm the time with you the day before.</p>
 ${h("Before we arrive")}
 <p>Please make sure the base is finished and level and the path from the street is clear. That's what lets us set your ${productNoun(sale)} in place without a hitch. If it's already wired, we'll fill it and get it heating the same day. If Gerry is wiring it after delivery, it gets filled once he's connected it. The checklist on page 7 of your <a href="${SITE_URL}/assets/docs/aquazen-pre-delivery-guide.pdf">pre-delivery guide</a> covers everything.</p>
-${Number(sale.balance) > 0 && !sale.balance_paid_at ? `<p>Your balance of ${money(sale.balance)} is due before delivery, so delivery day is only about getting you soaking.</p>` : ""}
+${Number(sale.balance) > 0 && !sale.balance_paid_at ? `<p>Your balance of ${money(sale.balance)} is due two weeks before delivery, so delivery day is only about getting you soaking.</p>` : ""}
 <p style="color:${MUTED}">Need to change the day? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
       });
       await logEvent(sale.id, "delivery_emailed", me!.user.id, { to: c.email });
@@ -794,7 +794,7 @@ async function route_qb_balance_invoice(req: Request): Promise<Response> {
       from: FROM, to: c.email, reply_to: REPLY_TO, subject: `Your balance for agreement #${sale.number}`,
       html: emailShell({ preheader: "Pay your balance securely online before delivery.", body:
         `<p>Hi ${escapeHtml(firstNameOf(c.name))},</p>
-<p>Your ${escapeHtml(productWhat(sale))} is getting close. Your remaining balance is <b>${money(sale.balance)}</b>. Paying it before delivery means delivery day is only about getting you soaking, with nothing to sort out at the door.</p>
+<p>Your ${escapeHtml(productWhat(sale))} is getting close. Your remaining balance is <b>${money(sale.balance)}</b>. Paying it two weeks before delivery means delivery day is only about getting you soaking, with nothing to sort out at the door.</p>
 ${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>.</p>` : ""}
 <p>You can pay securely online ${p.how} through QuickBooks:</p>${button(r.link, "Pay my balance")}
 <p style="color:${MUTED}">Questions? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
@@ -864,7 +864,7 @@ ${h("What to do while you wait")}
 <p>This is the perfect time to get your spot ready: a solid, level base, a clear path to the backyard, and a plan for the power. Gerry Jansen, our electrical partner, can wire it before or after delivery (we recommend after, so he only comes once). Call or text him at 778-229-2560. Having these done before your ${productNoun(sale)} arrives is what makes delivery day quick and easy, and it protects your warranty.</p>
 ${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>.</p>` : ""}
 ${button(portal, "Open my portal")}
-<p style="color:${MUTED}">I'll be in touch to set the exact delivery day.${pt.full ? "" : ` Your remaining balance of ${money(sale.balance)} is due before delivery.`} Questions any time? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
+<p style="color:${MUTED}">I'll be in touch to set the exact delivery day.${pt.full ? "" : ` Your remaining balance of ${money(sale.balance)} is due two weeks before delivery.`} Questions any time? Call or text me at 236-304-4424.</p><p>Shaun</p>` }),
     });
   } catch (e) { console.error("paid email customer", sale.number, e); }
   try {
@@ -1053,7 +1053,7 @@ async function route_pay_link(req: Request): Promise<Response> {
     const c = sale.customers;
     const body = due.kind === "deposit"
       ? payWhy(sale, link)
-      : `<p>Your ${escapeHtml(productWhat(sale))} is getting close. Your remaining balance is <b>${money(sale.balance)}</b>. Paying it before delivery means delivery day is only about getting you soaking, with nothing to sort out at the door.</p>
+      : `<p>Your ${escapeHtml(productWhat(sale))} is getting close. Your remaining balance is <b>${money(sale.balance)}</b>. Paying it two weeks before delivery means delivery day is only about getting you soaking, with nothing to sort out at the door.</p>
 ${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(sale.delivery_window))}</b>.</p>` : ""}
 <p>You can pay securely online by card, right from your phone or computer:</p>${button(link, "Pay my balance")}`;
     await sendEmail({
@@ -2428,7 +2428,7 @@ ACT FOUR: THE CLOSE (a confident decision they won't regret)
    d. Reflect their reasons in their exact words (never inflate them), then ask directly: "What specifically is holding you back right now?" If two people are deciding, make room for the quieter one.
    e. Match the rung to the real concern (the Commitment Ladder):
       - The total price: the one real reason it can move: Shaun gives you room for founding owners who are ready to go ahead in this chat, up to the limit in the deal. Give it in steps, say why, show the new number, ask again. When you've reached the limit, say honestly that it's the best you can do.
-      - Paying it all now: the agreement lets them pay a deposit now and the balance before delivery (Shaun sets the amount in the agreement). We don't offer financing; never suggest it.
+      - Paying it all now: the smallest first step is a deposit of 50% now, with the balance paid two weeks before delivery. That's the minimum; there's nothing lower. We don't offer financing or a refundable deposit or hold on this order; never suggest them.
       - A partner who hasn't seen it, timing, or one more question: book the call with Shaun, or offer to send the details so they can share them. Help them explain it: give them the two or three true reasons in their own words.
       - A doubt about the tub: no rung helps. Go back to Act Three.
 14. Real urgency only: the founding offer is for the first ten owners and the count is below; and real timing below. Never invent stock, other buyers or a deadline.
@@ -2439,8 +2439,9 @@ People will jump ahead (price in the first message), drift sideways (a competito
 WHEN THEY SAY YES
 - Affirm it honestly in one line, tied to their WHY, and stop selling.
 - Get their full name, phone number, email and the delivery address or city, and confirm the model, the shell colour, the price you agreed (and any extra discount), plus tax.
+- Payment: aim for paid in full. Lead with it as the normal, simple way ("Most people just pay it in full by card, and then there's nothing left to think about before delivery."), never as a question with options. Only if paying it all at once is genuinely the concern, offer the 50% deposit now with the balance two weeks before delivery. Put their choice in lead.deal.payment ("full" or "deposit").
 - Tell them exactly what happens next: Shaun sends the agreement to sign and a secure payment link, then calls to confirm delivery. You never take payment yourself. Thank them sincerely.
-- Set handoff to true and fill lead.deal (model, shell_colour, extra_discount) plus lead.address and lead.city: the portal builds the deal from these, with the prices from the deal builder. In lead.summary write the deal exactly: model, shell colour, sale price, any extra discount, the free items, the total before tax, and anything they asked for.
+- Set handoff to true and fill lead.deal (model, shell_colour, extra_discount, payment) plus lead.address and lead.city: the portal builds the deal from these, with the prices from the deal builder. In lead.summary write the deal exactly: model, shell colour, sale price, any extra discount, the free items, the total before tax, and anything they asked for.
 WHEN THEY WANT A CALL: get first name, phone and best time, set handoff to true, and say Shaun will call them.`;
 
 // Where a chat is in the SCP process. Noah reports one with every message; the furthest one reached is kept on the thread.
@@ -2597,8 +2598,8 @@ async function noahThink(history: { role: string; text: string }[], extra = "", 
     body: JSON.stringify({
       model: Deno.env.get("NOAH_MODEL") || Deno.env.get("ADS_MODEL") || "claude-sonnet-5-5", max_tokens: 2000, system,
       messages: [{ role: "user", content: `THE CONVERSATION SO FAR:\n${convo || "(none)"}\n\n${extra || "Write Noah's next message."}
-${retry ? "IMPORTANT: your last answer was not valid JSON. Answer with the JSON object only, nothing before or after it.\n" : ""}Reply with only JSON: {"reply":"Noah's message","stage":"","move":"","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0}}}
-Fill lead.deal ONLY when they have said yes to buying a specific hot tub: model (exact model name), shell_colour (Sterling Silver or Odyssey, or "" if not chosen), extra_discount (dollars of extra discount you agreed, 0 if none). Otherwise leave model "".
+${retry ? "IMPORTANT: your last answer was not valid JSON. Answer with the JSON object only, nothing before or after it.\n" : ""}Reply with only JSON: {"reply":"Noah's message","stage":"","move":"","handoff":false,"lead":{"name":"","phone":"","email":"","best_time":"","interest":"","summary":"","address":"","city":"","deal":{"model":"","shell_colour":"","extra_discount":0,"payment":""}}}
+Fill lead.deal ONLY when they have said yes to buying a specific hot tub: model (exact model name), shell_colour (Sterling Silver or Odyssey, or "" if not chosen), extra_discount (dollars of extra discount you agreed, 0 if none), payment ("full" or "deposit", "" if not discussed). Otherwise leave model "".
 stage: where the chat is after your message, one of ${NOAH_STAGES.join(", ")} (presentation_done means they've been through it; chosen means they've said which tub; price means you've shown the price; ask means you've asked for the decision). move: 2 to 5 words naming the SCP move you made in this message (for example "pattern interrupt", "true hook", "takeaway", "sold the presentation", "bridge statement", "ownership question", "full value ask", "1 to 10 question", "A-C-A steer back", "extra discount step").
 Set handoff to true only when they've given a phone number for a call, or they're ready to buy and gave their details, or they asked for a person. Fill lead with whatever they've told you so far.` }],
     }),
@@ -2669,16 +2670,21 @@ async function noahDraftSale(customerId: string, deal: any, lead: any, channel: 
   const extras = (adds ?? []).filter((a) => ["delivery", "cover_lifter", "steps"].includes(a.kind)).map((a) => ({ id: a.id, name: a.name, price: 0, list: Number(a.sale_price) }));
   const colour = /odyssey/i.test(String(deal.shell_colour)) ? "Odyssey" : /silver|sterling/i.test(String(deal.shell_colour)) ? "Sterling Silver" : "";
   const up = NOAH_UPGRADES[line];
+  const deposit = String(deal.payment ?? "").toLowerCase() === "deposit";
   const note = [`Built by Noah from a ${channel === "instagram" ? "Instagram" : "Messenger"} chat. Check it, then send it to sign.`,
     up ? `Included free: every available upgrade (${up.names}).` : "",
     extra ? `Extra discount Noah agreed: $${extra}${asked > cap ? ` (they asked for $${asked}; capped at $${cap} for ${line})` : ""}.` : "",
+    deposit ? "Paying a 50% deposit now, balance two weeks before delivery." : String(deal.payment ?? "").toLowerCase() === "full" ? "Paying in full." : "Payment not discussed yet (set to paid in full).",
     colour ? "" : "Shell colour not chosen yet.", lead?.summary ? `Noah's note: ${lead.summary}` : ""].filter(Boolean).join("\n");
   const { data: sale, error } = await db.from("sales").insert({
     customer_id: customerId, status: "draft", product_type: "hot_tub", tub_make: "AquaSolus", tub_model: p.model, tub_line: line || null,
     shell_colour: colour || null, siding: "Lunar Grey", hot_tub_value: Number(p.sale_price) - extra, msrp: p.msrp, zen_price: p.sale_price,
     extras, other: up ? `All available upgrades included: ${up.names}` : null, notes: note,
-  }).select("id, number").single();
+    payment_type: deposit ? "deposit" : "full", balance_method: "before_delivery",
+  }).select("id, number, total").single();
   if (error || !sale) { console.error("noah draft sale", error); return null; }
+  // A deposit is 50% of the total (the minimum), with the balance two weeks before delivery.
+  if (deposit) await db.from("sales").update({ deposit: Math.ceil(Number(sale.total) * 50) / 100 }).eq("id", sale.id);
   return { id: sale.id, number: sale.number, note };
 }
 

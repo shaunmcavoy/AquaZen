@@ -156,7 +156,7 @@ export async function createDepositInvoice(sale: any, customer: any) {
     DetailType: "SalesItemLineDetail", Amount: Number(sale.deposit),
     Description: p.full
       ? `Payment in full for ${what}, sales agreement #${sale.number}.`
-      : `Deposit for ${what}, sales agreement #${sale.number}. Non-refundable per agreement. Remaining balance due before delivery.`,
+      : `Deposit for ${what}, sales agreement #${sale.number}. Non-refundable per agreement. Remaining balance due two weeks before delivery.`,
     SalesItemLineDetail: { ItemRef: { value: itemId }, Qty: 1, UnitPrice: Number(sale.deposit), ...(taxId ? { TaxCodeRef: { value: taxId } } : {}) },
   };
   // Only the payment methods Shaun agreed with the customer are offered on the pay page.
@@ -189,7 +189,7 @@ export async function createBalanceInvoice(sale: any, customer: any) {
     CustomerRef: { value: custId }, DocNumber: `AZ${sale.number}-B`,
     Line: [{
       DetailType: "SalesItemLineDetail", Amount: Number(sale.balance),
-      Description: `Balance for ${what}, sales agreement #${sale.number}. Due before delivery.`,
+      Description: `Balance for ${what}, sales agreement #${sale.number}. Due two weeks before delivery.`,
       SalesItemLineDetail: { ItemRef: { value: itemId }, Qty: 1, UnitPrice: Number(sale.balance), ...(taxId ? { TaxCodeRef: { value: taxId } } : {}) },
     }],
     BillEmail: { Address: customer.email }, AllowOnlineCreditCardPayment: card, AllowOnlineACHPayment: bank,

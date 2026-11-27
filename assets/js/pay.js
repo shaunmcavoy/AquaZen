@@ -33,7 +33,7 @@
     $('#payWhat').textContent = (info.due.kind === 'balance' ? 'Balance for your ' : 'For your ') + info.what;
     $('#payAmount').textContent = AZ.money(info.due.amount);
     $('#payWhy').textContent = info.due.kind === 'balance'
-      ? 'This is your remaining balance. Paying it before delivery means delivery day is only about getting you soaking.'
+      ? 'This is your remaining balance. Paying it two weeks before delivery means delivery day is only about getting you soaking.'
       : 'This is ' + info.due.label + '. Paying it confirms your order with AquaSolus so your ' + (info.what || 'hot tub') + ' can be built and shipped to us.';
     $('#payGo').textContent = 'Pay ' + AZ.money(info.due.amount) + ' by card';
     show('#payCard');

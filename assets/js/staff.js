@@ -577,7 +577,7 @@
       '<div><dt>Subtotal</dt><dd>' + AZ.money(sub) + '</dd></div><div><dt>GST 5% + PST 7%</dt><dd>' + AZ.money(s.tax) + '</dd></div>' +
       '<div class="strong"><dt>Total</dt><dd>' + AZ.money(s.total) + '</dd></div>' +
       '<div><dt>' + (full ? 'Paid in full when you sign' : 'Paid when you sign') + '</dt><dd>' + AZ.money(s.deposit) + '</dd></div>' +
-      (full ? '' : '<div class="strong"><dt>Balance before delivery</dt><dd>' + AZ.money(s.balance) + '</dd></div>') + '</dl>' +
+      (full ? '' : '<div class="strong"><dt>Balance two weeks before delivery</dt><dd>' + AZ.money(s.balance) + '</dd></div>') + '</dl>' +
       '<p class="muted small">You’ll pick your delivery window when you sign, and pay through a secure QuickBooks link right after.</p></div></div>';
   }
 
