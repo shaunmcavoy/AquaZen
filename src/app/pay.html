@@ -15,14 +15,8 @@
       <p id="payWhy"></p>
       <button class="btn btn-gold" type="button" id="payGo">Pay by card</button>
       <p class="formmsg" id="payMsg" role="status" aria-live="polite"></p>
-      <p class="muted small">Your card details go straight to Helcim, our payment processor, on their secure form. AquaZen never sees or stores your card number.</p>
-    </div>
-    <div id="payDeclined" class="card" hidden>
-      <h2>Your card was declined</h2>
-      <p>Nothing was charged. With a purchase this size, card companies sometimes hold the payment to protect you from fraud.</p>
-      <p><b>The quick fix:</b> call the number on the back of your card, let them know you're making a purchase from AquaZen, and ask them to approve it. Then tap the button below to try again.</p>
-      <button class="btn btn-gold" type="button" id="payRetry">Try again</button>
-      <p class="muted small">Questions? Call or text Shaun at 236-304-4424.</p>
+      <p class="muted small">You'll pay on Stripe's secure page, then come straight back here. Your card details go only to Stripe, our payment processor. AquaZen never sees or stores your card number.</p>
+      <p class="muted small"><b>If your card is declined:</b> with a purchase this size, card companies sometimes hold the payment to protect you. Call the number on the back of your card, let them know you're buying from AquaZen, and try again. Nothing is charged until it goes through.</p>
     </div>
     <div id="payDone" class="card done" hidden>
       <img src="/assets/img/icon-512.png" alt="" width="72" height="72" style="border-radius:16px">
@@ -32,4 +26,4 @@
     </div>
   </div>
 </section>
-<script src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
+

@@ -24,7 +24,8 @@ We use a small number of trusted service providers. Each only gets what it needs
 
 - **Supabase** stores our customer and sales records in Canada (Montreal).
 - **Resend** sends our emails. It may process your email address and the email content in the United States.
-- **QuickBooks Online (Intuit)** handles our invoices and payments. It receives your name, email, phone, address and the invoice amount when we bill you.
+- **Stripe** processes card payments. It receives your card details (we never do), your email and the amount you pay. It may process this in the United States.
+- **QuickBooks Online (Intuit)** keeps our books. It may receive your name, contact details and what you paid.
 - **GitHub Pages** hosts the public website, which doesn't store your personal information.
 - **Meta (Facebook and Instagram)** carries our messages with you and receives website visit information from the Meta Pixel.
 - **Anthropic** provides the AI that helps Noah write his replies. It receives the conversation, in the United States.
@@ -33,7 +34,7 @@ Some of these providers may store or process information outside Canada, where i
 
 ## Payments
 
-When you pay an invoice online, you pay through QuickBooks. We never see or store your card or bank account numbers.
+When you pay online, you pay on Stripe's secure page. Your card details go only to Stripe. We never see or store your card or bank account numbers.
 
 ## How long we keep it
 
@@ -47,7 +48,7 @@ We keep sales agreements and purchase records for as long as needed for warranty
 
 ## How we protect it
 
-Access to customer records is limited to Shaun and the staff who need it, and each salesperson sees only their own customers. Signed agreements are stored privately and shared only through short-lived links. Our QuickBooks connection is only used to create customers and invoices and to see when they're paid.
+Access to customer records is limited to Shaun and the staff who need it, and each salesperson sees only their own customers. Signed agreements are stored privately and shared only through short-lived links. Our Stripe and QuickBooks connections are only used to take your payments, see when they're paid and keep our books.
 
 ## Changes
 

@@ -1,7 +1,7 @@
 // One edge function for the customer and staff portals. Route = last path segment, e.g. /functions/v1/portal/signing
 import { admin, button, FUNCTIONS_URL, payTerms, caller, cors, corsAuth, dataUrlToBytes, emailShell, ensureUser, escapeHtml, firstNameOf, FROM, json, jsonAuth, logEvent, loginLink, money, REPLY_TO, sendEmail, SITE_URL, productNoun, productMaker, productWhat, balanceHow, h, MUTED, windowLabel, windowChoices, validWindow, noonVancouver } from "../_shared/common.ts";
 import { buildAgreementPdf, sha256Hex, toBase64 } from "../_shared/pdf.ts";
-import { startCheckout, getTransaction, hashMatches, uploadLogo } from "../_shared/helcim.ts";
+import { startCheckout, getSession, verifyWebhook, setupWebhook, cents } from "../_shared/stripe.ts";
 import { createDepositInvoice, createBalanceInvoice, ensureSaleItem, invoiceBalance, qbAuthUrl, qbConfigured, qbDisconnect, qbExchange, qbLists, qbStatus } from "../_shared/qb.ts";
 
 // ---- login-link ----
@@ -234,7 +234,7 @@ function payWhy(sale: any, link: string | null) {
 // QuickBooks deposit invoice, welcome email with delivery prep and the portal, and a notice to the salesperson and admins.
 async function afterSigned(sale: any, c: any, pdfBytes: Uint8Array, method: "online" | "paper") {
   const db = admin();
-  // The customer's own pay page (Helcim card form), so the welcome email and signing page can carry a Pay now button.
+  // The customer's own pay page (Stripe's secure checkout), so the welcome email and signing page can carry a Pay now button.
   let payLink: string | null = null, invoiceProblem = "";
   try { if (amountDue({ ...sale, status: "signed" })) payLink = await payLinkFor(sale); }
   catch (e) { console.error("pay link", e); invoiceProblem = String((e as Error).message ?? e); }
@@ -843,7 +843,7 @@ ${button(link, `Pay my ${noun}`)}
 }
 
 // The deposit (or full payment) is in: move the sale on, thank the customer, tell the salesperson and admins.
-// Used by QuickBooks sync (older sales) and by Helcim card payments. Safe to call twice: only the first moves the sale.
+// Used by QuickBooks sync (older sales) and by Stripe card payments. Safe to call twice: only the first moves the sale.
 // deno-lint-ignore no-explicit-any
 async function markDepositPaid(sale: any, detail: Record<string, unknown>) {
   const db = admin();
@@ -903,7 +903,7 @@ ${sale.delivery_window ? `<p>Your delivery window: <b>${escapeHtml(windowLabel(s
   return true;
 }
 
-// ---- Helcim card payments ----
+// ---- Stripe card payments ----
 // Each sale has a /pay/?t=<pay_token> page. What it charges is worked out here from the sale, never sent by the browser:
 // the deposit (or full payment) while the sale is signed, then the balance once the deposit is in.
 // deno-lint-ignore no-explicit-any
@@ -930,9 +930,10 @@ async function payLinkFor(sale: any): Promise<string> {
   return `${SITE_URL}/pay/?t=${tok}`;
 }
 
-// GET ?t=  what's owing (for the pay page).  POST {t, action: "start"} opens a Helcim checkout for it.
-// POST {t, action: "confirm", checkout_token, message} checks the payment with Helcim and marks it paid.
-// POST {t, action: "declined", checkout_token, message} records a decline and lets staff know.
+// GET ?t=  what's owing (for the pay page).
+// POST {t, action: "start"}  opens a Stripe Checkout page for it and returns its url.
+// POST {t, action: "confirm", session_id}  after Stripe sends them back: checks the payment with Stripe and marks it paid.
+// The stripe-webhook route does the same confirm, so a payment counts even if they close the tab before coming back.
 async function route_pay(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   const db = admin();
@@ -960,83 +961,115 @@ async function route_pay(req: Request): Promise<Response> {
     const due = amountDue(sale);
     if (!due) return json(req, { error: "There's nothing to pay on this agreement right now.", nothing_due: true }, 409);
     try {
-      const s = await startCheckout(due.amount);
-      await db.from("payment_sessions").insert({ sale_id: sale.id, kind: due.kind, amount: due.amount, checkout_token: s.checkoutToken, secret_token: s.secretToken });
+      const pt = payTerms(sale), what = productWhat(sale);
+      const label = due.kind === "balance" ? "Balance" : pt.full ? "Payment in full" : "Deposit";
+      const back = `${SITE_URL}/pay/?t=${sale.pay_token}`;
+      const s = await startCheckout({
+        amount: due.amount, email: sale.customers?.email || undefined,
+        name: `${label}: ${what}`, description: `AquaZen agreement #${sale.number}, ${label.toLowerCase()} for your ${what}`,
+        successUrl: `${back}&s={CHECKOUT_SESSION_ID}`, cancelUrl: back,
+        metadata: { sale_id: String(sale.id), kind: due.kind, agreement: String(sale.number) },
+      });
+      await db.from("payment_sessions").insert({ sale_id: sale.id, kind: due.kind, amount: due.amount, checkout_token: s.id, secret_token: "stripe" });
       await logEvent(sale.id, "pay_started", null, { kind: due.kind, amount: due.amount });
-      return json(req, { checkout_token: s.checkoutToken, amount: due.amount, kind: due.kind });
+      return json(req, { url: s.url, amount: due.amount, kind: due.kind });
     } catch (e) {
       console.error("pay start", sale.number, e);
-      return json(req, { error: "We couldn't open the secure card form. Please try again in a minute, or call or text Shaun at 236-304-4424." }, 502);
+      return json(req, { error: "We couldn't open the secure payment page. Please try again in a minute, or call or text Shaun at 236-304-4424." }, 502);
     }
-  }
-
-  const { data: sess } = await db.from("payment_sessions").select("*").eq("checkout_token", String(b.checkout_token ?? "")).eq("sale_id", sale.id).maybeSingle();
-  if (!sess) return json(req, { error: "We couldn't match this payment. Call or text Shaun at 236-304-4424 and we'll sort it out." }, 404);
-  // deno-lint-ignore no-explicit-any
-  let msg: any = b.message;
-  try { if (typeof msg === "string") msg = JSON.parse(msg); } catch { /* not JSON: a plain message */ }
-
-  if (action === "declined") {
-    const reason = typeof msg === "string" ? msg : (msg?.data?.data?.responseMessage ?? msg?.data?.responseMessage ?? "");
-    await logEvent(sale.id, "card_declined", null, { kind: sess.kind, amount: Number(sess.amount), reason: String(reason).slice(0, 200) });
-    try {
-      const c = sale.customers;
-      const { data: rep } = await db.from("profiles").select("email").eq("id", sale.salesperson_id ?? "").maybeSingle();
-      const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
-      const to = [...new Set([rep?.email, ...(admins ?? []).map((a) => a.email)].filter(Boolean))] as string[];
-      if (to.length) await sendEmail({ from: FROM, to, subject: `Card declined: agreement #${sale.number}, ${c.name}`,
-        html: emailShell({ preheader: `${c.name}'s card was declined for ${money(sess.amount)}.`, body:
-          `<p>${escapeHtml(c.name)} tried to pay ${money(sess.amount)} on agreement #${sale.number} and the card was declined${reason ? ` (Helcim says: ${escapeHtml(String(reason))})` : ""}.</p>
-<p>The pay page has already told them what to do: call the number on the back of their card to approve the purchase, then try again with the same link. A quick call from you usually helps.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
-    } catch (e) { console.error("declined email", sale.number, e); }
-    return json(req, { ok: true });
   }
 
   if (action === "confirm") {
-    if (sess.paid_at) return json(req, { ok: true, already: true });
-    const data = msg?.data?.data ?? msg?.data ?? null;
-    const txnId = data?.transactionId;
-    if (!txnId) return json(req, { error: "We couldn't read the payment result. Call or text Shaun at 236-304-4424 before trying again." }, 400);
-    const hashOk = await hashMatches(data, msg?.data?.hash, sess.secret_token).catch(() => false);
-    // Helcim is the source of truth: look the transaction up ourselves.
-    // deno-lint-ignore no-explicit-any
-    let t: any;
-    try { t = await getTransaction(txnId); } catch (e) {
-      console.error("pay confirm lookup", sale.number, e);
-      return json(req, { error: "Your payment went to Helcim, but we couldn't confirm it just now. Please don't pay again. Shaun will confirm it and be in touch." }, 502);
-    }
-    const ok = String(t.status).toUpperCase() === "APPROVED" && String(t.type ?? "purchase") === "purchase" &&
-      Math.abs(Number(t.amount) - Number(sess.amount)) < 0.005 && String(t.currency ?? "CAD").toUpperCase() === "CAD";
-    if (!ok) {
-      await logEvent(sale.id, "pay_mismatch", null, { txn: txnId, status: t.status, amount: t.amount, expected: Number(sess.amount) });
-      return json(req, { error: "This payment wasn't approved. Please try again, or call or text Shaun at 236-304-4424." }, 409);
-    }
-    const { data: claimed } = await db.from("payment_sessions").update({
-      transaction_id: String(txnId), paid_at: new Date().toISOString(),
-      card_type: data?.cardType ?? t.cardType ?? null, card_last4: String(data?.cardNumber ?? t.cardNumber ?? "").slice(-4) || null,
-    }).eq("id", sess.id).is("paid_at", null).select("id");
-    if (!claimed?.length) return json(req, { ok: true, already: true });
-    const detail = { via: "helcim", txn: String(txnId), amount: Number(sess.amount), hash_ok: hashOk };
-    if (sess.kind === "deposit") await markDepositPaid(sale, detail);
-    else await markBalancePaid(sale, detail);
-    return json(req, { ok: true });
+    const r = await settleStripe(String(b.session_id ?? ""), sale.id);
+    if (r.ok) return json(req, { ok: true, already: r.already, kind: r.kind, amount: r.amount });
+    return json(req, { error: r.error }, r.status ?? 409);
   }
   return json(req, { error: "Unknown action." }, 400);
 }
 
-// ---- helcim-logo ----
-// POST {}  Admin. Uploads the AquaZen logo (assets/img/logo-dark-square.jpg on the site) to show on the HelcimPay.js card form.
-async function route_helcim_logo(req: Request): Promise<Response> {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
-  const me = await caller(req);
-  if (!me || me.profile.role !== "admin") return jsonAuth(req, { error: "Admins only." }, 403);
-  const r = await fetch(`${SITE_URL}/assets/img/logo-dark-square.jpg`);
-  if (!r.ok) return jsonAuth(req, { error: "Couldn't load the logo from the website." }, 502);
-  const bytes = new Uint8Array(await r.arrayBuffer());
-  try { return jsonAuth(req, { ok: true, helcim: await uploadLogo(bytes, "aquazen-logo.jpg", "image/jpeg") }); }
-  catch (e) { return jsonAuth(req, { error: String((e as Error).message ?? e) }, 502); }
+// Look a Checkout Session up with Stripe (Stripe is the source of truth) and, if it's paid in full for the right
+// sale and amount, mark the deposit or balance paid. Safe to call twice: only the first call moves the sale.
+// deno-lint-ignore no-explicit-any
+async function settleStripe(sessionId: string, saleId?: string): Promise<{ ok: boolean; already?: boolean; kind?: string; amount?: number; error?: string; status?: number }> {
+  const db = admin();
+  if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return { ok: false, error: "We couldn't read the payment result. Call or text Shaun at 236-304-4424 before trying again.", status: 400 };
+  const { data: sess } = await db.from("payment_sessions").select("*").eq("checkout_token", sessionId).maybeSingle();
+  if (!sess || (saleId && sess.sale_id !== saleId)) return { ok: false, error: "We couldn't match this payment. Call or text Shaun at 236-304-4424 and we'll sort it out.", status: 404 };
+  if (sess.paid_at) return { ok: true, already: true, kind: sess.kind, amount: Number(sess.amount) };
+  // deno-lint-ignore no-explicit-any
+  let cs: any;
+  try { cs = await getSession(sessionId); } catch (e) {
+    console.error("pay confirm lookup", sessionId, e);
+    return { ok: false, error: "Your payment went to Stripe, but we couldn't confirm it just now. Please don't pay again. Shaun will confirm it and be in touch.", status: 502 };
+  }
+  const ok = cs.payment_status === "paid" && String(cs.currency).toLowerCase() === "cad" && Number(cs.amount_total) === cents(sess.amount) && cs.metadata?.sale_id === sess.sale_id;
+  if (!ok) {
+    if (cs.payment_status === "paid") await logEvent(sess.sale_id, "pay_mismatch", null, { session: sessionId, amount: Number(cs.amount_total) / 100, expected: Number(sess.amount) });
+    return { ok: false, error: cs.payment_status === "paid" ? "This payment didn't match your agreement. Call or text Shaun at 236-304-4424." : "This payment hasn't gone through yet. If you were charged, call or text Shaun at 236-304-4424 before trying again." };
+  }
+  const pi = cs.payment_intent, card = pi?.latest_charge?.payment_method_details?.card;
+  const { data: claimed } = await db.from("payment_sessions").update({
+    transaction_id: String(pi?.id ?? sessionId), paid_at: new Date().toISOString(), card_type: card?.brand ?? null, card_last4: card?.last4 ?? null,
+  }).eq("id", sess.id).is("paid_at", null).select("id");
+  if (!claimed?.length) return { ok: true, already: true, kind: sess.kind, amount: Number(sess.amount) };
+  const { data: sale } = await db.from("sales").select("*, customers(*)").eq("id", sess.sale_id).single();
+  const detail = { via: "stripe", txn: String(pi?.id ?? ""), session: sessionId, amount: Number(sess.amount), card: card ? `${card.brand} ${card.last4}` : null };
+  if (sess.kind === "deposit") await markDepositPaid(sale, detail);
+  else await markBalancePaid(sale, detail);
+  return { ok: true, kind: sess.kind, amount: Number(sess.amount) };
 }
 
+// POST from Stripe (signed). Paid checkouts are settled here too; a failed card tells the salesperson and admins.
+async function route_stripe_webhook(req: Request): Promise<Response> {
+  const raw = await req.text();
+  const secret = (await admin().from("settings").select("v").eq("k", "stripe_webhook_secret").maybeSingle()).data?.v ?? "";
+  if (!(await verifyWebhook(raw, req.headers.get("stripe-signature"), secret))) return new Response("bad signature", { status: 400 });
+  // deno-lint-ignore no-explicit-any
+  let ev: any = {};
+  try { ev = JSON.parse(raw); } catch { return new Response("ok"); }
+  const o = ev.data?.object ?? {};
+  try {
+    if (ev.type === "checkout.session.completed" || ev.type === "checkout.session.async_payment_succeeded") {
+      if (o.payment_status === "paid") await settleStripe(String(o.id));
+    } else if (ev.type === "payment_intent.payment_failed" && o.metadata?.sale_id) {
+      await cardDeclined(String(o.metadata.sale_id), Number(o.amount) / 100, String(o.last_payment_error?.message ?? ""));
+    }
+  } catch (e) { console.error("stripe webhook", ev.type, e); return new Response("retry", { status: 500 }); }
+  return new Response("ok");
+}
+
+// A declined card: log it and let the salesperson and admins know, so someone can help. Once per sale per hour.
+async function cardDeclined(saleId: string, amount: number, reason: string) {
+  const db = admin();
+  const { data: sale } = await db.from("sales").select("*, customers(*)").eq("id", saleId).maybeSingle();
+  if (!sale) return;
+  const { count } = await db.from("sale_events").select("id", { count: "exact", head: true }).eq("sale_id", saleId).eq("kind", "card_declined").gte("created_at", new Date(Date.now() - 3600e3).toISOString());
+  await logEvent(sale.id, "card_declined", null, { amount, reason: reason.slice(0, 200) });
+  if ((count ?? 0) > 0) return;
+  try {
+    const c = sale.customers;
+    const { data: rep } = await db.from("profiles").select("email").eq("id", sale.salesperson_id ?? "").maybeSingle();
+    const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").eq("active", true);
+    const to = [...new Set([rep?.email, ...(admins ?? []).map((a) => a.email)].filter(Boolean))] as string[];
+    if (to.length) await sendEmail({ from: FROM, to, subject: `Card declined: agreement #${sale.number}, ${c.name}`,
+      html: emailShell({ preheader: `${c.name}'s card was declined for ${money(amount)}.`, body:
+        `<p>${escapeHtml(c.name)} tried to pay ${money(amount)} on agreement #${sale.number} and the card was declined${reason ? ` (Stripe says: ${escapeHtml(reason)})` : ""}.</p>
+<p>Stripe's payment page lets them try again or use another card. With a purchase this size, their card company may be holding it: a quick call from you to suggest they call the number on the back of their card usually sorts it.</p>${button(`${SITE_URL}/staff/#sale-${sale.id}`, "Open in staff portal")}` }) });
+  } catch (e) { console.error("declined email", sale.number, e); }
+}
+
+// ---- stripe-setup ----
+// POST {}  Admin. Creates the Stripe webhook (or replaces ours) and saves its signing secret server side.
+async function route_stripe_setup(req: Request): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsAuth(req) });
+  const me = await adminOnly(req);
+  if (!me) return jsonAuth(req, { error: "Admins only." }, 403);
+  try {
+    const w = await setupWebhook(`${FUNCTIONS_URL}/portal/stripe-webhook`);
+    await admin().from("settings").upsert({ k: "stripe_webhook_secret", v: w.secret });
+    return jsonAuth(req, { ok: true, live: w.livemode });
+  } catch (e) { return jsonAuth(req, { error: (e as Error).message }, 502); }
+}
 // ---- pay-link ----
 // POST {sale_id, email_customer}  Staff. The sale's pay page link, and optionally emails it to the customer
 // for whatever is owing now (deposit or balance).
@@ -3149,7 +3182,7 @@ const ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "qb-status": route_qb_status, "qb-connect": route_qb_connect, "qb-callback": route_qb_callback,
   "deliveries": route_deliveries, "delivery-record": route_delivery_record, "portal-details": route_portal_details,
   "service-request": route_service_request, "service-list": route_service_list, "service-update": route_service_update,
-  "pay": route_pay, "pay-link": route_pay_link, "helcim-logo": route_helcim_logo,
+  "pay": route_pay, "pay-link": route_pay_link, "stripe-webhook": route_stripe_webhook, "stripe-setup": route_stripe_setup,
   "qb-settings": route_qb_settings, "qb-invoice": route_qb_invoice, "qb-balance-invoice": route_qb_balance_invoice, "qb-sync": route_qb_sync,
 };
 Deno.serve(async (req) => {

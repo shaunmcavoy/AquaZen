@@ -18,9 +18,9 @@ Your portal is for your own use. Keep access to your email account secure, since
 
 The staff portal is only for people authorized by AquaZen. Staff must keep customer information confidential and use it only to serve that customer.
 
-## Payments and QuickBooks
+## Payments
 
-Invoices and online payments are handled through QuickBooks Online by Intuit. Our website connects to our own QuickBooks account only to create customers and invoices and to see when they're paid. You can ask us to disconnect it at any time, and an admin can disconnect it from the staff portal. Payments are subject to Intuit's terms as well as your sales agreement.
+Online card payments are processed by Stripe on its secure payment page, and are subject to Stripe's terms as well as your sales agreement. We keep our books in QuickBooks Online by Intuit; our website connects to our own QuickBooks account only for bookkeeping, and an admin can disconnect it from the staff portal.
 
 ## Acceptable use
 
