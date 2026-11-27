@@ -425,7 +425,7 @@
     try {
       var told = Object.keys(lastReadable).map(function (k) { return k + ': ' + lastReadable[k]; }).join('; ');
       var me = 'Name ' + contact.first.trim() + ' ' + contact.last.trim() + ', phone ' + contact.phone.trim() + ', email ' + contact.email.trim() + ', city ' + contact.city.trim() + ' (they gave these in the form, so never ask again)';
-      document.dispatchEvent(new CustomEvent('az:fzdone', { detail: { picks: pk ? TUBS[pk.fit].name + ' and ' + TUBS[pk.up].name : '', answers: me + '. ' + told } }));
+      document.dispatchEvent(new CustomEvent('az:fzdone', { detail: { picks: pk ? TUBS[pk.fit].name + ' and ' + TUBS[pk.up].name : '', answers: me + '. ' + told, first: contact.first.trim(), best_time: contact.time && contact.time !== 'Any time' ? 'in the ' + contact.time.toLowerCase() : '' } }));
     } catch (e) {}
     var ask = form.querySelector('.fz-ask-noah');
     if (ask) ask.addEventListener('click', function () { if (window.AZNoah) window.AZNoah.open(); });

@@ -27,10 +27,11 @@
 
   var msgs = store('msgs') || [];
   var ctx = { page: page, model: cfg.model || '', series: cfg.series || '', picks: '', answers: '', saw_presentation: !!store('saw') };
-  var greeting = '', factKey = '';
-  // The pattern interrupt: one true, surprising fact, then a question. Every fact is true and from our own
-  // presentation, or well-established (sleep: a warm soak 1 to 2 hours before bed; buoyancy: Mayo Clinic).
-  // People at the end of the presentation have already seen our equipment facts, so they get the general ones.
+  var greeting = '', openerKey = '', price = null;
+  // The opener is the pattern interrupt (SCP Act One): unexpected, sincere and good to receive, then one question.
+  // Main openers (about 4 in 5 visitors): gratitude at the end of the presentation, the price before they ask on a
+  // model page. The rest get a true fact, as a test: each chat records its opener, so the Noah tab shows which wins.
+  // After Find your Zen, Noah writes his own first message from their answers (see start()).
   var FACTS = {
     sleep: "a warm soak an hour or two before bed helps you fall asleep faster? Your body cools down afterwards, and that drop is one of the signals it uses to fall asleep.",
     float: "when you're in the water up to your shoulders, it carries most of your body's weight? Your back and joints finally get a break.",
@@ -40,6 +41,8 @@
     heat: "most hot tub insulation leaves the pumps and lines bare, so heat escapes and the tub keeps running in the cold? An AquaSolus keeps all of its water insulated, all the time.",
     care: "looking after the water in an AquaSolus comes down to about one teaspoon of chlorine after a soak?"
   };
+  var HI = "Hi, I'm Noah, AquaZen's Internet Manager. ";
+  function money(n) { return '$' + Math.round(n).toLocaleString('en-CA'); }
   function pickFact() {
     var keys = (page === 'model') ? ['jets', 'clean', 'heat', 'care', 'sleep', 'float', 'winter'] : ['sleep', 'float', 'winter'];
     var seen = store('facts') || [], fresh = keys.filter(function (k) { return seen.indexOf(k) < 0; });
@@ -47,16 +50,28 @@
     store('facts', seen.concat(k).slice(-8));
     return k;
   }
+  function chooseOpener() {
+    if (openerKey) return;
+    var main = page === 'presentation' ? 'thanks' : (page === 'model' && price) ? 'price' : '';
+    openerKey = (main && Math.random() < 0.8) ? main : 'fact:' + pickFact();
+  }
+  // The hook: what the teaser bubble shows.
+  function opener() {
+    chooseOpener();
+    if (openerKey === 'thanks') return HI + 'Thank you for going all the way through that. It was a lot to take in.';
+    if (openerKey === 'price') return HI + "You're probably wondering about price, so here it is: the " + cfg.model + ' is ' + money(price.sale) + ' right now, normally ' + money(price.msrp) + ', with every upgrade, delivery, a cover lifter and steps included.';
+    return HI + 'Did you know that ' + FACTS[openerKey.slice(5)];
+  }
   function question() {
+    if (openerKey === 'thanks') return "What's one thing you'd still like to know?";
+    if (openerKey === 'price') return 'What else would help you decide?';
     if (page === 'presentation') return 'What stood out most for you in the presentation?';
-    if (page === 'quiz' && ctx.picks) return 'Are you leaning toward the ' + ctx.picks.replace(' and ', ' or the ') + '?';
     if (page === 'model' && cfg.model) return "What's got you looking at the " + cfg.model + '?';
     return "What's got you thinking about a hot tub?";
   }
-  function opener() { if (!factKey) factKey = pickFact(); return "Hi, I'm Noah, AquaZen's Internet Manager. Did you know that " + FACTS[factKey]; }
   function greet() { return opener() + '\n\n' + question(); }
 
-  var root, panel, list, input, launch, teaser, busy = false, shown = false;
+  var root, panel, list, input, launch, teaser, busy = false, shown = false, starting = false;
   function build() {
     if (root) return;
     root = document.createElement('div');
@@ -89,7 +104,7 @@
     }
   }
   function render() {
-    var all = msgs.length ? msgs : [{ role: 'noah', text: greeting || greet() }];
+    var all = msgs.length || starting ? msgs : [{ role: 'noah', text: greeting || greet() }];
     list.innerHTML = all.map(function (m) { return '<div class="nw nw-' + (m.role === 'user' ? 'me' : 'noah') + '">' + fmt(m.text) + '</div>'; }).join('') +
       (busy ? '<div class="nw nw-noah nw-typing" aria-label="Noah is typing"><i></i><i></i><i></i></div>' : '');
     list.scrollTop = list.scrollHeight;
@@ -98,7 +113,7 @@
     build();
     panel.hidden = !open; launch.setAttribute('aria-expanded', open ? 'true' : 'false');
     root.classList.toggle('open', open); teaser.hidden = true;
-    if (open) { if (!greeting) greeting = greet(); render(); setTimeout(function () { input.focus(); }, 50); }
+    if (open) { if (!greeting && !starting) greeting = greet(); render(); if (!starting) setTimeout(function () { input.focus(); }, 50); }
   }
   function show(withTeaser) {
     build();
@@ -116,7 +131,7 @@
     if (first) msgs.push({ role: 'noah', text: greeting || greet() });
     msgs.push({ role: 'user', text: text }); store('msgs', msgs.slice(-60));
     input.value = ''; input.style.height = 'auto'; busy = true; render();
-    fetch(URL_W, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vid: vid(), text: text, ctx: ctx, greeting: first ? msgs[0].text : '', fact: first ? factKey : '' }) })
+    fetch(URL_W, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vid: vid(), text: text, ctx: ctx, greeting: first ? msgs[0].text : '', opener: first ? openerKey : '' }) })
       .then(function (r) { return r.json(); })
       .then(function (r) { msgs.push({ role: 'noah', text: r.reply || r.error || "Sorry, that didn't go through. Call or text us at 236-304-4424." }); })
       .catch(function () { msgs.push({ role: 'noah', text: "That didn't send. Check your connection and try again, or call or text us at 236-304-4424." }); })
@@ -132,16 +147,35 @@
       }, { threshold: 0.2 }).observe(end);
     } else if (end) show(false);
   } else if (page === 'model') {
-    var t0 = setTimeout(function () { show(true); }, 6000);
-    window.addEventListener('scroll', function once() { if (window.scrollY > window.innerHeight * 0.5) { clearTimeout(t0); show(true); window.removeEventListener('scroll', once); } }, { passive: true });
+    var ready = cfg.model ? fetch(URL_W, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ price_of: cfg.model }) })
+      .then(function (r) { return r.json(); }).then(function (r) { if (r.ok && r.sale && r.msrp > r.sale) price = r; }).catch(function () {}) : Promise.resolve();
+    var go = function () { ready.then(function () { show(true); }); };
+    var t0 = setTimeout(go, 6000);
+    window.addEventListener('scroll', function once() { if (window.scrollY > window.innerHeight * 0.5) { clearTimeout(t0); go(); window.removeEventListener('scroll', once); } }, { passive: true });
   }
   if (msgs.length) show(false);
 
   // Find your Zen results (on its own page or inside the presentation).
   document.addEventListener('az:fzdone', function (e) {
     var d = e.detail || {};
-    ctx.page = page = 'quiz'; ctx.picks = d.picks || ''; ctx.answers = d.answers || '';
-    factKey = ''; greeting = greet(); show(true);
+    ctx.page = page = 'quiz'; ctx.picks = d.picks || ''; ctx.answers = d.answers || ''; ctx.first = d.first || ''; ctx.best_time = d.best_time || '';
+    if (!ctx.picks) return; // swim spas and mini pools: the team takes it from here
+    start();
   });
+  // Noah speaks first: his opener is written from their Find your Zen answers and the tub we suggest.
+  function start() {
+    build(); starting = true; busy = true;
+    show(false);
+    setTimeout(function () { toggle(true); }, 1200); // let the results appear first
+    fetch(URL_W, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vid: vid(), start: true, ctx: ctx }) })
+      .then(function (r) { return r.json(); })
+      .then(function (r) { if (r.reply) msgs.push({ role: 'noah', text: r.reply }); })
+      .catch(function () {})
+      .then(function () {
+        if (!msgs.length) msgs.push({ role: 'noah', text: HI + 'Thanks for filling that out' + (ctx.first ? ', ' + ctx.first : '') + '. Shaun will call you to book a quiet visit.\n\nAny questions about the ' + ctx.picks.replace(' and ', ' or the ') + ' before then?' });
+        starting = false; busy = false; store('msgs', msgs.slice(-60)); render();
+        if (!panel.hidden) input.focus({ preventScroll: true });
+      });
+  }
   window.AZNoah = { open: function () { toggle(true); } };
 })();

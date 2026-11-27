@@ -2932,10 +2932,19 @@ const WEB_CTX: Record<string, string> = {
 async function route_noah_web(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   const b = await req.text().then((t) => { try { return JSON.parse(t); } catch { return {}; } });
+  const db = admin();
+  // The model-page opener answers the price before they ask, straight from Products (the same numbers as the deal builder).
+  if (b.price_of) {
+    const model = String(b.price_of).replace(/[^a-z ]/gi, "").slice(0, 30);
+    const { data: p } = await db.from("product_costs").select("model, msrp, sale_price, product_lines(name)").eq("product_type", "hot_tub").ilike("model", model).maybeSingle();
+    if (!p || !Number(p.sale_price)) return json(req, { ok: false });
+    // deno-lint-ignore no-explicit-any
+    return json(req, { ok: true, model: p.model, msrp: Number(p.msrp), sale: Number(p.sale_price), line: (p as any).product_lines?.name || "" });
+  }
   const vid = String(b.vid ?? "").replace(/[^a-z0-9-]/gi, "").slice(0, 40);
   const text = String(b.text ?? "").trim().slice(0, 1000);
-  if (vid.length < 16 || !text) return json(req, { error: "Please type a message." }, 400);
-  const db = admin();
+  const start = !!b.start && !text;
+  if (vid.length < 16 || (!text && !start)) return json(req, { error: "Please type a message." }, 400);
   const phone = "If you'd rather talk to a person, call or text us at 236-304-4424.";
   const on = (await db.from("settings").select("v").eq("k", "noah_on").maybeSingle()).data?.v !== "off";
   if (!on) return json(req, { reply: `Noah is taking a break right now. ${phone}` });
@@ -2949,10 +2958,14 @@ async function route_noah_web(req: Request): Promise<Response> {
   if ((recent ?? 0) >= 10 || (today ?? 0) >= 60) return json(req, { reply: `That's a lot of messages in a short time, so I'm going to pause here. ${phone}` });
   // The greeting the visitor saw first becomes part of the chat, so Noah knows what he "said".
   const { count: any } = await db.from("chat_messages").select("id", { count: "exact", head: true }).eq("thread_id", t.id);
-  const greeting = String(b.greeting ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 400);
-  const fact = String(b.fact ?? "").replace(/[^a-z]/g, "").slice(0, 12);
-  if (!any && greeting) await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: greeting, stage: "intro", move: fact ? `fact opener: ${fact}` : "website greeting" });
-  await db.from("chat_messages").insert({ thread_id: t.id, role: "user", text });
+  const greeting = String(b.greeting ?? "").replace(/\s*[—–]\s*/g, ", ").slice(0, 600);
+  const opener = String(b.opener ?? b.fact ?? "").replace(/[^a-z:]/g, "").slice(0, 20);
+  if (!any && greeting && !start) await db.from("chat_messages").insert({ thread_id: t.id, role: "noah", text: greeting, stage: "intro", move: opener ? `opener: ${opener}` : "website greeting" });
+  if (start) {
+    // Noah speaks first once, right after Find your Zen sends.
+    const { count: began } = await db.from("chat_messages").select("id", { count: "exact", head: true }).eq("thread_id", t.id).eq("move", "opener: results").gte("created_at", new Date(now.getTime() - 10 * 60e3).toISOString());
+    if ((began ?? 0) > 0) return json(req, { reply: null });
+  } else await db.from("chat_messages").insert({ thread_id: t.id, role: "user", text });
   await db.from("chat_threads").update({ last_user_at: now.toISOString(), updated_at: now.toISOString() }).eq("id", t.id);
   if (t.status === "human" && t.human_until && new Date(t.human_until) > now) return json(req, { reply: `Thanks, I've passed that to the team. ${phone}` });
 
@@ -2961,24 +2974,32 @@ async function route_noah_web(req: Request): Promise<Response> {
   const clip = (x: unknown, n = 120) => String(x ?? "").replace(/[\r\n]+/g, " ").slice(0, n);
   const seen = page === "presentation" || page === "quiz" || !!c.saw_presentation;
   const lines = [
-    `WEBSITE CHAT. ${WEB_CTX[page]} Your first message (already sent) opened with a true fact as a pattern interrupt, then a question. Build on whatever they answer; don't repeat the fact.`,
+    `WEBSITE CHAT. ${WEB_CTX[page]} ${start ? "" : "Your first message (already sent) was your opener: a pattern interrupt and a question. Build on whatever they answer; don't repeat it."}`,
     page === "model" && c.model ? `The page: the ${clip(c.model, 40)} (${clip(c.series, 30)}). They may want the price: give it straight (what people normally pay, our price, and the package that's included), then keep going with the process.` : "",
     page === "quiz" && c.picks ? `Their Find your Zen results showed: ${clip(c.picks, 160)}. Their answers: ${clip(c.answers, 900)}. The team will also call them about these, so you can help them choose between the two, answer questions, or sell the one they want right here.` : "",
     page !== "presentation" && c.saw_presentation ? "They've also been through the How we deliver Zen presentation on this website." : "",
     "This is a chat box on aquazen.ca, not Messenger: links to pages on aquazen.ca are fine (they open on the site), but never suggest Messenger. The team can only follow up by phone or email, so when it's natural (a question you can't answer, a call, or a yes) ask for their first name and phone number or email. Count an email as enough for handoff when they'd rather not give a phone number.",
     seen ? NOAH_CLOSE : "",
     t.handed_off_at ? "The team already has their details and will call. Keep helping warmly, and don't ask for their details again." : "",
+    start ? `THEY HAVEN'T WRITTEN YET. Write your FIRST message; it pops up on their screen right as their results appear. It's your pattern interrupt, so make it about them, not about us:
+- Open with "Hi ${clip(c.first, 30) || "there"}, I'm Noah, AquaZen's Internet Manager." and a genuine thank you for taking the time.
+- Be honest about what happens next: Shaun will call them${c.best_time ? ` (${clip(c.best_time, 30).toLowerCase()})` : ""} to book a quiet visit, so nothing is a surprise.
+- Reflect one or two things they told you in the form, in their own words (who soaks, what they want most, the space), and say in one line why their best fit, the first of the two, suits exactly that. Mention the second only briefly, as the step up.
+- End with one question on its own line, after a blank line, that invites them to talk (which one caught their eye, or whether that sounds like them).
+Keep it to about four short sentences plus the question. No prices unless they ask. Set stage to "product" and handoff to false.` : "",
   ].filter(Boolean).join("\n\n");
   const { data: msgs } = await db.from("chat_messages").select("role, text").eq("thread_id", t.id).order("created_at").limit(60);
   const history = msgs ?? [];
   try {
     const j = await noahThink(history, lines);
+    if (start) { j.move = "opener: results"; j.handoff = false; }
     await noahRecord(t.id, j, null);
     await db.from("chat_threads").update({ last_bot_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(j.lead?.name && !t.handed_off_at ? { name: clip(j.lead.name, 60) } : {}) }).eq("id", t.id);
     if (j.handoff && !t.handed_off_at) await noahHandoff(t.id, "web", j.lead || {}, [...history, { role: "noah", text: j.reply }]).catch((e) => console.error("noah web handoff", e));
     return json(req, { reply: j.reply });
   } catch (e) {
     console.error("noah web", e);
+    if (start) return json(req, { reply: null });
     return json(req, { reply: `Sorry, I didn't catch that one. Could you send it again? ${phone}` });
   }
 }
