@@ -40,7 +40,7 @@ export const cents = (n: number) => Math.round(Number(n) * 100);
 export function startCheckout(o: { amount: number; name: string; description: string; email?: string; successUrl: string; cancelUrl: string; metadata: Record<string, string> }) {
   return stripe("checkout/sessions", {
     mode: "payment",
-    payment_method_types: ["card"],
+    allowed_payment_method_types: ["card"], // card only (Apple Pay and Google Pay ride on card); no buy-now-pay-later or bank redirects
     customer_email: o.email || undefined,
     line_items: [{ quantity: 1, price_data: { currency: "cad", unit_amount: cents(o.amount), product_data: { name: o.name, description: o.description } } }],
     payment_intent_data: { description: o.description, metadata: o.metadata },
