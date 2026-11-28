@@ -525,7 +525,7 @@
     "bro-s3-waterfall",
     "bro-s3-jets",
     "bro-s3-cup",
-    "bro-s3-lightbar",
+    "bro-s3-filter",
     "bro-night",
     "cascade-site-quarter",
     "cascade-site-overhead"
@@ -560,7 +560,7 @@
     "bro-s3-waterfall",
     "bro-s3-jets",
     "bro-s3-cup",
-    "bro-s3-lightbar",
+    "bro-s3-filter",
     "bro-night",
     "serenity-site-quarter",
     "serenity-site-overhead"
@@ -595,7 +595,7 @@
     "bro-s3-waterfall",
     "bro-s3-jets",
     "bro-s3-cup",
-    "bro-s3-lightbar",
+    "bro-s3-filter",
     "bro-night",
     "zenith-site-quarter",
     "zenith-site-overhead"
@@ -630,7 +630,7 @@
     "bro-s3-waterfall",
     "bro-s3-jets",
     "bro-s3-cup",
-    "bro-s3-lightbar",
+    "bro-s3-filter",
     "bro-night",
     "solstice-site-quarter",
     "solstice-site-overhead"
