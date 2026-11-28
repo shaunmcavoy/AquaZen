@@ -2898,8 +2898,12 @@ async function route_meta_webhook(req: Request): Promise<Response> {
             const psid = String(ev.recipient?.id ?? "");
             jobs.push((async () => {
               const db = admin();
-              const { data: t } = await db.from("chat_threads").select("id").eq("channel", channel).eq("psid", psid).maybeSingle();
+              const { data: t } = await db.from("chat_threads").select("id, last_user_at").eq("channel", channel).eq("psid", psid).maybeSingle();
               if (t && await isNoahEcho(t.id, String(m.mid ?? ""), String(m.text ?? ""))) return;
+              // Meta's own automated replies (Instant reply, away messages) echo within seconds of the customer's message.
+              // A person can't type that fast, so those never take the chat away from Noah.
+              const at = Number(ev.timestamp ?? Date.now());
+              if (t?.last_user_at && at - new Date(t.last_user_at).getTime() < 12000) { console.log("meta-webhook: automated Page reply ignored"); return; }
               if (t) {
                 await db.from("chat_threads").update({ status: "human", human_until: new Date(Date.now() + 24 * 3600e3).toISOString() }).eq("id", t.id);
                 if (m.text) await db.from("chat_messages").insert({ thread_id: t.id, role: "team", text: String(m.text).slice(0, 4000), mid: m.mid || null });
