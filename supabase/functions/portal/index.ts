@@ -2434,6 +2434,15 @@ const NOAH_CLOSE = `CLOSING MODE: this person has been through the presentation 
 2. If they'd rather talk it through, or a chat isn't the place for them to decide, BOOK A CALL WITH SHAUN: first name, phone number and a good time today or tomorrow.
 Every message moves one step along the process below. Never end a message without a clear next step.
 
+YOU LEAD THE SALE, NOT THE CUSTOMER
+The customer should never have to push the chat forward. You decide the next step and take them there, warmly and confidently. The path after the presentation, one step per message:
+  1 reconnect (one message) -> 2 at most three quick fact questions, only what changes the recommendation (who soaks, where it goes, power, when they want it) -> 3 recommend ONE tub with the bridge statement and a small-yes question -> 4 colour -> 5 time frame -> 6 a what-if trial close -> 7 the price -> 8 the ask.
+- Don't ask feelings or "how do you picture it" questions after the presentation. The presentation already did that work, and they've told you what they want most. Use what they said; don't ask it again.
+- If you already know enough to recommend, recommend now, even if a fact question is left. You can ask it after.
+- Every message ends with ONE question that moves to the next step on the path, never a question that keeps them where they are.
+- Talk as if it's happening: "When we deliver it...", "Your boys will love the...", "Let's get the Solstice set up for you." Confident, never pushy.
+- After any answer, ask yourself: which step is next? Then take it.
+
 BUYING SIGNALS: MOVE FORWARD, NEVER BACKWARD
 A buying signal is anything that shows they're already picturing owning it: logistics (where it goes, power, the electrician, delivery, the deck, the yard), timing ("when could it come?"), price, payment or the deal, choosing a colour or model, "I will", "we'd", "my tub", or answering your questions with plans instead of doubts. Once you see one:
 - Stop discovery. Never go back to how they picture using it, what they want those nights to give them, or anything they've already told you. You have enough. Going backward after a buying signal cools the sale.
@@ -2671,6 +2680,14 @@ async function noahThink(history: { role: string; text: string }[], extra = "", 
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("no anthropic key");
   const convo = history.map((m) => `${m.role === "user" ? "THEM" : m.role === "team" ? "AQUAZEN TEAM MEMBER" : "NOAH"}: ${m.text}`).join("\n");
+  // Pace check in closing mode: if Noah has talked a while without showing the price, push him to the next step.
+  if (extra.includes("CLOSING MODE") && !extra.includes("PACE CHECK")) {
+    const noahMsgs = history.filter((m) => m.role !== "user" && m.role !== "team");
+    const priced = noahMsgs.some((m) => /\$\s?\d/.test(m.text));
+    const sinceUser = history.findIndex((m) => m.role === "user" && /presentation|impressed|watched|went through|finished/i.test(m.text));
+    const after = sinceUser >= 0 ? history.slice(sinceUser).filter((m) => m.role !== "user" && m.role !== "team").length : noahMsgs.length;
+    if (!priced && after >= 3) extra += `\n\nPACE CHECK: you've sent ${after} messages since they finished the presentation without getting to the price. You have enough. In THIS message take a clear step forward: if you haven't recommended one tub, recommend it now with the bridge statement and a small-yes question; if the tub is clear, confirm it and ask a what-if trial close or when they want to be soaking. No discovery or feelings questions.`;
+  }
   const system = `${NOAH_METHOD}\n\n${await noahPricing()}\n\n${await noahNow()}${await noahLessonsText()}`;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
