@@ -90,7 +90,7 @@
   /* ---------- Christmas: the December 1 cutoff disappears once it has passed ---------- */
   if (Date.now() > Date.parse('2026-12-02T08:00:00Z')) $$(document, '.hz-xmas').forEach(function (n) { n.remove(); });
 
-  /* ---------- The last question: do you believe AquaZen can give you what you picked? ---------- */
+  /* ---------- The close: confirm their why, then one positive step (Find mine) ---------- */
   var GOALSAY = {
     sleep: 'better sleep', muscles: 'relief for your sore muscles', together: 'more time together',
     escape: 'a quiet escape every night', all: 'all of it: better sleep, relief for sore muscles, time together and a quiet escape'
@@ -103,12 +103,9 @@
     fzSec.classList.add('asking');
     $$(fzSec, '[data-ans]').forEach(function (b) {
       b.addEventListener('click', function () {
-        var yes = b.dataset.ans === 'yes';
         fzSec.dataset.ans = b.dataset.ans;
         $$(fzSec, '[data-ans]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-        $(fzSec, '.hz-ask-say').textContent = yes
-          ? 'Then let\u2019s find yours. A few quick questions about who\u2019s soaking, how often and where, and we\u2019ll show you the two hot tubs that fit you best, with why. Then we\u2019ll call to book a quiet visit so you can sit in the one that fits you.'
-          : 'That\u2019s honest, and it\u2019s exactly why we don\u2019t ask you to take our word for it. A few quick questions, and we\u2019ll show you the two hot tubs that fit you best. Then come sit in one and feel it for yourself.';
+        $(fzSec, '.hz-ask-say').textContent = 'Let\u2019s find yours. A few quick questions about who\u2019s soaking, how often and where, and we\u2019ll show you the two hot tubs that fit you best, with why. Then we\u2019ll call to book a quiet visit so you can sit in the one that fits you.';
         fzSec.classList.remove('asking');
         fzSec.classList.add('answered');
         var r = $(fzSec, '.hz-ask-reply');

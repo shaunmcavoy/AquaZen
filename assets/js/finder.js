@@ -371,7 +371,7 @@
       var GW = { sleep: 'Better sleep', muscles: 'Relief for sore muscles', together: 'Time together', escape: 'A quiet escape', all: 'All of it' };
       try { var gw = GW[localStorage.getItem('az-goal') || '']; if (gw) readable['What they want most'] = gw; } catch (e) {}
       var sec = document.getElementById('find-your-zen');
-      if (sec && sec.dataset.ans) readable['Believes AquaZen can give them that'] = sec.dataset.ans === 'yes' ? 'Yes' : 'Not sure yet';
+      if (sec && sec.dataset.ans) readable['Finished the presentation'] = 'Yes, tapped Find mine';
     }
     visible().forEach(function (s) {
       if (s.type === 'contact') return;
